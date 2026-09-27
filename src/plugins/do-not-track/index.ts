@@ -15,7 +15,7 @@ import { blockers } from './types';
 export interface TrackerBlockerConfig {
   /**
    * Whether to enable the tracker blocker.
-   * @default true
+   * @default true (enabled by default for v3.11.0 parity)
    */
   enabled: boolean;
   /**
@@ -46,7 +46,7 @@ export default createPlugin({
   description: () => t('plugins.do-not-track.description'),
   restartNeeded: false,
   config: {
-    enabled: false,
+    enabled: true,
     cache: true,
     blocker: blockers.InPlayer,
     additionalBlockLists: [],
