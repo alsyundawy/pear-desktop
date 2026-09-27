@@ -34,11 +34,18 @@ jobs:
             arch_label: Intel x64
             build_script: dist:mac
 
-          # ─── macOS Apple Silicon ───────────────────────────────────
+          # ─── macOS Apple Silicon (macOS 15) ────────────────────────
           - runs_on: macos-15
             platform: mac
             arch: arm64
-            arch_label: Apple Silicon ARM64
+            arch_label: Apple Silicon ARM64 (macOS 15)
+            build_script: dist:mac:arm64
+
+          # ─── macOS Apple Silicon (macOS Latest) ────────────────────
+          - runs_on: macos-latest
+            platform: mac
+            arch: arm64
+            arch_label: Apple Silicon ARM64 (macOS Latest)
             build_script: dist:mac:arm64
 
     steps:
