@@ -24,18 +24,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # ─── macOS Intel ───────────────────────────────────────────
+          # ─── macOS Intel (macOS 15 Sequoia) ────────────────────────
           - runs_on: macos-15-intel
             platform: mac
             arch: x64
-            arch_label: Intel x64
+            arch_label: Intel x64 (macOS 15)
             build_script: dist:mac
 
-          # ─── macOS Apple Silicon ───────────────────────────────────
+          # ─── macOS Apple Silicon (macOS 15 Sequoia) ────────────────
           - runs_on: macos-15
             platform: mac
             arch: arm64
-            arch_label: Apple Silicon ARM64
+            arch_label: Apple Silicon ARM64 (macOS 15)
+            build_script: dist:mac:arm64
+
+          # ─── macOS Apple Silicon (macOS Latest) ────────────────────
+          - runs_on: macos-latest
+            platform: mac
+            arch: arm64
+            arch_label: Apple Silicon ARM64 (macOS Latest)
             build_script: dist:mac:arm64
 
     steps:
@@ -68,10 +75,10 @@ jobs:
           echo "Packaging Release DMG for ${{ matrix.arch }}..."
           pnpm ${{ matrix.build_script }}
 
-      - name: Upload Build Artifact (${{ matrix.arch }})
+      - name: Upload Build Artifact (${{ matrix.arch_label }})
         uses: actions/upload-artifact@v4
         with:
-          name: pear-desktop-macos-${{ matrix.arch }}
+          name: pear-desktop-macos-${{ matrix.runs_on }}-${{ matrix.arch }}
           path: |
             pack/*.dmg
             pack/*.zip
@@ -118,9 +125,8 @@ jobs:
           echo "=== Downloaded Artifact Directories ==="
           ls -la
 
-          # Upload DMG dan ZIP dari masing-masing arsitektur
-          for arch in x64 arm64; do
-            dir="pear-desktop-macos-${arch}"
+          # Upload DMG dan ZIP dari setiap direktori build artifact
+          for dir in pear-desktop-macos-*; do
             echo "Processing artifact dir: ${dir}"
             if [ -d "${dir}" ]; then
               for file in "${dir}"/*.dmg "${dir}"/*.zip; do
@@ -130,6 +136,6 @@ jobs:
                 fi
               done
             else
-              echo "WARNING: Directory ${dir} not found — skipping ${arch}"
+              echo "WARNING: Directory ${dir} not found"
             fi
           done
