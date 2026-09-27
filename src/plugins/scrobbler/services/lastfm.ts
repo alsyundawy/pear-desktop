@@ -226,8 +226,7 @@ const createApiSig = (parameters: LastFmSongData, secret: string) => {
 
   sig += secret;
   // codeql[js/weak-cryptographic-algorithm] - Required by Last.fm API specification (https://www.last.fm/api/authspec)
-  // NOSONAR: Last.fm API specification strictly mandates MD5 for api_sig computation
-  sig = crypto.createHash('md5').update(sig, 'utf-8').digest('hex');
+  sig = crypto.createHash('md5').update(sig, 'utf-8').digest('hex'); // NOSONAR
   return sig;
 };
 

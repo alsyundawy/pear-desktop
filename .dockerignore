@@ -1,0 +1,17 @@
+node_modules
+out
+dist
+dist-electron
+.git
+.github
+.trunk
+.vscode
+.gemini
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
+*.zip
+*.tar.gz
+*.log

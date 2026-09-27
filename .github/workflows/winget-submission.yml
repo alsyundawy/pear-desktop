@@ -14,6 +14,8 @@ jobs:
   winget:
     name: Publish winget package
     runs-on: ubuntu-latest
+    env:
+      WINGET_TAG_NAME: ""
     steps:
       - name: Set winget version env
         env:
