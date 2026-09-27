@@ -35,7 +35,7 @@ const getPropertyName = (prop: Node): string | null => {
   return null;
 };
 
-export default function (
+export default function pluginLoader(
   mode: 'backend' | 'preload' | 'renderer' | 'none',
 ): PluginOption {
   return {

@@ -27,8 +27,8 @@ export const i18nImporter = () => {
       writer.writeLine('export const languageResources = async () => {');
       writer.writeLine('  const entries = await Promise.all([');
       for (const { name, path } of plugins) {
-        const absolutePath = resolve(srcPath, '..', path).replace(
-          /\\/g,
+        const absolutePath = resolve(srcPath, '..', path).replaceAll(
+          '\\',
           '/',
         );
 

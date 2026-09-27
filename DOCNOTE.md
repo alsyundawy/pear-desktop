@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-Release **v3.12.0-01** represents a comprehensive hardening, optimization, and modernization milestone for Pear Desktop. This release establishes full multi-architecture macOS CI/CD pipeline automation (supporting Apple Silicon ARM64 and Intel x64), remediates over 45 critical and high security vulnerabilities from upstream dependencies, refactors plugin providers for high code quality and low cognitive complexity, and achieves 100% compliance across all project linters (`oxlint`, `oxfmt`, `tsc`, and `actionlint`).
+Release **v3.12.0-01** represents a comprehensive hardening, optimization, and modernization milestone for Pear Desktop. This release establishes full multi-architecture macOS CI/CD pipeline automation (supporting Apple Silicon ARM64 and Intel x64), remediates over 45 critical and high security vulnerabilities from upstream dependencies, refactors plugin providers and store migration logic for high code quality and zero cognitive-complexity violations, and achieves 100% compliance across all project linters (`oxlint`, `oxfmt`, `tsc`, and `actionlint`).
 
 ---
 
@@ -55,6 +55,12 @@ Release **v3.12.0-01** represents a comprehensive hardening, optimization, and m
 
 ## 4. Code Quality, TypeScript & Cognitive Complexity
 
+### Store Migration Refactoring
+- **Store Migration Logic** ([`src/config/store.ts`](src/config/store.ts)):
+  - Replaced `if (!scrobblerConfig)` and `if (!scrobblerConfig.scrobblers)` assignment guards with modern nullish coalescing assignment (`??=`) operators, resolving two `prefer-nullish-coalescing` lint warnings.
+  - Extracted private helper function `migrateShortcutOptionType(options, optionType)` with typed `ShortcutEntry` and `ShortcutsRecord` aliases, reducing the cognitive complexity of the `>=1.12.0` migration from **19** to **≤8** (well below the maximum allowed limit of 15).
+  - Applied early-return guard (`if (!options) return;`) to eliminate an unnecessary nesting level in the migration function.
+
 ### Provider Logic Refactoring
 - **YouTube Music Provider** ([`src/plugins/synced-lyrics/providers/YTMusic.ts`](src/plugins/synced-lyrics/providers/YTMusic.ts)):
   - Extracted modular private helper `extractPlainLyrics(contents, syncedLines)`.
@@ -64,6 +70,54 @@ Release **v3.12.0-01** represents a comprehensive hardening, optimization, and m
 - **Lyrics Genius Provider** ([`src/plugins/synced-lyrics/providers/LyricsGenius.ts`](src/plugins/synced-lyrics/providers/LyricsGenius.ts)):
   - Upgraded string replacements to use `String.raw` template literals to prevent regex backslash escape warnings.
   - Replaced `.replace()` with `.replaceAll()` and `.match()` with regex `.exec()` for predictable linear execution.
+- **LRCLib Provider** ([`src/plugins/synced-lyrics/providers/LRCLib.ts`](src/plugins/synced-lyrics/providers/LRCLib.ts)):
+  - Added `readonly` to class members `name` and `baseUrl`.
+  - Extracted private methods `fetchSearch()`, `searchInexact()`, `pickBestResult()`, and `bestArtistRatio()` to reduce cognitive complexity of `search()` from ~22 to ≤10.
+  - Moved `bestPairRatio()` to module-level utility.
+  - Used `album != null` guard for the optional `album_name` query param (fixes `string | null` assignment).
+  - Replaced `.sort()` with `.slice().sort()` for non-mutating, ES2022-safe sort.
+- **Megalobiz Provider** ([`src/plugins/synced-lyrics/providers/Megalobiz.ts`](src/plugins/synced-lyrics/providers/Megalobiz.ts)):
+  - Marked class properties `name`, `baseUrl`, `domParser` as `readonly`.
+  - Extracted module-level regex constants (`FEAT_REGEX`, `TITLE_ARTIST_REGEX`, `ARTIST_TITLE_REGEX`, `TIMESTAMP_REGEX`) to prevent re-compilation on every call.
+  - Replaced `match()` with `exec()` throughout for predictable linear matching.
+  - Replaced `parseInt()` with `Number.parseInt(..., 10)` (explicit radix).
+  - Replaced inner variable `artist` with `art` to avoid shadowing the outer `artist` parameter.
+  - Replaced `.sort()` with `.slice().sort()` for ES2022-compatible non-mutating sort.
+- **MusixMatch Provider** ([`src/plugins/synced-lyrics/providers/MusixMatch.ts`](src/plugins/synced-lyrics/providers/MusixMatch.ts)):
+  - Added `readonly` to public class members `name` and `baseUrl`.
+  - Replaced both `Object.assign({...}, params)` calls with object spread syntax.
+
+### Core Module Lint Fixes
+- **`src/config/plugins.ts`**:
+  - Simplified `pluginConfig !== undefined && pluginConfig.enabled` → `pluginConfig?.enabled ?? false`.
+  - Replaced `Object.prototype.hasOwnProperty.call(options, key)` → `Object.hasOwn(...)` (modern safe alternative).
+- **`src/loader/main.ts`**:
+  - Replaced all 4x `return Promise.reject(...)` with `throw` inside async functions — semantically identical but cleaner and lint-compliant.
+- **`src/loader/preload.ts`** and **`src/loader/renderer.ts`**:
+  - Collapsed `else { if (...) }` into `else if (...)` in the plugin enable/disable loops.
+- **`src/menu.ts`**:
+  - Extracted `.sort()` chain into a named `sortedPlugins` const using `.slice().sort()` for non-mutating sort.
+- **`src/tray.ts`**:
+  - Replaced `typeof songInfo.isPaused === 'undefined'` with `songInfo.isPaused === undefined`.
+- **`src/providers/prompt-options.ts`**:
+  - Named the default-exported arrow function as `getPromptOptions` to satisfy the no-anonymous-default-export rule.
+- **`src/providers/song-info-front.ts`**:
+  - Replaced global `isNaN()` with `Number.isNaN()` for stricter type-safe NaN check.
+- **`src/providers/song-info.ts`**:
+  - Extracted `resolveMediaType(songInfo, data)` helper, replacing the deeply nested `switch + if` block — reduces cognitive complexity from ~18 to ≤10 per function.
+  - Converted the switch-on-musicVideoType to a lookup table `typeMap` pattern.
+- **`src/index.ts`**:
+  - Extracted `getTitleBarStyle()` helper to replace nested ternary for `titleBarStyle` decoration.
+  - Extracted `getUpdatedUserAgent()` helper to replace nested ternary for user-agent selection.
+- **`src/renderer.ts`**:
+  - Extracted `getOsType()` helper function to replace multi-branch `let osType` block.
+- **`vite-plugins/i18n-importer.mts`** and **`vite-plugins/plugin-importer.mts`**:
+  - Replaced `.replace(/\\/g, '/')` with `.replaceAll('\\', '/')` for clear literal string replacement.
+- **`vite-plugins/plugin-loader.mts`**:
+  - Named the default-exported function as `pluginLoader` to satisfy the no-anonymous-default-export rule.
+- **`src/music-player.css`**:
+  - Added standard `app-region` alongside all `-webkit-app-region` declarations for spec-compliance and vendor-prefix lint conformance.
+  - Added standard `user-select: none` alongside `-webkit-user-select: none` for forward compatibility.
 
 ### Compiler & Configuration Cleanups
 - **`tsconfig.json` & `tsconfig.test.json`**:
@@ -108,7 +162,7 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 ## 6. Verification Report
 
 - **Type Checking (`tsc`)**: Passed with 0 errors across main, renderer, and test tsconfigs.
-- **OxLint (`oxlint --type-aware src`)**: Passed with 0 warnings and 0 errors across 254 source files.
+- **OxLint (`oxlint --type-aware src`)**: Passed with 0 warnings and 0 errors across 254+ source files. All `prefer-nullish-coalescing`, `no-promise-reject`, cognitive-complexity, vendor-prefix, and naming convention warnings eliminated.
 - **OxFormat (`oxfmt --check src`)**: 100% compliant across 325 files.
 - **ActionLint (`actionlint .github/workflows/*.yml`)**: 0 errors across all CI workflows.
 - **Production Build (`pnpm build`)**: Successfully compiled all three targets:

@@ -1,4 +1,4 @@
-name: Build Pear Desktop (macOS Intel & ARM)
+name: Build Pear Desktop Alsyundawy
 
 on:
   push:
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -66,13 +66,13 @@ jobs:
           echo "=========================================="
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Setup NodeJS for macOS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -96,7 +96,7 @@ jobs:
           ls -lh pack/
 
       - name: Upload macOS Artifacts (${{ matrix.arch }})
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pear-desktop-macos-${{ matrix.arch }}
           path: |

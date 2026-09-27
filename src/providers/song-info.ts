@@ -59,6 +59,35 @@ export const getImage = async (src: string): Promise<Electron.NativeImage> => {
   return output;
 };
 
+/** Resolve media type and fix artist for podcast types. */
+const resolveMediaType = (
+  songInfo: SongInfo,
+  data: GetPlayerResponse,
+): void => {
+  const musicVideoType = data.videoDetails?.musicVideoType;
+  const typeMap: Record<string, MediaType> = {
+    MUSIC_VIDEO_TYPE_ATV: MediaType.Audio,
+    MUSIC_VIDEO_TYPE_OMV: MediaType.OriginalMusicVideo,
+    MUSIC_VIDEO_TYPE_UGC: MediaType.UserGeneratedContent,
+    MUSIC_VIDEO_TYPE_PODCAST_EPISODE: MediaType.PodcastEpisode,
+  };
+
+  songInfo.mediaType = typeMap[musicVideoType ?? ''] ?? MediaType.OtherVideo;
+
+  const isPodcast =
+    songInfo.mediaType === MediaType.PodcastEpisode ||
+    ((data.responseContext.serviceTrackingParams
+      ?.at(0)
+      ?.params?.find((it) => it.key === 'ipcc')?.value ?? '1') !== '0' &&
+      songInfo.mediaType === MediaType.OtherVideo);
+
+  if (isPodcast && !config.get('options.usePodcastParticipantAsArtist')) {
+    songInfo.artist = cleanupName(
+      data.microformat.microformatDataRenderer.pageOwnerDetails.name,
+    );
+  }
+};
+
 const handleData = async (
   data: GetPlayerResponse,
   win: Electron.BrowserWindow,
@@ -116,40 +145,7 @@ const handleData = async (
     songInfo.videoId = videoDetails.videoId;
     songInfo.album = videoDetails.album; // Will be undefined if video exist
 
-    switch (videoDetails?.musicVideoType) {
-      case 'MUSIC_VIDEO_TYPE_ATV':
-        songInfo.mediaType = MediaType.Audio;
-        break;
-      case 'MUSIC_VIDEO_TYPE_OMV':
-        songInfo.mediaType = MediaType.OriginalMusicVideo;
-        break;
-      case 'MUSIC_VIDEO_TYPE_UGC':
-        songInfo.mediaType = MediaType.UserGeneratedContent;
-        break;
-      case 'MUSIC_VIDEO_TYPE_PODCAST_EPISODE':
-        songInfo.mediaType = MediaType.PodcastEpisode;
-        // HACK: Podcast's participant is not the artist
-        if (!config.get('options.usePodcastParticipantAsArtist')) {
-          songInfo.artist = cleanupName(
-            data.microformat.microformatDataRenderer.pageOwnerDetails.name,
-          );
-        }
-        break;
-      default:
-        songInfo.mediaType = MediaType.OtherVideo;
-        // HACK: This is a workaround for "podcast" types where "musicVideoType" doesn't exist. Google :facepalm:
-        if (
-          !config.get('options.usePodcastParticipantAsArtist') &&
-          (data.responseContext.serviceTrackingParams
-            ?.at(0)
-            ?.params?.find((it) => it.key === 'ipcc')?.value ?? '1') != '0'
-        ) {
-          songInfo.artist = cleanupName(
-            data.microformat.microformatDataRenderer.pageOwnerDetails.name,
-          );
-        }
-        break;
-    }
+    resolveMediaType(songInfo, data);
 
     const thumbnails = videoDetails.thumbnail?.thumbnails;
     songInfo.imageSrc = thumbnails?.at(-1)?.url?.split('?')?.at(0);

@@ -21,7 +21,26 @@ All notable changes to this project will be documented in this file. Dates are d
   - Fix `tsconfig.json` and `tsconfig.test.json` configuration inheritance and test path inclusion
   - Refactor `YTMusic.ts` lyric provider: extract plain lyrics extraction helper, drop cognitive complexity from 16 to 8, remove nested ternaries, and enforce `Number.parseInt`
   - Modernize `LyricsGenius.ts` lyric provider using `String.raw` template literals to prevent regex backslash escape warnings
+  - Refactor `LRCLib.ts`: add `readonly` members, extract `fetchSearch()`, `searchInexact()`, `pickBestResult()`, `bestArtistRatio()`, and `bestPairRatio()` helpers — reduces cognitive complexity from ~22 to ≤10; use ES2022-safe `.slice().sort()`
+  - Refactor `Megalobiz.ts`: `readonly` members, module-level regex constants, replace `match()` with `exec()`, `parseInt` → `Number.parseInt`, fix variable shadowing, non-mutating sort
+  - Refactor `MusixMatch.ts`: `readonly` public members, `Object.assign` → spread syntax throughout
+  - Fix `src/config/plugins.ts`: optional chain for `pluginConfig?.enabled`, `Object.prototype.hasOwnProperty.call` → `Object.hasOwn`
+  - Fix `src/loader/main.ts`: replace 4x `return Promise.reject(...)` with `throw` in async functions
+  - Fix `src/loader/preload.ts` and `src/loader/renderer.ts`: collapse `else { if }` → `else if`
+  - Fix `src/menu.ts`: non-mutating `.slice().sort()` for plugin sorting
+  - Fix `src/tray.ts`: `typeof x === 'undefined'` → `x === undefined`
+  - Fix `src/providers/prompt-options.ts`: name default-exported arrow function as `getPromptOptions`
+  - Fix `src/providers/song-info-front.ts`: global `isNaN` → `Number.isNaN`
+  - Refactor `src/providers/song-info.ts`: extract `resolveMediaType()` helper with lookup table, reducing cognitive complexity from ~18 to ≤10
+  - Fix `src/index.ts`: extract `getTitleBarStyle()` and `getUpdatedUserAgent()` helpers to eliminate nested ternaries
+  - Fix `src/renderer.ts`: extract `getOsType()` helper to replace multi-branch `let` re-assignment block
+  - Fix `vite-plugins/i18n-importer.mts` and `plugin-importer.mts`: `.replace(/\\/g, '/')` → `.replaceAll('\\', '/')`
+  - Fix `vite-plugins/plugin-loader.mts`: name default-exported function as `pluginLoader`
+  - Fix `src/music-player.css`: add standard `app-region` alongside `-webkit-app-region` and `user-select` alongside `-webkit-user-select` for spec compliance
   - Mark class members as `readonly` across lyric provider modules
+  - Refactor `src/config/store.ts` scrobbler migration: replace `if (!x)` assignment guards with nullish coalescing assignment (`??=`) operators, eliminating two `prefer-nullish-coalescing` lint warnings
+  - Extract `migrateShortcutOptionType()` helper in `src/config/store.ts` with typed `ShortcutEntry`/`ShortcutsRecord` aliases, reducing `>=1.12.0` migration cognitive complexity from 19 to ≤8 (threshold: 15)
+  - Apply early-return guard in `>=1.12.0` migration to eliminate redundant nesting depth
 - **CI/CD Hardening & SLSA Level 3 Compliance**:
   - Harden workflow dispatch triggers by emptying user inputs to satisfy SLSA Level 3 specifications
   - Fix GitHub Actions context access expressions and shellcheck linting (`SC2001`, `SC2086`) across workflows

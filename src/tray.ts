@@ -134,7 +134,7 @@ export const setUpTray = (app: Electron.App, win: Electron.BrowserWindow) => {
     if (event === SongInfoEvent.TimeChanged) return;
 
     if (tray) {
-      if (typeof songInfo.isPaused === 'undefined') {
+      if (songInfo.isPaused === undefined) {
         tray.setImage(defaultTrayIcon);
         return;
       }

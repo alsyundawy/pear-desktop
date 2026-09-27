@@ -6,8 +6,8 @@ import { netFetch } from '../renderer';
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 export class MusixMatch implements LyricProvider {
-  name = 'MusixMatch';
-  baseUrl = 'https://www.musixmatch.com/';
+  readonly name = 'MusixMatch';
+  readonly baseUrl = 'https://www.musixmatch.com/';
 
   private api: MusixMatchAPI | undefined;
 
@@ -195,16 +195,12 @@ class MusixMatchAPI {
 
     const url = `${this.baseUrl}${endpoint}`;
 
-    const clonedParams = new URLSearchParams(
-      Object.assign(
-        {
-          app_id: this.app_id,
-          format: 'json',
-          usertoken: this.token,
-        },
-        <Record<string, string>>params,
-      ),
-    );
+    const clonedParams = new URLSearchParams({
+      app_id: this.app_id,
+      format: 'json',
+      usertoken: this.token,
+      ...(params as Record<string, string>),
+    });
 
     const [, json, headers] = await netFetch(`${url}?${clonedParams}`, {
       headers: { Cookie: this.cookie },
@@ -291,7 +287,7 @@ class MusixMatchAPI {
     const [, json, headers] = await netFetch(
       `${this.baseUrl}${endpoint}?${params}`,
       {
-        headers: Object.assign({ Cookie: this.cookie }, this.headers),
+        headers: { Cookie: this.cookie, ...this.headers },
       },
     );
 

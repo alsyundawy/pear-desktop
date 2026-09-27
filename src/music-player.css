@@ -11,13 +11,16 @@ ytmusic-nav-bar::before {
   position: absolute;
   inset: 0;
 
+  user-select: none;
   -webkit-user-select: none;
+  app-region: drag;
   -webkit-app-region: drag;
 }
 
 ytmusic-nav-bar > .left-content > *,
 ytmusic-nav-bar > .center-content > *,
 ytmusic-nav-bar > .right-content > * {
+  app-region: no-drag;
   -webkit-app-region: no-drag;
 }
 
@@ -25,6 +28,7 @@ iron-icon,
 ytmusic-pivot-bar-item-renderer,
 .tab-title,
 a {
+  app-region: no-drag;
   -webkit-app-region: no-drag;
 }
 

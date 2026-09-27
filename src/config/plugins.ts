@@ -16,7 +16,7 @@ export async function isEnabled(plugin: string) {
     (await allPlugins())[plugin]?.config ?? { enabled: false },
     (store.get('plugins') as Record<string, PluginConfig>)[plugin] ?? {},
   );
-  return pluginConfig !== undefined && pluginConfig.enabled;
+  return pluginConfig?.enabled ?? false;
 }
 
 /**
@@ -33,7 +33,7 @@ export function setOptions<T>(
   const plugins = store.get('plugins') as Record<string, T>;
   // HACK: This is a workaround for preventing changed options from being overwritten
   exclude.forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(options, key)) {
+    if (Object.hasOwn(options as Record<string, unknown>, key)) {
       delete options[key as keyof T];
     }
   });

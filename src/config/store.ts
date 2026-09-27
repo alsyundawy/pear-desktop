@@ -22,6 +22,33 @@ export type IStore = InstanceType<
   typeof import('conf').default<Record<string, unknown>>
 >;
 
+type ShortcutEntry = { action: string; shortcut: unknown };
+type ShortcutsRecord = Record<
+  string,
+  ShortcutEntry[] | Record<string, unknown>
+>;
+
+/** Converts a legacy array-format shortcut option type to an object-keyed map.
+ * Returns true if the options were mutated (i.e. migration occurred). */
+function migrateShortcutOptionType(
+  options: ShortcutsRecord,
+  optionType: string,
+): boolean {
+  if (!Object.hasOwn(options, optionType)) return false;
+  const current = options[optionType];
+  if (!Array.isArray(current)) return false;
+
+  const updatedOptions: Record<string, unknown> = {};
+  for (const entry of current as ShortcutEntry[]) {
+    if (entry.action && entry.shortcut) {
+      updatedOptions[entry.action] = entry.shortcut;
+    }
+  }
+
+  options[optionType] = updatedOptions;
+  return true;
+}
+
 const migrations = {
   '>=3.12.0'(store: IStore) {
     const blockerConfig = store.get(
@@ -87,17 +114,13 @@ const migrations = {
           }
         | undefined;
 
-      if (!scrobblerConfig) {
-        scrobblerConfig = {
-          enabled: lastfmConfig.enabled,
-        };
-      }
+      scrobblerConfig ??= {
+        enabled: lastfmConfig.enabled,
+      };
 
-      if (!scrobblerConfig.scrobblers) {
-        scrobblerConfig.scrobblers = {
-          lastfm: {},
-        };
-      }
+      scrobblerConfig.scrobblers ??= {
+        lastfm: {},
+      };
 
       scrobblerConfig.scrobblers.lastfm = {
         enabled: lastfmConfig.enabled,
@@ -218,31 +241,15 @@ const migrations = {
           | Record<string, unknown>
         >
       | undefined;
-    if (options) {
-      let updated = false;
-      for (const optionType of ['global', 'local']) {
-        if (
-          Object.hasOwn(options, optionType) &&
-          Array.isArray(options[optionType])
-        ) {
-          const optionsArray = options[optionType] as {
-            action: string;
-            shortcut: unknown;
-          }[];
-          const updatedOptions: Record<string, unknown> = {};
-          for (const optionObject of optionsArray) {
-            if (optionObject.action && optionObject.shortcut) {
-              updatedOptions[optionObject.action] = optionObject.shortcut;
-            }
-          }
-
-          options[optionType] = updatedOptions;
-          updated = true;
-        }
+    if (!options) return;
+    let updated = false;
+    for (const optionType of ['global', 'local']) {
+      if (migrateShortcutOptionType(options, optionType)) {
+        updated = true;
       }
-      if (updated) {
-        store.set('plugins.shortcuts', options);
-      }
+    }
+    if (updated) {
+      store.set('plugins.shortcuts', options);
     }
   },
   '>=1.11.0'(store: IStore) {

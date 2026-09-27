@@ -341,14 +341,16 @@ async function createMainWindow() {
     height: 32,
   };
 
+  const getTitleBarStyle = (): BrowserWindowConstructorOptions['titleBarStyle'] => {
+    if (useInlineMenu) return 'hidden';
+    if (is.macOS()) return 'hiddenInset';
+    return 'default';
+  };
+
   const decorations: Partial<BrowserWindowConstructorOptions> = {
     frame: !is.macOS() && !useInlineMenu,
     titleBarOverlay: defaultTitleBarOverlayOptions,
-    titleBarStyle: useInlineMenu
-      ? 'hidden'
-      : is.macOS()
-        ? 'hiddenInset'
-        : 'default',
+    titleBarStyle: getTitleBarStyle(),
     autoHideMenuBar: config.get('options.hideMenu'),
   };
 
@@ -542,11 +544,13 @@ app.once('browser-window-created', (_event, win) => {
         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.152 Safari/537.36',
     };
 
-    const updatedUserAgent = is.macOS()
-      ? userAgents.mac
-      : is.windows()
-        ? userAgents.windows
-        : userAgents.linux;
+    const getUpdatedUserAgent = () => {
+      if (is.macOS()) return userAgents.mac;
+      if (is.windows()) return userAgents.windows;
+      return userAgents.linux;
+    };
+
+    const updatedUserAgent = getUpdatedUserAgent();
 
     win.webContents.userAgent = updatedUserAgent;
     app.userAgentFallback = updatedUserAgent;

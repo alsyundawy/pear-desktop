@@ -47,18 +47,18 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Setup NodeJS for macOS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
@@ -76,7 +76,7 @@ jobs:
           pnpm ${{ matrix.build_script }}
 
       - name: Upload Build Artifact (${{ matrix.arch_label }})
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pear-desktop-macos-${{ matrix.runs_on }}-${{ matrix.arch }}
           path: |
@@ -94,7 +94,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -115,7 +115,7 @@ jobs:
             --generate-notes
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Upload Release Assets
         shell: bash

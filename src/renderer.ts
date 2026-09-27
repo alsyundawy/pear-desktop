@@ -47,19 +47,16 @@ async function listenForApiLoad() {
   }
 }
 
+function getOsType(): string {
+  if (window.electronIs.osx()) return 'Macintosh';
+  if (window.electronIs.windows()) return 'Windows';
+  if (window.electronIs.linux()) return 'Linux';
+  return 'Unknown';
+}
+
 async function onApiLoaded() {
   // Workaround for macOS traffic lights
-  {
-    let osType = 'Unknown';
-    if (window.electronIs.osx()) {
-      osType = 'Macintosh';
-    } else if (window.electronIs.windows()) {
-      osType = 'Windows';
-    } else if (window.electronIs.linux()) {
-      osType = 'Linux';
-    }
-    document.documentElement.setAttribute('data-os', osType);
-  }
+  document.documentElement.setAttribute('data-os', getOsType());
 
   // Workaround for #2459
   document

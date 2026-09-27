@@ -5,4 +5,5 @@ const promptOptions = {
   icon: trayIcon,
 };
 
-export default () => promptOptions;
+const getPromptOptions = () => promptOptions;
+export default getPromptOptions;

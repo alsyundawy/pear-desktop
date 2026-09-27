@@ -305,7 +305,7 @@ export const setupSongInfo = (api: MusicPlayer) => {
       video.addEventListener(status, playPausedHandlers[status]);
     }
 
-    if (!isNaN(video.duration)) {
+    if (!Number.isNaN(video.duration)) {
       const {
         title,
         author,

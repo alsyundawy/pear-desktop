@@ -117,14 +117,14 @@ export const mainMenuTemplate = async (
   );
 
   const availablePlugins = Object.keys(await allPlugins());
-  const pluginMenus = await Promise.all(
-    availablePlugins
-      .sort((a, b) => {
-        const aPluginLabel = allPluginsStubs[a]?.name?.() ?? a;
-        const bPluginLabel = allPluginsStubs[b]?.name?.() ?? b;
+  const sortedPlugins = availablePlugins.slice().sort((a: string, b: string) => {
+    const aPluginLabel = allPluginsStubs[a]?.name?.() ?? a;
+    const bPluginLabel = allPluginsStubs[b]?.name?.() ?? b;
 
-        return aPluginLabel.localeCompare(bPluginLabel);
-      })
+    return aPluginLabel.localeCompare(bPluginLabel);
+  });
+  const pluginMenus = await Promise.all(
+    sortedPlugins
       .map(async (id) => {
         const predefinedTemplate = menuResult.find((it) => it[0] === id);
         if (predefinedTemplate) return predefinedTemplate[1];

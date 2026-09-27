@@ -82,7 +82,7 @@ export const forceUnloadMainPlugin = async (
         pluginName: id,
       });
       console.log(LoggerPrefix, message);
-      return Promise.reject(new Error(message));
+      throw new Error(message);
     }
   } catch (err) {
     console.error(
@@ -90,7 +90,7 @@ export const forceUnloadMainPlugin = async (
       t('common.console.plugins.unload-failed', { pluginName: id }),
     );
     console.trace(err);
-    return Promise.reject(err as Error);
+    throw err as Error;
   }
 };
 
@@ -118,7 +118,7 @@ export const forceLoadMainPlugin = async (
         pluginName: id,
       });
       console.log(LoggerPrefix, message);
-      return Promise.reject(new Error(message));
+      throw new Error(message);
     }
   } catch (err) {
     console.error(
@@ -126,7 +126,7 @@ export const forceLoadMainPlugin = async (
       t('common.console.plugins.initialize-failed', { pluginName: id }),
     );
     console.trace(err);
-    return Promise.reject(err as Error);
+    throw err as Error;
   }
 };
 
