@@ -26,6 +26,7 @@ import unhandled from 'electron-unhandled';
 import electronUpdater from 'electron-updater';
 import { deepEqual } from 'fast-equals';
 import { parse } from 'node-html-parser';
+import semver from 'semver';
 import { languageResources } from 'virtual:i18n';
 import { allPlugins, mainPlugins } from 'virtual:plugins';
 
@@ -60,11 +61,26 @@ unhandled({
   showDialog: false,
 });
 
+// Ensure app.getVersion() returns a valid semver string for electron-updater
+// even if package.json has non-standard pre-release identifiers (e.g. leading zeros like -01)
+const rawAppVersion = app.getVersion();
+if (!semver.valid(rawAppVersion)) {
+  const normalizedVersion =
+    semver.valid(rawAppVersion.replace(/-0+(\d+)/, '-$1')) ||
+    semver.coerce(rawAppVersion)?.version ||
+    '3.12.0';
+  app.getVersion = () => normalizedVersion;
+}
+
 // Prevent window being garbage collected
 let mainWindow: Electron.BrowserWindow | null;
-electronUpdater.autoUpdater.autoDownload = false;
+try {
+  electronUpdater.autoUpdater.autoDownload = false;
+} catch (err) {
+  console.warn('Failed to initialize autoUpdater:', err);
+}
 
-const gotTheLock = app.requestSingleInstanceLock();
+const gotTheLock = isTesting() || app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.exit();
 }
@@ -829,54 +845,58 @@ app.whenReady().then(async () => {
   });
 
   if (!is.dev() && config.get('options.autoUpdates')) {
-    const updateTimeout = setTimeout(() => {
-      electronUpdater.autoUpdater.checkForUpdatesAndNotify();
-      clearTimeout(updateTimeout);
-    }, 2000);
-    electronUpdater.autoUpdater.on('update-available', () => {
-      const downloadLink =
-        'https://github.com/pear-devs/pear-desktop/releases/latest';
-      const dialogOptions: Electron.MessageBoxOptions = {
-        type: 'info',
-        buttons: [
-          t('main.dialog.update-available.buttons.ok'),
-          t('main.dialog.update-available.buttons.download'),
-          t('main.dialog.update-available.buttons.disable'),
-        ],
-        title: t('main.dialog.update-available.title'),
-        message: t('main.dialog.update-available.message'),
-        detail: t('main.dialog.update-available.detail', { downloadLink }),
-        defaultId: 1,
-        cancelId: 0,
-      };
+    try {
+      const updateTimeout = setTimeout(() => {
+        electronUpdater.autoUpdater.checkForUpdatesAndNotify();
+        clearTimeout(updateTimeout);
+      }, 2000);
+      electronUpdater.autoUpdater.on('update-available', () => {
+        const downloadLink =
+          'https://github.com/pear-devs/pear-desktop/releases/latest';
+        const dialogOptions: Electron.MessageBoxOptions = {
+          type: 'info',
+          buttons: [
+            t('main.dialog.update-available.buttons.ok'),
+            t('main.dialog.update-available.buttons.download'),
+            t('main.dialog.update-available.buttons.disable'),
+          ],
+          title: t('main.dialog.update-available.title'),
+          message: t('main.dialog.update-available.message'),
+          detail: t('main.dialog.update-available.detail', { downloadLink }),
+          defaultId: 1,
+          cancelId: 0,
+        };
 
-      let dialogPromise: Promise<Electron.MessageBoxReturnValue>;
-      if (mainWindow) {
-        dialogPromise = dialog.showMessageBox(mainWindow, dialogOptions);
-      } else {
-        dialogPromise = dialog.showMessageBox(dialogOptions);
-      }
-
-      dialogPromise.then((dialogOutput) => {
-        switch (dialogOutput.response) {
-          // Download
-          case 1: {
-            shell.openExternal(downloadLink);
-            break;
-          }
-
-          // Disable updates
-          case 2: {
-            config.set('options.autoUpdates', false);
-            break;
-          }
-
-          case 0: {
-            break;
-          }
+        let dialogPromise: Promise<Electron.MessageBoxReturnValue>;
+        if (mainWindow) {
+          dialogPromise = dialog.showMessageBox(mainWindow, dialogOptions);
+        } else {
+          dialogPromise = dialog.showMessageBox(dialogOptions);
         }
+
+        dialogPromise.then((dialogOutput) => {
+          switch (dialogOutput.response) {
+            // Download
+            case 1: {
+              shell.openExternal(downloadLink);
+              break;
+            }
+
+            // Disable updates
+            case 2: {
+              config.set('options.autoUpdates', false);
+              break;
+            }
+
+            case 0: {
+              break;
+            }
+          }
+        });
       });
-    });
+    } catch (err) {
+      console.warn('Auto updater check failed:', err);
+    }
   }
 
   if (config.get('options.hideMenu') && !config.get('options.hideMenuWarned')) {

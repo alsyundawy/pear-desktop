@@ -178,7 +178,10 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 - **Type Checking (`tsc`)**: Passed with 0 errors across main, renderer, and test tsconfigs.
 - **OxLint (`oxlint --type-aware src`)**: Passed with 0 warnings and 0 errors across 254+ source files. All `prefer-nullish-coalescing`, `no-promise-reject`, cognitive-complexity, vendor-prefix, and naming convention warnings eliminated.
 - **OxFormat (`oxfmt --check src`)**: 100% compliant across 325 files.
-- **ActionLint (`actionlint .github/workflows/*.yml`)**: 0 errors across all CI workflows.
+- **ActionLint (`actionlint .github/workflows/*.yml`)**: 0 errors across all CI workflows. (IDE warnings for `DEEPSEEK_API_KEY` and `WINGET_ACC_TOKEN` indicate repository-level secrets required in GitHub Actions repository settings).
+- **CSS Strict Standard Validation (`src/music-player.css`)**: Removed invalid non-standard CSS properties `app-region` and `user-drag`, corrected line 89 typo to `-webkit-app-region: no-drag;`, preserving standard `user-select` alongside `-webkit-user-select`.
+- **SemVer & AutoUpdater Hardening (`src/index.ts`)**: Normalized `app.getVersion()` to SemVer 2.0.0 compliance for custom pre-release tags (e.g., `-01` $\to$ `-1`), preventing `ERR_UPDATER_INVALID_VERSION` uncaught crashes on startup, and safely guarded `autoUpdater` operations in try-catch blocks.
+- **Test Suite (`pnpm test` / Playwright)**: 6 of 6 tests passed (100% green in 5.0s), including Playwright Electron window launch verification.
 - **Production Build (`pnpm build`)**: Successfully compiled all three targets:
   - `dist/main/index.js` (37 modular chunks)
   - `dist/preload/preload.cjs` (69 modular chunks)

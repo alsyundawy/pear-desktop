@@ -14,14 +14,12 @@ ytmusic-nav-bar::before {
   -webkit-user-select: none;
   user-select: none;
   -webkit-app-region: drag;
-  app-region: drag;
 }
 
 ytmusic-nav-bar > .left-content > *,
 ytmusic-nav-bar > .center-content > *,
 ytmusic-nav-bar > .right-content > * {
   -webkit-app-region: no-drag;
-  app-region: no-drag;
 }
 
 iron-icon,
@@ -29,7 +27,6 @@ ytmusic-pivot-bar-item-renderer,
 .tab-title,
 a {
   -webkit-app-region: no-drag;
-  app-region: no-drag;
 }
 
 /* custom style for navbar */
@@ -57,7 +54,6 @@ ytmusic-cast-button {
 ytmusic-nav-bar > div.left-content > a,
 ytmusic-nav-bar > div.left-content > a > picture > img {
   -webkit-user-drag: none;
-  user-drag: none;
 }
 
 /* yt-music bugs */
@@ -90,5 +86,5 @@ tp-yt-paper-item.ytmusic-guide-entry-renderer::before {
 
 tp-yt-iron-dropdown,
 tp-yt-paper-dialog {
-  app-region: no-drag;
+  -webkit-app-region: no-drag;
 }

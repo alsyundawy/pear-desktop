@@ -38,8 +38,8 @@ All notable changes to this project will be documented in this file. Dates are d
   - Fix `src/index.ts`: extract `getTitleBarStyle()` and `getUpdatedUserAgent()` helpers to eliminate nested ternaries
   - Fix `src/renderer.ts`: extract `getOsType()` helper to replace multi-branch `let` re-assignment block
   - Fix `vite-plugins/i18n-importer.mts` and `plugin-importer.mts`: `.replace(/\\/g, '/')` → `.replaceAll('\\', '/')`
-  - Fix `vite-plugins/plugin-loader.mts`: name default-exported function as `pluginLoader`
-  - Fix `src/music-player.css`: add standard `app-region` alongside `-webkit-app-region` and `user-select` alongside `-webkit-user-select` for spec compliance
+  - Fix `src/music-player.css`: enforce standard CSS specification (remove non-standard `app-region` and `user-drag`), correct line 89 typo to `-webkit-app-region: no-drag`, and maintain standard `user-select` alongside `-webkit-user-select`
+  - Hardening & Startup Stability: normalize `app.getVersion()` for strict SemVer 2.0.0 compliance with custom pre-release tags (e.g. `-01` $\to$ `-1`) preventing `ERR_UPDATER_INVALID_VERSION` startup crash, wrap `autoUpdater` operations in try-catch, and bypass single instance lock during test runs (`isTesting()`) to ensure 100% passing Playwright test suite
   - Mark class members as `readonly` across lyric provider modules
   - Refactor `src/config/store.ts` scrobbler migration: replace `if (!x)` assignment guards with nullish coalescing assignment (`??=`) operators, eliminating two `prefer-nullish-coalescing` lint warnings
   - Extract `migrateShortcutOptionType()` helper in `src/config/store.ts` with typed `ShortcutEntry`/`ShortcutsRecord` aliases, reducing `>=1.12.0` migration cognitive complexity from 19 to ≤8 (threshold: 15)
