@@ -1,3 +1,6 @@
+import { app } from 'electron';
+import semver from 'semver';
+
 import { blockers } from '@/plugins/do-not-track/types';
 import { DefaultPresetList, type Preset } from '@/plugins/downloader/types';
 
@@ -281,6 +284,12 @@ const migrations = {
   },
 };
 
+const appVersion = app?.getVersion?.();
+const safeProjectVersion =
+  (appVersion && semver.valid(appVersion)) ||
+  (appVersion && semver.coerce(appVersion)?.version) ||
+  '3.12.0';
+
 export const store = new Store({
   defaults: {
     ...defaults,
@@ -288,4 +297,5 @@ export const store = new Store({
   },
   clearInvalidConfig: false,
   migrations,
+  ...({ projectVersion: safeProjectVersion } as Record<string, unknown>),
 });

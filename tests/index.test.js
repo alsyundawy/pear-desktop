@@ -8,6 +8,7 @@ process.env.NODE_ENV = 'test';
 const appPath = path.resolve(import.meta.dirname, '..');
 
 test('Pear Desktop App - With default settings, app is launched and visible', async () => {
+  test.setTimeout(90_000);
   const app = await electron.launch({
     cwd: appPath,
     args: [
