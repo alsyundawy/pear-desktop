@@ -1,8 +1,8 @@
-import { t } from "@/i18n";
-import { createPlugin } from "@/utils";
+import { t } from '@/i18n';
+import { createPlugin } from '@/utils';
 
-import { backend } from "./main";
-import { onMenu } from "./menu";
+import { backend } from './main';
+import { onMenu } from './menu';
 
 export interface ScrobblerPluginConfig {
   enabled: boolean;
@@ -90,23 +90,23 @@ export const defaultConfig: ScrobblerPluginConfig = {
       enabled: false,
       token: undefined,
       sessionKey: undefined,
-      apiRoot: "https://ws.audioscrobbler.com/2.0/",
+      apiRoot: 'https://ws.audioscrobbler.com/2.0/',
       // trunk-ignore-begin(trufflehog): Open-source public Last.fm client credentials
-      apiKey: "04d76faaac8726e60988e14c105d421a",
-      secret: "a5d2a36fdf64819290f6982481eaffa2",
+      apiKey: '04d76faaac8726e60988e14c105d421a',
+      secret: 'a5d2a36fdf64819290f6982481eaffa2',
       // trunk-ignore-end(trufflehog)
     },
     listenbrainz: {
       enabled: false,
       token: undefined,
-      apiRoot: "https://api.listenbrainz.org/1/",
+      apiRoot: 'https://api.listenbrainz.org/1/',
     },
   },
 };
 
 export default createPlugin({
-  name: () => t("plugins.scrobbler.name"),
-  description: () => t("plugins.scrobbler.description"),
+  name: () => t('plugins.scrobbler.name'),
+  description: () => t('plugins.scrobbler.description'),
   restartNeeded: true,
   config: defaultConfig,
   menu: onMenu,

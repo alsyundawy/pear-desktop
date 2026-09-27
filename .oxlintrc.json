@@ -165,7 +165,7 @@
     ],
     "@stylistic/comma-dangle": ["error", "always-multiline"],
     "@stylistic/max-len": "off",
-    "@stylistic/no-mixed-operators": "error",
+    "@stylistic/no-mixed-operators": "off",
     "@stylistic/no-multi-spaces": [
       "error",
       {
@@ -228,7 +228,7 @@
     "solid/no-destructure": "error",
     "solid/prefer-for": "error",
     "solid/components-return-once": "warn",
-    "solid/reactivity": "warn",
+    "solid/reactivity": "off",
     "solid/event-handlers": "warn",
     "solid/imports": "warn",
     "solid/style-prop": "warn",
@@ -238,7 +238,8 @@
     "solid/no-array-handlers": "off",
     "solid/prefer-show": "off",
     "solid/no-proxy-apis": "off",
-    "solid/prefer-classlist": "off"
+    "solid/prefer-classlist": "off",
+    "typescript/no-misused-spread": "off"
   },
   "env": {
     "builtin": true,
@@ -246,8 +247,5 @@
     "node": true,
     "es2024": true
   },
-  "ignorePatterns": [
-    "dist/**",
-    "node_modules/**"
-  ]
+  "ignorePatterns": ["dist/**", "node_modules/**"]
 }

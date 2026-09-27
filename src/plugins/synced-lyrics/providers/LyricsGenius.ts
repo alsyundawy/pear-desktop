@@ -70,10 +70,10 @@ export class LyricsGenius implements LyricProvider {
 
     const lyricsHtml = preloadedState?.match(preloadHtmlRegex)?.[1]
       ?.replace(/\\\//g, '/')
-      ?.replace(/\\\\/g, '\\')
       ?.replace(/\\n/g, '\n')
       ?.replace(/\\'/g, "'")
-      ?.replace(/\\"/g, '"');
+      ?.replace(/\\"/g, '"')
+      ?.replace(/\\\\/g, '\\');
 
     const hasUnreleasedPlaceholder = preloadedState &&
       /lyricsPlaceholderReason.{1,5}unreleased/.test(preloadedState);
