@@ -130,8 +130,18 @@ Release **v3.12.0-01** represents a comprehensive hardening, optimization, and m
 - **`vite-plugins/plugin-loader.mts`**:
   - Named the default-exported function as `pluginLoader` to satisfy the no-anonymous-default-export rule.
 - **`src/music-player.css`**:
-  - Added standard `app-region` alongside all `-webkit-app-region` declarations for spec-compliance and vendor-prefix lint conformance.
-  - Added standard `user-select: none` alongside `-webkit-user-select: none` for forward compatibility.
+  - Enforced strict W3C CSS standards: eliminated non-standard `app-region` and `user-drag` properties; corrected line 89 typo to `-webkit-app-region: no-drag;`.
+  - Maintained standard `user-select: none` alongside `-webkit-user-select: none` for forward compatibility.
+- **About Dialog & Copyright Synchronization**:
+  - Dynamically configured `app.setAboutPanelOptions` in `src/index.ts` and `src/menu.ts` using `packageJson.version` (`3.12.0-01`) to guarantee consistent version display across macOS, Windows, and Linux.
+  - Added new line to copyright notice:
+    ```
+    Copyright © 2026 th-ch
+    Hardening & Optimize by alsyundawy
+    ```
+  - Attached explicit `click` handlers to `{ role: 'about' }` in `src/menu.ts` to reliably trigger `app.showAboutPanel()` across native and in-app menus.
+  - Embedded top-level `copyright` into `electron-builder.yml` (`NSHumanReadableCopyright` and `LegalCopyright`).
+  - Added `contributors` entry in `package.json` and synchronized `license`.
 
 ### Compiler & Configuration Cleanups
 - **`tsconfig.json` & `tsconfig.test.json`**:

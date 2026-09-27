@@ -688,10 +688,30 @@ export const mainMenuTemplate = async (
     },
     {
       label: t('main.menu.about'),
-      submenu: [{ role: 'about' }],
+      submenu: [
+        {
+          label: t('main.menu.about'),
+          role: 'about',
+          click: showAbout,
+        },
+      ],
     },
   ];
 };
+
+const showAbout = () => {
+  app.setAboutPanelOptions({
+    applicationName: APPLICATION_NAME,
+    applicationVersion: packageJson.version,
+    version: packageJson.version,
+    copyright: 'Copyright © 2026 th-ch\nHardening & Optimize by alsyundawy',
+    credits: 'Hardening & Optimize by alsyundawy',
+    authors: ['th-ch', 'alsyundawy'],
+    website: 'https://github.com/alsyundawy/pear-desktop',
+  });
+  app.showAboutPanel();
+};
+
 export const setApplicationMenu = async (win: Electron.BrowserWindow) => {
   const menuTemplate: MenuTemplate = [...(await mainMenuTemplate(win))];
   if (process.platform === 'darwin') {
@@ -699,7 +719,10 @@ export const setApplicationMenu = async (win: Electron.BrowserWindow) => {
     menuTemplate.unshift({
       label: name,
       submenu: [
-        { role: 'about' },
+        {
+          role: 'about',
+          click: showAbout,
+        },
         { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },

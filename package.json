@@ -13,6 +13,12 @@
     "email": "th-ch@users.noreply.github.com",
     "url": "https://github.com/pear-devs/pear-desktop"
   },
+  "contributors": [
+    {
+      "name": "alsyundawy",
+      "url": "https://github.com/alsyundawy"
+    }
+  ],
   "scripts": {
     "postinstall": "pnpm install-electron",
     "test": "pnpm playwright test",

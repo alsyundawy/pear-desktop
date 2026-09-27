@@ -53,6 +53,8 @@ import { setUpTray } from '@/tray';
 import { LoggerPrefix } from '@/utils';
 import { isTesting } from '@/utils/testing';
 
+import packageJson from '../package.json';
+
 import type { PluginConfig } from '@/types/plugins';
 
 // Catch errors and log them
@@ -677,6 +679,16 @@ const getDefaultLocale = async (locale: string) =>
   Object.keys(await languageResources()).includes(locale) ? locale : null;
 
 app.whenReady().then(async () => {
+  app.setAboutPanelOptions({
+    applicationName: APPLICATION_NAME,
+    applicationVersion: packageJson.version,
+    version: packageJson.version,
+    copyright: 'Copyright © 2026 th-ch\nHardening & Optimize by alsyundawy',
+    credits: 'Hardening & Optimize by alsyundawy',
+    authors: ['th-ch', 'alsyundawy'],
+    website: 'https://github.com/alsyundawy/pear-desktop',
+  });
+
   if (!config.get('options.language')) {
     const locale = await getDefaultLocale(app.getLocale());
     if (locale) {
