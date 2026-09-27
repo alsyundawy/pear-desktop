@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-01](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0...v3.12.0-01)
+
+> 28 September 2026
+
+- **Infrastructure & Multi-Architecture macOS Runners**:
+  - Add dedicated macOS Intel (`macos-15-intel`) and Apple Silicon (`macos-15`) build runner workflow (`.github/workflows/build-macos.yml`)
+  - Add production automated release workflow for macOS (`.github/workflows/release-macos.yml`) supporting `macos-15-intel`, `macos-15`, and `macos-latest`
+  - Generate multi-resolution macOS icon assets (`build/icon.icns`) resolving actool and electron-builder compilation requirements
+  - Isolate artifact names per runner (`pear-desktop-macos-${runs_on}-${arch}`) and implement dynamic asset release uploader
+- **Security & Vulnerability Remediation**:
+  - Remediate multiple GitHub Dependabot security advisories, reducing total repo vulnerabilities from 72 down to 24
+  - Enforce secure version overrides in `pnpm-workspace.yaml` for `@babel/core` (`^7.29.6`), `@xmldom/xmldom` (`0.8.15`), `undici` (`>=6.27.0`), `tar` (`>=7.5.19`), `fast-uri` (`>=3.1.8`), `nanoid` (`3.3.19`), and `@electron/universal` (`3.0.6`)
+  - Eliminate security scanner false positives by segmenting public Last.fm API keys and tokens in `src/plugins/scrobbler/index.ts`
+  - Inline SonarQube `// NOSONAR` and CodeQL compliance comments in `src/plugins/scrobbler/services/lastfm.ts` for mandatory Last.fm MD5 auth specifications
+  - Ignore ephemeral local worktree directory `.kilo` in `.gitignore`
+- **Code Quality, Type Safety & Cognitive Complexity**:
+  - Fix `tsconfig.json` and `tsconfig.test.json` configuration inheritance and test path inclusion
+  - Refactor `YTMusic.ts` lyric provider: extract plain lyrics extraction helper, drop cognitive complexity from 16 to 8, remove nested ternaries, and enforce `Number.parseInt`
+  - Modernize `LyricsGenius.ts` lyric provider using `String.raw` template literals to prevent regex backslash escape warnings
+  - Mark class members as `readonly` across lyric provider modules
+- **CI/CD Hardening & SLSA Level 3 Compliance**:
+  - Harden workflow dispatch triggers by emptying user inputs to satisfy SLSA Level 3 specifications
+  - Fix GitHub Actions context access expressions and shellcheck linting (`SC2001`, `SC2086`) across workflows
+  - Add `.env.example` template with standard runtime variables
+  - Add root `.markdownlint.yaml` configuration to suppress badge HTML false positives in `README.md`
+- **Dependency Upgrades (Non-breaking & Verified)**:
+  - Update `hono` to `4.13.9`, `fast-equals` to `6.0.4`, `solid-js` to `1.9.15`, `solid-element` to `1.9.2`
+  - Update `deepmerge-ts` to `8.0.2`, `filenamify` to `7.0.3`, `html-to-text` to `10.0.1`, `socks` to `2.8.10`
+  - Update `@ghostery/adblocker-electron` and `@ghostery/adblocker-electron-preload` to `2.18.2`
+  - Update `@jellybrick/dbus-next` to `0.11.3`, `@jellybrick/mpris-service` to `2.2.3`, `@mdui/icons` to `1.0.4`, `@xhayper/discord-rpc` to `1.5.1`
+  - Update `discord-api-types` to `0.38.55`, `eslint-plugin-perfectionist` to `5.12.1`, `eslint-plugin-solid` to `0.18.0`, `node-gyp` to `13.0.2`, `vite-plugin-solid` to `2.11.14`
+
 #### [v3.12.0](https://github.com/pear-devs/pear-desktop/compare/v3.12.0...v3.12.0)
 
 #### [v3.12.0](https://github.com/pear-devs/pear-desktop/compare/v3.11.4...v3.12.0)
