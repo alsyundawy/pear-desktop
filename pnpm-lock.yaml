@@ -27,9 +27,6 @@ importers:
       '@dehoist/romanize-thai':
         specifier: 1.0.0
         version: 1.0.0
-      '@electron-toolkit/tsconfig':
-        specifier: 2.0.0
-        version: 2.0.0(@types/node@26.0.0)
       '@electron/remote':
         specifier: 2.1.3
         version: 2.1.3(electron@42.5.0)
@@ -235,6 +232,9 @@ importers:
         specifier: 4.4.3
         version: 4.4.3
     devDependencies:
+      '@electron-toolkit/tsconfig':
+        specifier: 2.0.0
+        version: 2.0.0(@types/node@26.0.0)
       '@malept/flatpak-bundler':
         specifier: 0.4.0
         version: 0.4.0(patch_hash=c787371eeb2af011ea934e8818a0dad6d7dcb2df31bbb1686babc7231af0183c)

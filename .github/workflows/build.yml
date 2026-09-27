@@ -2,9 +2,7 @@ name: Build Pear Desktop
 
 on:
   push:
-    branches: [ master ]
-
-permissions: {}
+    branches: [master]
 
 env:
   NODE_VERSION: "24.x"
@@ -19,7 +17,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ macos-26, ubuntu-latest, windows-latest ]
+        os: [macos-26, ubuntu-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -35,7 +33,7 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Setup NodeJS for macOS
         if: startsWith(matrix.os, 'macOS')
@@ -88,7 +86,6 @@ jobs:
         with:
           run: pnpm test:debug
 
-
   release:
     permissions:
       contents: write
@@ -96,6 +93,10 @@ jobs:
     name: Release Pear Desktop
     if: github.repository == 'pear-devs/pear-desktop' && github.ref == 'refs/heads/master'
     needs: build
+    env:
+      VERSION_TAG: ""
+      VERSION_HASH: ""
+      CHANGELOG_ANCHOR: ""
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -108,17 +109,10 @@ jobs:
           run_install: false
 
       - name: Setup NodeJS
-        if: startsWith(matrix.os, 'macOS') != true
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-
-      - name: Setup NodeJS for macOS
-        if: startsWith(matrix.os, 'macOS')
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
-        with:
-          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -171,6 +165,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9
         with:
           commit_message: Update changelog for ${{ env.VERSION_TAG }}
-          file_pattern: "changelog.md"
+          file_pattern: changelog.md
           commit_user_name: CI
           commit_user_email: th-ch@users.noreply.github.com

@@ -4,8 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-permissions: {}
-
 env:
   NODE_VERSION: "24.x"
 
@@ -50,7 +48,7 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Setup NodeJS for macOS
         if: startsWith(matrix.os, 'macOS')

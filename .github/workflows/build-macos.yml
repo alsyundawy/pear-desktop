@@ -4,12 +4,14 @@ on:
   push:
     branches:
       - master
-      - main
   pull_request:
+    branches:
+      - master
+      - main
   workflow_dispatch:
     inputs:
       debug_runner:
-        description: 'Jalankan job debug runner'
+        description: "Jalankan job debug runner"
         required: false
         type: boolean
         default: false
@@ -72,7 +74,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install Dependencies
         shell: bash
