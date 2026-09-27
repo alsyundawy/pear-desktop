@@ -89,11 +89,19 @@ export class LRCLib implements LyricProvider {
       filteredResults.push(item);
     }
 
-    const sortedResults = filteredResults.slice().sort(
-      ({ duration: durationA }: { duration: number }, { duration: durationB }: { duration: number }) => {
-        return Math.abs(durationA - songDuration) - Math.abs(durationB - songDuration);
-      },
-    );
+    const sortedResults = filteredResults
+      .slice()
+      .sort(
+        (
+          { duration: durationA }: { duration: number },
+          { duration: durationB }: { duration: number },
+        ) => {
+          return (
+            Math.abs(durationA - songDuration) -
+            Math.abs(durationB - songDuration)
+          );
+        },
+      );
 
     const closestResult = sortedResults[0];
     if (!closestResult) return null;

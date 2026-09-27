@@ -121,8 +121,8 @@ export const loadAllRendererPlugins = async () => {
     if (config.enabled) {
       await forceLoadRendererPlugin(pluginId);
     } else if (loadedPluginMap[pluginId]) {
-        await forceUnloadRendererPlugin(pluginId);
-      }
+      await forceUnloadRendererPlugin(pluginId);
+    }
   }
 };
 

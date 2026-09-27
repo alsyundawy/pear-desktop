@@ -117,34 +117,35 @@ export const mainMenuTemplate = async (
   );
 
   const availablePlugins = Object.keys(await allPlugins());
-  const sortedPlugins = availablePlugins.slice().sort((a: string, b: string) => {
-    const aPluginLabel = allPluginsStubs[a]?.name?.() ?? a;
-    const bPluginLabel = allPluginsStubs[b]?.name?.() ?? b;
+  const sortedPlugins = availablePlugins
+    .slice()
+    .sort((a: string, b: string) => {
+      const aPluginLabel = allPluginsStubs[a]?.name?.() ?? a;
+      const bPluginLabel = allPluginsStubs[b]?.name?.() ?? b;
 
-    return aPluginLabel.localeCompare(bPluginLabel);
-  });
+      return aPluginLabel.localeCompare(bPluginLabel);
+    });
   const pluginMenus = await Promise.all(
-    sortedPlugins
-      .map(async (id) => {
-        const predefinedTemplate = menuResult.find((it) => it[0] === id);
-        if (predefinedTemplate) return predefinedTemplate[1];
+    sortedPlugins.map(async (id) => {
+      const predefinedTemplate = menuResult.find((it) => it[0] === id);
+      if (predefinedTemplate) return predefinedTemplate[1];
 
-        const plugin = allPluginsStubs[id];
-        const pluginLabel = plugin?.name?.() ?? id;
-        const pluginDescription = plugin?.description?.() ?? undefined;
-        const isNew = plugin?.addedVersion
-          ? satisfies(packageJson.version, plugin.addedVersion)
-          : false;
+      const plugin = allPluginsStubs[id];
+      const pluginLabel = plugin?.name?.() ?? id;
+      const pluginDescription = plugin?.description?.() ?? undefined;
+      const isNew = plugin?.addedVersion
+        ? satisfies(packageJson.version, plugin.addedVersion)
+        : false;
 
-        return pluginEnabledMenu(
-          id,
-          pluginLabel,
-          pluginDescription,
-          isNew,
-          true,
-          innerRefreshMenu,
-        );
-      }),
+      return pluginEnabledMenu(
+        id,
+        pluginLabel,
+        pluginDescription,
+        isNew,
+        true,
+        innerRefreshMenu,
+      );
+    }),
   );
 
   const langResources = await languageResources();
@@ -492,26 +493,22 @@ export const mainMenuTemplate = async (
             } as Electron.MenuItemConstructorOptions,
           ].concat(
             availableLanguages
-              .map(
-                (lang): Electron.MenuItemConstructorOptions => ({
-                  label: `${langResources[lang].translation.language?.name ?? 'Unknown'} (${langResources[lang].translation.language?.['local-name'] ?? 'Unknown'})`,
-                  type: 'checkbox',
-                  checked: (config.get('options.language') ?? 'en') === lang,
-                  click() {
-                    config.setMenuOption('options.language', lang);
-                    refreshMenu(win);
-                    setLanguage(lang);
-                    dialog.showMessageBox(win, {
-                      title: t(
-                        'main.menu.options.submenu.language.dialog.title',
-                      ),
-                      message: t(
-                        'main.menu.options.submenu.language.dialog.message',
-                      ),
-                    });
-                  },
-                }),
-              )
+              .map((lang): Electron.MenuItemConstructorOptions => ({
+                label: `${langResources[lang].translation.language?.name ?? 'Unknown'} (${langResources[lang].translation.language?.['local-name'] ?? 'Unknown'})`,
+                type: 'checkbox',
+                checked: (config.get('options.language') ?? 'en') === lang,
+                click() {
+                  config.setMenuOption('options.language', lang);
+                  refreshMenu(win);
+                  setLanguage(lang);
+                  dialog.showMessageBox(win, {
+                    title: t('main.menu.options.submenu.language.dialog.title'),
+                    message: t(
+                      'main.menu.options.submenu.language.dialog.message',
+                    ),
+                  });
+                },
+              }))
               .sort((a, b) => a.label!.localeCompare(b.label!)),
           ),
         },

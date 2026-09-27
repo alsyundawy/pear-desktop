@@ -12,11 +12,14 @@ All notable changes to this project will be documented in this file. Dates are d
   - Generate multi-resolution macOS icon assets (`build/icon.icns`) resolving actool and electron-builder compilation requirements
   - Isolate artifact names per runner (`pear-desktop-macos-${runs_on}-${arch}`) and implement dynamic asset release uploader
 - **Security & Vulnerability Remediation**:
-  - Remediate multiple GitHub Dependabot security advisories, reducing total repo vulnerabilities from 72 down to 24
-  - Enforce secure version overrides in `pnpm-workspace.yaml` for `@babel/core` (`^7.29.6`), `@xmldom/xmldom` (`0.8.15`), `undici` (`>=6.27.0`), `tar` (`>=7.5.19`), `fast-uri` (`>=3.1.8`), `nanoid` (`3.3.19`), and `@electron/universal` (`3.0.6`)
+  - Remediate multiple GitHub Dependabot security advisories, reducing total repo vulnerabilities from 72 down to **15**
+  - Enforce secure version overrides in `pnpm-workspace.yaml` for `@babel/core` (`^7.29.6`), `@xmldom/xmldom` (`0.8.15`), `undici` (`>=7.29.0`), `tar` (`>=7.5.19`), `fast-uri` (`>=3.1.8`), `nanoid` (`3.3.19`), `@electron/universal` (`3.0.6`), `js-yaml` (`4.3.2`), `browserslist` (`4.29.1`), `baseline-browser-mapping` (`2.11.26`), `toml` (`4.3.0`), and `ip-address` (`10.7.2`)
+  - Remediate CodeQL `js/incomplete-url-substring-sanitization` alerts across `src/index.ts` and `tests/index.test.js` using strict hostname equality and dot-prefixed domain boundary checks
+  - Add explicit least-privilege `permissions` blocks across GitHub workflows (`winget-submission.yml`, `winget-cla.yml`, `pr-build-artifacts.yml`)
   - Eliminate security scanner false positives by segmenting public Last.fm API keys and tokens in `src/plugins/scrobbler/index.ts`
   - Inline SonarQube `// NOSONAR` and CodeQL compliance comments in `src/plugins/scrobbler/services/lastfm.ts` for mandatory Last.fm MD5 auth specifications
   - Ignore ephemeral local worktree directory `.kilo` in `.gitignore`
+  - Verify and document adblocker feature parity in `src/plugins/do-not-track/` using `@ghostery/adblocker-electron` and `@ghostery/adblocker-electron-preload` (v2.18.2)
 - **Code Quality, Type Safety & Cognitive Complexity**:
   - Fix `tsconfig.json` and `tsconfig.test.json` configuration inheritance and test path inclusion
   - Refactor `YTMusic.ts` lyric provider: extract plain lyrics extraction helper, drop cognitive complexity from 16 to 8, remove nested ternaries, and enforce `Number.parseInt`

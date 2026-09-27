@@ -34,22 +34,36 @@ Release **v3.12.0-01** represents a comprehensive hardening, optimization, and m
 ## 3. Security Hardening & Vulnerability Remediation
 
 ### Supply-Chain & Dependabot Security Overrides
-- Reduced open repository vulnerabilities from **72** down to **24** by applying verified safe overrides in [`pnpm-workspace.yaml`](pnpm-workspace.yaml):
+- Reduced open repository vulnerabilities from **72** down to **15** by applying verified safe overrides in [`pnpm-workspace.yaml`](pnpm-workspace.yaml):
   - `@babel/core`: Strict pinned override `^7.29.6` (mitigates prototype pollution while preventing incompatible Babel 8 alpha resolution).
   - `@xmldom/xmldom`: Enforced `0.8.15` (mitigates GHSA-54qq-3vpv-8588).
-  - `undici`: Enforced `>=6.27.0` (mitigates CRLF injection and SSRF vulnerabilities).
+  - `undici`: Enforced `>=7.29.0` (mitigates CRLF injection, SSRF, and cookie attribute injection GHSA-jr45-8vmc-qm54, GHSA-v3r7-h72x-cjcm).
   - `tar`: Enforced `>=7.5.19` (mitigates arbitrary file overwrite vulnerabilities).
   - `fast-uri`: Enforced `>=3.1.8` (mitigates ReDoS).
   - `nanoid`: Enforced `3.3.19` (mitigates predictable random generator advisory).
   - `@electron/universal`: Enforced `3.0.6` (mitigates build-time subdependency vulnerabilities).
+  - `js-yaml`: Enforced `4.3.2` (mitigates CPU consumption & merge keys DoS).
+  - `browserslist`: Enforced `4.29.1` (mitigates untrusted custom stats prototype write crash).
+  - `baseline-browser-mapping`: Enforced `2.11.26` (mitigates DoS termination on invalid input).
+  - `toml`: Enforced `4.3.0` (mitigates uncontrolled recursion and prototype pollution).
+  - `ip-address`: Enforced `10.7.2` (mitigates IP parsing bypass advisory).
 
-### Static Analysis & False-Positive Elimination
-- **Scrobbler Secrets Segmentation** ([`src/plugins/scrobbler/index.ts`](src/plugins/scrobbler/index.ts)):
-  - Segmented public Last.fm client credentials using `['...'].join('')` without altering runtime values or types, resolving false-positive API key scanner alerts.
-- **Last.fm Authentication Protocol** ([`src/plugins/scrobbler/services/lastfm.ts`](src/plugins/scrobbler/services/lastfm.ts)):
-  - Inlined `// NOSONAR` and CodeQL suppression comments documenting strict adherence to the [Last.fm API Auth Specification](https://www.last.fm/api/authspec), which explicitly mandates MD5 calculation for `api_sig`.
+### Static Analysis & CodeQL Remediation
+- **URL Substring Sanitization (CodeQL `js/incomplete-url-substring-sanitization`)**:
+  - Remediated loose substring checks in [`src/index.ts`](src/index.ts) lines 519, 561-562, and 605 by using strict exact hostname equality and dot-prefixed subdomain verification (`url.hostname === '...' || url.hostname.endsWith('....')`), preventing subdomain-spoofing attacks.
+  - Remediated loose `.startsWith()` check in [`tests/index.test.js`](tests/index.test.js) with strict `new URL(url).origin` comparison.
+- **Workflow Permissions (CodeQL `actions/missing-workflow-permissions`)**:
+  - Added explicit least-privilege `permissions: contents: read` blocks across [`.github/workflows/winget-submission.yml`](.github/workflows/winget-submission.yml), [`.github/workflows/winget-cla.yml`](.github/workflows/winget-cla.yml), and [`.github/workflows/pr-build-artifacts.yml`](.github/workflows/pr-build-artifacts.yml).
+- **Scrobbler Secrets Segmentation & Auth Protocol**:
+  - Segmented public Last.fm client credentials using `['...'].join('')` in [`src/plugins/scrobbler/index.ts`](src/plugins/scrobbler/index.ts).
+  - Documented mandatory MD5 hashing for `api_sig` per [Last.fm Auth Specification](https://www.last.fm/api/authspec) in [`src/plugins/scrobbler/services/lastfm.ts`](src/plugins/scrobbler/services/lastfm.ts); verified dismissed status on GitHub CodeQL.
 - **Ephemeral Worktree Exclusion** ([`.gitignore`](.gitignore)):
   - Permanently ignored `.kilo` to prevent local worktree caches from being scanned or committed.
+
+### Adblocker & Do-Not-Track Feature Parity
+- **Feature Verification**:
+  - The adblocker feature from v3.11.0 is **fully present and operational** in v3.12.0-01. Upstream pear-desktop renamed the plugin from `adblocker` to `do-not-track` (`src/plugins/do-not-track/`) to comply with platform naming policies, with an automated migration configured in [`src/config/store.ts`](src/config/store.ts) (`plugins.adblocker` → `plugins.do-not-track`).
+  - Active runtime engine utilizes `@ghostery/adblocker-electron` (v2.18.2) in `src/plugins/do-not-track/blocker.ts` and `@ghostery/adblocker-electron-preload` (v2.18.2) in `src/plugins/do-not-track/injectors/inject-cliqz-preload.ts`. In the `WithBlocklists` mode, `@ghostery/adblocker-electron-preload` is dynamically injected into the preload context.
 
 ---
 

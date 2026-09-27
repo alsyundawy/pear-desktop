@@ -92,8 +92,8 @@ export const loadAllPreloadPlugins = async () => {
     if (config.enabled) {
       forceLoadPreloadPlugin(pluginId);
     } else if (loadedPluginMap[pluginId]) {
-        forceUnloadPreloadPlugin(pluginId);
-      }
+      forceUnloadPreloadPlugin(pluginId);
+    }
   }
 };
 

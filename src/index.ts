@@ -341,11 +341,12 @@ async function createMainWindow() {
     height: 32,
   };
 
-  const getTitleBarStyle = (): BrowserWindowConstructorOptions['titleBarStyle'] => {
-    if (useInlineMenu) return 'hidden';
-    if (is.macOS()) return 'hiddenInset';
-    return 'default';
-  };
+  const getTitleBarStyle =
+    (): BrowserWindowConstructorOptions['titleBarStyle'] => {
+      if (useInlineMenu) return 'hidden';
+      if (is.macOS()) return 'hiddenInset';
+      return 'default';
+    };
 
   const decorations: Partial<BrowserWindowConstructorOptions> = {
     frame: !is.macOS() && !useInlineMenu,
@@ -514,11 +515,10 @@ async function createMainWindow() {
     const url = URL.parse(event.url);
 
     // Workarounds for regions where YTM is restricted
-    if (
-      url &&
-      url.hostname.endsWith('\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com') &&
-      url.pathname === '/premium'
-    ) {
+    const isYouTubeHostname =
+      url?.hostname === '\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com' ||
+      url?.hostname?.endsWith('.\u0079\u006f\u0074\u0075\u0062\u0065.com');
+    if (url && isYouTubeHostname && url.pathname === '/premium') {
       event.preventDefault();
 
       win.webContents.loadURL(
@@ -557,9 +557,17 @@ app.once('browser-window-created', (_event, win) => {
 
     win.webContents.session.webRequest.onBeforeSendHeaders((details, cb) => {
       // This will only happen if login failed, and "retry" was pressed
+      const isGoogleLoginUrl = (urlStr: string) => {
+        try {
+          return new URL(urlStr).hostname === 'accounts.google.com';
+        } catch {
+          return false;
+        }
+      };
+
       if (
-        win.webContents.getURL().startsWith('https://accounts.google.com') &&
-        details.url.startsWith('https://accounts.google.com')
+        isGoogleLoginUrl(win.webContents.getURL()) &&
+        isGoogleLoginUrl(details.url)
       ) {
         details.requestHeaders['User-Agent'] = originalUserAgent;
       }
@@ -599,10 +607,15 @@ app.once('browser-window-created', (_event, win) => {
         console.log(log);
       }
 
+      const validatedHostname = URL.parse(validatedURL)?.hostname;
+      const isDoubleClick =
+        validatedHostname === 'doubleclick.net' ||
+        validatedHostname?.endsWith('.doubleclick.net');
+
       if (
         errorCode !== -3 &&
         // Workaround for #2435
-        !URL.parse(validatedURL)?.hostname?.includes('doubleclick.net')
+        !isDoubleClick
       ) {
         // -3 is a false positive
         win.webContents.send('log', log);

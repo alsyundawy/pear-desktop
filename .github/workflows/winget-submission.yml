@@ -13,6 +13,8 @@ on:
 jobs:
   winget:
     name: Publish winget package
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     env:
       WINGET_TAG_NAME: ""

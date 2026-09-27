@@ -11,6 +11,9 @@ on:
 jobs:
   comment:
     name: Comment to PR
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Submit CLA to Windows Package Manager Community Repository Pull Request
