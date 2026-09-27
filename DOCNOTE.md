@@ -62,7 +62,7 @@ Release **v3.12.0-01** represents a comprehensive hardening, optimization, and m
   - Replaced global `parseInt(...)` with modern `Number.parseInt(..., 10)`.
   - Marked class properties (`name`, `baseUrl`, `PROXIED_ENDPOINT`) as `readonly`.
 - **Lyrics Genius Provider** ([`src/plugins/synced-lyrics/providers/LyricsGenius.ts`](src/plugins/synced-lyrics/providers/LyricsGenius.ts)):
-  - Upgraded string replacements to use `String.raw` template literals (e.g. `String.raw\`\\\"\``, `String.raw\`\\/\``, `String.raw\`\\n\``).
+  - Upgraded string replacements to use `String.raw` template literals to prevent regex backslash escape warnings.
   - Replaced `.replace()` with `.replaceAll()` and `.match()` with regex `.exec()` for predictable linear execution.
 
 ### Compiler & Configuration Cleanups
@@ -81,7 +81,7 @@ Release **v3.12.0-01** represents a comprehensive hardening, optimization, and m
 All updated dependencies have been tested for zero regressions against `pnpm check` and `pnpm build`:
 
 | Package | Previous | Updated | Type |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `@ghostery/adblocker-electron` | `2.18.0` | `2.18.2` | Runtime |
 | `@ghostery/adblocker-electron-preload` | `2.18.0` | `2.18.2` | Runtime |
 | `@jellybrick/dbus-next` | `0.11.1` | `0.11.3` | Runtime (Linux) |
