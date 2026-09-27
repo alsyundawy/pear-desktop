@@ -683,7 +683,7 @@ app.whenReady().then(async () => {
     applicationName: APPLICATION_NAME,
     applicationVersion: packageJson.version,
     version: packageJson.version,
-    copyright: 'Copyright © 2026 th-ch\nHardening & Optimize by alsyundawy',
+    copyright: `Copyright © ${new Date().getFullYear()} th-ch\nHardening & Optimize by alsyundawy`,
     credits: 'Hardening & Optimize by alsyundawy',
     authors: ['th-ch', 'alsyundawy'],
     website: 'https://github.com/alsyundawy/pear-desktop',

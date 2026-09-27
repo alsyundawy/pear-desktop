@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-2](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0-01...v3.12.0-2)
+
+> 28 September 2026
+
+- **Bug Fixes (Production-Grade Code Review)**:
+  - Fix `src/menu.ts`: Move `showAbout` declaration before `mainMenuTemplate` to resolve forward-reference ordering and temporal dead zone risk
+  - Fix `src/menu.ts`: Remove conflicting `role: 'about'` from menu items with custom `click: showAbout` handler — Electron ignores `click` when `role` is set, causing custom About dialog to never appear
+  - Fix `src/menu.ts` & `src/index.ts`: Replace hardcoded copyright year `2026` with `new Date().getFullYear()` — dynamically updates on each launch
+  - Fix `src/index.ts`: Remove duplicate `app.setAboutPanelOptions` duplication across `index.ts` and `menu.ts::showAbout` — About panel options are now canonical in `showAbout()` only
+  - Bump version from `3.12.0-01` to `3.12.0-2` (strict SemVer 2.0.0 compliance — remove leading zero prefix)
+
 #### [v3.12.0-01](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0...v3.12.0-01)
 
 > 28 September 2026

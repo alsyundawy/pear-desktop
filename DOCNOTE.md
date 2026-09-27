@@ -1,8 +1,8 @@
-# Release DocNote: v3.12.0-01
+# Release DocNote: v3.12.0-2
 
 **Repository**: [alsyundawy/pear-desktop](https://github.com/alsyundawy/pear-desktop)  
-**Release Version**: `v3.12.0-01`  
-**Base Version**: `v3.12.0`  
+**Release Version**: `v3.12.0-2`  
+**Base Version**: `v3.12.0-01`  
 **Date**: 28 September 2026  
 **Status**: Production-Grade Verified & Zero-Error  
 
@@ -10,7 +10,11 @@
 
 ## 1. Executive Summary
 
-Release **v3.12.0-01** represents a comprehensive hardening, optimization, and modernization milestone for Pear Desktop. This release establishes full multi-architecture macOS CI/CD pipeline automation (supporting Apple Silicon ARM64 and Intel x64), remediates over 45 critical and high security vulnerabilities from upstream dependencies, refactors plugin providers and store migration logic for high code quality and zero cognitive-complexity violations, and achieves 100% compliance across all project linters (`oxlint`, `oxfmt`, `tsc`, and `actionlint`).
+Release **v3.12.0-2** is a targeted bug-fix patch on top of the v3.12.0-01 hardening milestone. This release resolves three production-confirmed bugs in the About dialog implementation:
+
+1. **TDZ Forward-Reference Fix**: `showAbout` was declared as a `const` arrow function after its first use inside `mainMenuTemplate`. While closures deferred the crash, this violated code ordering best practices and introduced a temporal dead zone risk. The declaration is now hoisted above `mainMenuTemplate`.
+2. **Electron Role/Click Conflict**: Menu items simultaneously carrying `role: 'about'` and `click: showAbout` caused Electron to silently ignore the `click` handler (per Electron docs: *"If role is defined for a menu item, the click property will be ignored"*). The custom About panel with `hardening` copyright notices never appeared. Fixed by removing `role: 'about'` from all items with custom click handlers.
+3. **Dynamic Copyright Year**: Copyright strings in `src/menu.ts`, `src/index.ts` had `2026` hardcoded — replaced with `new Date().getFullYear()` so the notice auto-updates on each application launch.
 
 ---
 
