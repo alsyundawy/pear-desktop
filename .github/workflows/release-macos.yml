@@ -6,11 +6,6 @@ on:
       - "v*"
       - "*"
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Tag rilis (contoh: v3.12.0)"
-        required: true
-        default: "v3.12.0"
 
 permissions:
   contents: write
@@ -99,11 +94,7 @@ jobs:
       - name: Determine Release Tag
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ inputs.release_tag }}"
-          else
-            TAG="${{ github.ref_name }}"
-          fi
+          TAG="${{ github.ref_name }}"
           echo "RELEASE_TAG=${TAG}" >> "$GITHUB_ENV"
 
       - name: Create or Verify Release

@@ -11,7 +11,6 @@ jobs:
   build:
     permissions:
       contents: write
-    if: github.event.pull_request.draft == false
     name: Build Pear Desktop
     runs-on: ${{ matrix.os }}
     strategy:
@@ -119,12 +118,12 @@ jobs:
 
       - name: Get version
         run: |
-          echo "VERSION_TAG=v$(node -pe "require('./package.json').version")" >> $GITHUB_ENV
+          echo "VERSION_TAG=v$(node -pe "require('./package.json').version")" >> "$GITHUB_ENV"
 
       - name: Check if version already exists in tags
         run: |
-          echo "VERSION_HASH=$(git rev-parse -q --verify 'refs/tags/${{ env.VERSION_TAG }}')" >> $GITHUB_ENV
-          echo "CHANGELOG_ANCHOR=$(echo $VERSION_TAG | sed -e 's/\.//g')" >> $GITHUB_ENV
+          echo "VERSION_HASH=$(git rev-parse -q --verify "refs/tags/${{ env.VERSION_TAG }}")" >> "$GITHUB_ENV"
+          echo "CHANGELOG_ANCHOR=${VERSION_TAG//./}" >> "$GITHUB_ENV"
 
       - name: Fetch draft release
         if: ${{ env.VERSION_HASH == '' }}
@@ -141,7 +140,7 @@ jobs:
         if: ${{ env.VERSION_HASH == '' }}
         uses: irongut/EditRelease@ccf529ad26dddf9996e7dd0f24ca5da4ea507cc2
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
           id: ${{ steps.get_draft_release.outputs.id }}
           draft: false
           prerelease: false

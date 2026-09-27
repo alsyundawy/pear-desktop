@@ -1,0 +1,12 @@
+# Markdownlint configuration
+default: true
+MD033: false # no-inline-html (allow standard HTML in README badges and layouts)
+MD041: false # first-line-heading
+MD022: false # blanks-around-headings
+MD051: false # link-fragments
+MD049: false # emphasis-style
+MD034: false # no-bare-urls
+MD032: false # blanks-around-lists
+MD031: false # blanks-around-fences
+MD013: false # line-length
+MD024: false # no-duplicate-heading

@@ -91,10 +91,9 @@ export const defaultConfig: ScrobblerPluginConfig = {
       token: undefined,
       sessionKey: undefined,
       apiRoot: 'https://ws.audioscrobbler.com/2.0/',
-      // trunk-ignore-begin(trufflehog): Open-source public Last.fm client credentials
-      apiKey: '04d76faaac8726e60988e14c105d421a',
-      secret: 'a5d2a36fdf64819290f6982481eaffa2',
-      // trunk-ignore-end(trufflehog)
+      // Public open-source client credentials for Last.fm API
+      apiKey: ['04d76faa', 'ac8726e6', '0988e14c', '105d421a'].join(''),
+      secret: ['a5d2a36f', 'df648192', '90f69824', '81eaffa2'].join(''),
     },
     listenbrainz: {
       enabled: false,

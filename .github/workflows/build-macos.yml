@@ -9,12 +9,6 @@ on:
       - master
       - main
   workflow_dispatch:
-    inputs:
-      debug_runner:
-        description: "Jalankan job debug runner"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -103,20 +97,3 @@ jobs:
             pack/*.zip
             pack/*.blockmap
           if-no-files-found: error
-
-  # ─── Debug Job (Sama seperti sample di NotepadNext-MacOS) ─────────
-  debug-mac-runner:
-    name: Debug Runner Environment
-    if: github.event_name == 'workflow_dispatch' && inputs.debug_runner == true
-    runs-on: macos-15-intel
-    timeout-minutes: 10
-    steps:
-      - name: Debug runner info
-        shell: bash
-        run: |
-          echo "Runner: $RUNNER_NAME"
-          uname -a && uname -m
-          sw_vers || true
-          sysctl -n machdep.cpu.brand_string || true
-          echo "Available memory:"
-          vm_stat || true

@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Submit CLA to Windows Package Manager Community Repository Pull Request
-        run: gh pr comment $PR_URL --body "@microsoft-github-policy-service agree"
+        run: gh pr comment "$PR_URL" --body "@microsoft-github-policy-service agree"
         env:
           GITHUB_TOKEN: ${{ secrets.WINGET_ACC_TOKEN }}
           PR_URL: ${{ inputs.pr_url }}
