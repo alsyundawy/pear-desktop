@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. Dates are d
     - 🇮🇹it: EasyList Italy
     - 🇯🇵jp: AdGuard Japanese
     - 🇰🇷kr: 한국어 (Korean)
+  - Add HaGeZi DNS Blocklists (adblock format): Multi PRO (`pro.txt`), Pop-up Ads (`popupads.txt`), and Threat Intelligence Feeds - Mini (`tif.mini.txt`)
   - Restore plugin name to **"Ad Blocker"** (`Pemblokir Iklan`) and menu category label to **"Pemblokir"** in `en.json` and `id.json`
   - Restore **`Ad speedup`** blocker mode (`src/plugins/do-not-track/adSpeedup.ts`) with MutationObserver ad detection, auto-skip trigger, 16x speedup, muted playback, and clean teardown (`unloadAdSpeedup`)
   - Support seamless dynamic switching in `renderer.onConfigChange` and `preload.onConfigChange`

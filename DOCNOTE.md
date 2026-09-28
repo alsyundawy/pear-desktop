@@ -15,7 +15,7 @@ Release **v3.12.0-3** (`3.12.0-03`) delivers targeted UI/UX and feature restorat
 1. **Ad Blocker Menu, Full v3.11.0 Parity & Vendor Lists Expansion**:
    - Restored plugin title and localized i18n names to **"Ad Blocker"** / **"Pemblokir Iklan"** and menu label **"Pemblokir"**.
    - Restored **`Ad speedup` (`AdSpeedup`)** blocker mode with clean MutationObserver lifecycle, automatic ad detection, 16x fast-forward, muted audio, and leak-free unloading.
-   - Restored and expanded filter sources list in `blocker.ts` with **24 canonical global, privacy, annoyance, and regional vendor filter lists** (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile Ads, URL Tracking Protection, EasyList Other Annoyances, plus 12 regional lists) with resilient fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
+   - Restored and expanded filter sources list in `blocker.ts` with **27 canonical global, privacy, annoyance, regional, and threat intelligence vendor filter lists** (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile Ads, URL Tracking Protection, EasyList Other Annoyances, HaGeZi Multi PRO, Pop-up Ads, TIF Mini, plus 12 regional lists) with resilient fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
    - Added dynamic runtime support in `renderer.onConfigChange` and `preload.onConfigChange`.
 2. **SponsorBlock Plugin Modernization**:
    - Expanded supported categories to include `preview` (Preview/Recap) and `filler` (Filler Tangent/Joke) alongside standard sponsor and music categories.
@@ -212,7 +212,7 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 | **Plugin UI Name** | `Ad Blocker` | `Ad Blocker` / `Pemblokir Iklan` | ✅ Restored v3.11.0 naming |
 | **Menu Blocker Label** | `Blocker` | `Blocker` / `Pemblokir` | ✅ Restored v3.11.0 label |
 | **Plugin enabled by default** | `true` | `true` | ✅ Restored |
-| **Mode `WithBlocklists`** | Ghostery default | **24 Canonical Vendor Lists** + Prebuilt fallback | ✅ Massively Expanded |
+| **Mode `WithBlocklists`** | Ghostery default | **27 Canonical Vendor Lists** + Prebuilt fallback | ✅ Massively Expanded |
 | **Mode `InPlayer`** | JSON/Response pruner | JSON/Response pruner | ✅ Intact & functional |
 | **Mode `AdSpeedup`** | Auto-fast-forward 16x | MutationObserver + auto-skip + mute | ✅ Fully Restored & Leak-free |
 | **Preload Injector** | Basic preload | `@ghostery/adblocker-electron-preload` | ✅ Upgraded & Verified |
@@ -224,7 +224,7 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 | **Video Toggle Interaction** | Ambiguous checkbox click | Segmented control (click Song / Video) | ✅ Improved UX |
 
 ### Comprehensive Vendor Adblock Filter Lists
-The `WithBlocklists` engine in [`src/plugins/do-not-track/blocker.ts`](src/plugins/do-not-track/blocker.ts) now sources 24 canonical filter lists directly from official mirrors (uBlock Origin, AdGuard, EasyList, ABPindo):
+The `WithBlocklists` engine in [`src/plugins/do-not-track/blocker.ts`](src/plugins/do-not-track/blocker.ts) now sources 27 canonical filter lists directly from official mirrors (uBlock Origin, AdGuard, EasyList, ABPindo, HaGeZi):
 1. **Core Global Ads & Privacy**:
    - EasyList (`easylist-downloads.adblockplus.org/easylist.txt`)
    - EasyPrivacy (`easylist-downloads.adblockplus.org/easyprivacy.txt`)
@@ -252,7 +252,11 @@ The `WithBlocklists` engine in [`src/plugins/do-not-track/blocker.ts`](src/plugi
    - 🇮🇹 Italy (`it`): EasyList Italy
    - 🇯🇵 Japan (`jp`): AdGuard Japanese
    - 🇰🇷 Korea (`kr`): 한국어 (Korean)
-5. **Resilient Offline Fallback**:
+5. **Security & Threat Intelligence (HaGeZi DNS Blocklists - Adblock format)**:
+   - HaGeZi Multi PRO (`cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.txt`)
+   - HaGeZi Pop-up Ads (`cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/popupads.txt`)
+   - HaGeZi Threat Intelligence Feeds - Mini (`cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.mini.txt`)
+6. **Resilient Offline Fallback**:
    - If network retrieval fails, `ElectronBlocker.fromPrebuiltAdsAndTracking` is seamlessly invoked, ensuring blocking functionality is never interrupted.
 
 ### SponsorBlock Modernization & Architecture

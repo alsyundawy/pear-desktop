@@ -47,6 +47,11 @@ const SOURCES = [
   'https://easylist-downloads.adblockplus.org/easylistitaly.txt', // it: EasyList Italy
   'https://filters.adtidy.org/extension/ublock/filters/7.txt', // jp: AdGuard Japanese
   'https://cdn.jsdelivr.net/npm/@filteringdev/filterslists-ko@latest/dist/filterslist-uBlockOrigin-classic.txt', // kr: 한국어 (Korean)
+
+  // Security & Threat Intelligence (HaGeZi DNS Blocklists - Adblock format)
+  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/pro.txt', // HaGeZi Multi PRO
+  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/popupads.txt', // HaGeZi Pop-up Ads
+  'https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/adblock/tif.mini.txt', // HaGeZi Threat Intelligence Feeds - Mini
 ];
 
 export const loadTrackerBlockerEngine = async (
