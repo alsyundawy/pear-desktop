@@ -79,9 +79,7 @@ export default createPlugin({
       },
     ];
   },
-  async backend({ getConfig, ipc }) {
-    let activeConfig = await getConfig();
-
+  backend({ getConfig, ipc }) {
     const fetchSegments = async (
       apiURL: string,
       categories: string[],
@@ -118,14 +116,15 @@ export default createPlugin({
     };
 
     ipc.on('peard:video-src-changed', async (data: GetPlayerResponse) => {
+      const config = await getConfig();
       const videoId = data?.videoDetails?.videoId;
       if (!videoId) {
         ipc.send('sponsorblock-skip', []);
         return;
       }
       const segments = await fetchSegments(
-        activeConfig.apiURL,
-        activeConfig.categories,
+        config.apiURL,
+        config.categories,
         videoId,
       );
       ipc.send('sponsorblock-skip', segments);
@@ -164,6 +163,7 @@ export default createPlugin({
       video.addEventListener('emptied', this.resetSegments);
     },
     stop() {
+      currentSegments = [];
       const video = document.querySelector<HTMLVideoElement>('video');
       if (!video) return;
 

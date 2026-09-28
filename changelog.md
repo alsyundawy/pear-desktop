@@ -30,6 +30,10 @@ All notable changes to this project will be documented in this file. Dates are d
     - Add `EARLY_SHOW_DELAY = 500` fallback timer in `createMainWindow` allowing the dark native window frame to appear immediately without waiting seconds for remote Polymer scripts to paint
 - **Bug Fixes & Code Review Polish**:
   - Fix default checked fallback in `src/plugins/do-not-track/index.ts` from loose `|| blockers.WithBlocklists` to nullish `?? blockers.InPlayer`
+  - Add renderer `stop()` method to `src/plugins/do-not-track/index.ts` to cleanly invoke `unloadAdSpeedup()` when plugin is disabled
+  - Store and disconnect `MutationObserver` and cancel pending `requestAnimationFrame` on cleanup in `src/plugins/ambient-mode/index.ts`, preventing memory leaks on disable
+  - Fetch dynamic configuration inside `peard:video-src-changed` in `src/plugins/sponsorblock/index.ts` so category preference changes take effect immediately on next song without restart, and clear `currentSegments` on plugin stop
+  - Eliminate potential runtime `TypeError` crashes in `src/plugins/video-toggle/index.tsx` by replacing non-null assertions with safe null checks for `#song-video`, `#song-image`, and `#song-image #img.style-scope.yt-img-shadow`
   - Bump project version to `3.12.0-4` (SemVer 2.0.0 compliance for Release `3.12.0-04`)
   - Verified 100% clean quality gates: 0 warnings, 0 errors in OxLint & TypeScript, 11/11 tests passing on Playwright
 

@@ -216,11 +216,18 @@ export default createPlugin({
             showVideo ? 'OMV_PREFERRED' : 'ATV_PREFERRED',
           );
 
-          document.querySelector<HTMLElement>(
+          const songVideoElement = document.querySelector<HTMLElement>(
             '#song-video.ytmusic-player',
-          )!.style.display = showVideo ? 'block' : 'none';
-          document.querySelector<HTMLElement>('#song-image')!.style.display =
-            showVideo ? 'none' : 'block';
+          );
+          if (songVideoElement) {
+            songVideoElement.style.display = showVideo ? 'block' : 'none';
+          }
+
+          const songImageElement =
+            document.querySelector<HTMLElement>('#song-image');
+          if (songImageElement) {
+            songImageElement.style.display = showVideo ? 'none' : 'block';
+          }
 
           if (showVideo && video && !video.style.top) {
             video.style.top = `${
@@ -305,10 +312,14 @@ export default createPlugin({
             }
           }
         });
-        playbackModeObserver.observe(
-          document.querySelector('#song-image #img.style-scope.yt-img-shadow')!,
-          { attributeFilter: ['src'] },
+        const thumbnailElement = document.querySelector(
+          '#song-image #img.style-scope.yt-img-shadow',
         );
+        if (thumbnailElement) {
+          playbackModeObserver.observe(thumbnailElement, {
+            attributeFilter: ['src'],
+          });
+        }
       };
 
       if (config.mode !== 'native' && config.mode != 'disabled') {

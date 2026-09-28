@@ -32,8 +32,18 @@ Release **v3.12.0-4** (`3.12.0-04`) delivers critical upstream feature integrati
      - Synchronized volume updates directly with `api?.setVolume(value)` and native HTML `#volume-slider` inputs, ensuring perfect round-trip volume state.
    - **PR #4673 (Cold-Start Native Window Presentation in `src/index.ts`)**:
      - Added `EARLY_SHOW_DELAY = 500` fallback timer in `createMainWindow`, ensuring the macOS dark window frame presents smoothly without cold-start UI stalls.
-2. **Bug Fix in Do-Not-Track Blocker Defaults**:
-   - Fixed radio button checked state in `src/plugins/do-not-track/index.ts`: replaced `config.blocker || blockers.WithBlocklists` with `config.blocker ?? blockers.InPlayer`.
+2. **Runtime Reliability, Memory Leak & DOM Safety Hardening**:
+   - **Do-Not-Track Blocker Defaults & Teardown Lifecycle (`src/plugins/do-not-track/index.ts`)**:
+     - Fixed radio button checked state: replaced `config.blocker || blockers.WithBlocklists` with `config.blocker ?? blockers.InPlayer`.
+     - Added renderer `stop()` method to cleanly trigger `unloadAdSpeedup()` when the plugin is toggled off, disconnecting its MutationObserver and resetting video playback rates.
+   - **Ambient Mode Observer & Timer Teardown (`src/plugins/ambient-mode/index.ts`)**:
+     - Stored the DOM `MutationObserver` instance on the renderer lifecycle object and disconnected it in `stop()`, eliminating a memory leak holding the `#player-page` element.
+     - Cancelled any in-flight `requestAnimationFrame` (`lastEffectWorkId`) during video blur cleanup and cleared the fallback ticker interval in `stop()`.
+   - **SponsorBlock Dynamic Configuration & State Cleanup (`src/plugins/sponsorblock/index.ts`)**:
+     - Replaced static initial config snapshot with dynamic `await getConfig()` invocation inside the `peard:video-src-changed` event handler, allowing category filter changes to take effect immediately on subsequent songs without requiring an app reload.
+     - Explicitly reset `currentSegments = []` in the renderer `stop()` lifecycle method.
+   - **Video Toggle DOM Lookup Hardening (`src/plugins/video-toggle/index.tsx`)**:
+     - Replaced unsafe non-null assertions (`!`) on `#song-video`, `#song-image`, and `#song-image #img.style-scope.yt-img-shadow` with explicit null guards, preventing unhandled `TypeError` crashes during playlist transitions, podcast playback, or initial UI load.
 3. **Upstream Rejected PRs (Analysis & Rationale)**:
    - **PR #4690 (Network Stream Separation)**: Explicitly rejected because it forces `loadCosmeticFilters: false`, disabling CSS element hiding and leaving empty broken ad containers in the YouTube Music DOM. Our hybrid Ghostery + uBlock + HaGeZi + AdSpeedup stack provides full cosmetic hiding and zero playback stalls.
 4. **Dedicated macOS Repository Focus & Parity Maintenance**:

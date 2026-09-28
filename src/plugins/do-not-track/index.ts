@@ -84,6 +84,9 @@ export default createPlugin({
         unloadAdSpeedup();
       }
     },
+    stop() {
+      unloadAdSpeedup();
+    },
   },
   backend: {
     mainWindow: null as BrowserWindow | null,

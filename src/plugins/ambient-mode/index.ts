@@ -36,6 +36,7 @@ export default createPlugin({
 
     unregister: null as (() => void) | null,
     update: null as (() => void) | null,
+    observer: null as MutationObserver | null,
     interval: null as NodeJS.Timeout | null,
     lastMediaType: null as 'video' | 'image' | null,
     lastVideoSource: null as string | null,
@@ -190,6 +191,10 @@ export default createPlugin({
         /* cleanup */
         return () => {
           if (canvasInterval) clearInterval(canvasInterval);
+          if (typeof lastEffectWorkId === 'number') {
+            cancelAnimationFrame(lastEffectWorkId);
+            lastEffectWorkId = null;
+          }
 
           songVideo.removeEventListener('pause', onPause);
           songVideo.removeEventListener('play', onPlay);
@@ -239,7 +244,7 @@ export default createPlugin({
       };
 
       /* needed for switching between different views (e.g. miniplayer) */
-      const observer = new MutationObserver((mutationsList) => {
+      this.observer = new MutationObserver((mutationsList) => {
         for (const mutation of mutationsList) {
           if (mutation.type === 'attributes') {
             injectBlurElement(true);
@@ -249,7 +254,7 @@ export default createPlugin({
       });
 
       if (playerPage) {
-        observer.observe(playerPage, { attributes: true });
+        this.observer.observe(playerPage, { attributes: true });
 
         /* fallback ticker for when the observer isn't triggered */
         this.interval = setInterval(injectBlurElement, 1000);
@@ -269,7 +274,12 @@ export default createPlugin({
     stop() {
       this.update = null;
       this.unregister?.();
-      if (this.interval) clearInterval(this.interval);
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = null;
+      }
+      this.observer?.disconnect();
+      this.observer = null;
     },
   },
 });
