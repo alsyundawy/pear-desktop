@@ -50,6 +50,31 @@ function migrateShortcutOptionType(
 }
 
 const migrations = {
+  '>=3.12.1'(store: IStore) {
+    // Fix video-toggle: 'native' mode no longer works in modern YTM (ytmusic-av-toggle
+    // element was removed). Reset users stuck on native+hideVideo to custom mode so
+    // the Song/Video switch button is visible again.
+    const vtConfig = store.get('plugins.video-toggle') as {
+      mode?: string;
+      hideVideo?: boolean;
+    } | undefined;
+    if (vtConfig) {
+      if (vtConfig.mode === 'native') {
+        store.set('plugins.video-toggle.mode', 'custom');
+      }
+      if (vtConfig.hideVideo === true) {
+        store.set('plugins.video-toggle.hideVideo', false);
+      }
+    }
+
+    // Ensure quality-changer is enabled
+    const qcConfig = store.get('plugins.quality-changer') as
+      | { enabled?: boolean }
+      | undefined;
+    if (qcConfig && qcConfig.enabled === false) {
+      store.set('plugins.quality-changer.enabled', true);
+    }
+  },
   '>=3.12.0'(store: IStore) {
     const blockerConfig = store.get(
       'plugins.adblocker',
