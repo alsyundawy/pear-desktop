@@ -52,7 +52,7 @@ All notable changes to this project will be documented in this file. Dates are d
   - Update `DOCNOTE.md` and `changelog.md` to `v3.12.0-3` (`3.12.0-03`)
   - Bump package version to `3.12.0-3` (strictly compliant with SemVer 2.0.0 for electron-updater compatibility)
 
-#### [v3.12.0-2](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0-01...v3.12.0-2)
+#### [v3.12.0-2](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-01...v3.12.0-2)
 
 > 28 September 2026
 
@@ -72,7 +72,7 @@ All notable changes to this project will be documented in this file. Dates are d
   - Fix `src/index.ts`: Remove duplicate `app.setAboutPanelOptions` duplication across `index.ts` and `menu.ts::showAbout` — About panel options are now canonical in `showAbout()` only
   - Bump version from `3.12.0-01` to `3.12.0-2` (strict SemVer 2.0.0 compliance — remove leading zero prefix)
 
-#### [v3.12.0-01](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0...v3.12.0-01)
+#### [v3.12.0-01](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0...v3.12.0-01)
 
 > 28 September 2026
 

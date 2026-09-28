@@ -22,18 +22,18 @@ Release **v3.12.0-3** (`3.12.0-03`) delivers targeted UI/UX and feature restorat
    - Restored **`Ad speedup` (`AdSpeedup`)** blocker mode with clean MutationObserver lifecycle, automatic ad detection, 16x fast-forward, muted audio, and leak-free unloading.
    - Restored and expanded filter sources list in `blocker.ts` with **27 canonical global, privacy, annoyance, regional, and threat intelligence vendor filter lists** (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile Ads, URL Tracking Protection, EasyList Other Annoyances, HaGeZi Multi PRO, Pop-up Ads, TIF Mini, plus 12 regional lists) with resilient fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
    - Added dynamic runtime support in `renderer.onConfigChange` and `preload.onConfigChange`.
-2. **SponsorBlock Plugin Modernization**:
+3. **SponsorBlock Plugin Modernization**:
    - Expanded supported categories to include `preview` (Preview/Recap) and `filler` (Filler Tangent/Joke) alongside standard sponsor and music categories.
    - Added interactive in-app category selection submenu in `MenuTemplate`, allowing users to toggle individual category skips with persisted preferences.
    - Enforced strict RFC 3986 parameter sanitization via `encodeURIComponent` for video IDs and JSON categories, eliminating HTTP 400 Bad Request errors.
    - Safely guarded dev runtime logging via `window.electronIs?.dev?.()`.
    - Added complete bilingual translations in `en.json` and `id.json` for all 8 SponsorBlock categories.
-3. **Video Toggle Redesign & Alignment Fix**:
+4. **Video Toggle Redesign & Alignment Fix**:
    - Modernized `.video-switch-button` from outdated bulky styling to a sleek YouTube Music glassmorphism pill switcher (`160px × 36px`, `backdrop-filter: blur(12px)`, sliding indicator pill).
    - Fixed broken alignment where `.video-switch-button` was absolutely positioned with static margins, completely bypassing `#ytmd-video-toggle-switch-button-container` flex positioning.
    - Added real-time alignment updates in `onConfigChange` for `left`, `middle`, and `right` positions.
    - Enhanced click interactions into a true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode.
-4. **Standards, Linter & IDE Problem Remediation**:
+5. **Standards, Linter & IDE Problem Remediation**:
    - Added `-webkit-user-select: none;` prefix across `button-switcher.css` for Safari/WebKit compatibility.
    - Refactored `isBlockerEnabled` with optional chaining in `blocker.ts` (`blocker?.isBlockingEnabled(session) ?? false`).
    - Reordered switch statement clauses in `video-toggle/index.tsx` placing `default:` at the end.
