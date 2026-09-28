@@ -33,6 +33,14 @@ All notable changes to this project will be documented in this file. Dates are d
   - Configure `.devskim.json` to suppress false positive rules on benign domain patterns: `DS148264` (playlist queue shuffle), `DS137138` (W3C SVG namespace XML URL), and `DS126858` (Last.fm MD5 API requirements), while excluding lockfiles
   - Create root `.mega-linter.yml` disabling duplicate code checker (`jscpd` on multi-lingual i18n JSON files) and excluding build artifacts
   - Align `.github/workflows/MegaLinter.yml` branch triggers and conditions with the repository's `master` branch
+  - Secure `.github/workflows/MegaLinter.yml` by replacing undefined `PAT` context references with `${{ secrets.GITHUB_TOKEN }}`
+- **IDE / Linter Warning Resolution & Circular Dependency Decoupling**:
+  - `src/utils/wait-for-element.ts`: Extract `WaitForElementOptions` interface and `DEFAULT_WAIT_OPTIONS` constant, eliminating object literal parameter defaults
+  - `src/utils/memory-watch.ts`: Replace indexed array length access `samples[samples.length - 1]` with ECMAScript `samples.at(-1)` with safe null assertions
+  - `README-PERF.md`: Add `text` language specifier to fenced code blocks to satisfy Markdownlint MD040
+  - `.vscode/css.custom-data.json` & `.vscode/settings.json`: Update browser compatibility targets and vendor-prefix lint settings for Electron/Chromium-specific `-webkit-app-region` and `-webkit-user-drag` properties
+  - Decouple `src/providers/app-controls.ts` from `src/config/index.ts` by directly importing `store` from `@/config/store`
+  - Decouple `src/loader/menu.ts` from `src/menu.ts` via `setMenuRefresher` callback registry, completely eliminating static import cycles and eliminating Vite's `[INEFFECTIVE_DYNAMIC_IMPORT]` build warning
 - **Comprehensive 13-Pillar Production Code Review & DevSecOps Verification**:
   - 13-pillar verification across all files: Bug, Syntax, Runtime, Logic, Memory, Dead Code, Duplicate Code, Circular Dependency, Performance, Security Vulnerability (OWASP Top 10 2025 / CWE), Maintainability, Scalability, and Readability
   - Verification: 100% clean check with `pnpm run check` (oxlint, oxfmt, tsc) — 0 errors, 0 warnings

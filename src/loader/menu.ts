@@ -3,13 +3,19 @@ import { allPlugins } from 'virtual:plugins';
 
 import * as config from '@/config';
 import { t } from '@/i18n';
-import { setApplicationMenu } from '@/menu';
 import { restart } from '@/providers/app-controls';
 import { LoggerPrefix } from '@/utils';
 
 import type { MenuContext } from '@/types/contexts';
 import type { PluginConfig } from '@/types/plugins';
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
+
+type MenuRefresher = (win: BrowserWindow) => Promise<void> | void;
+let menuRefresher: MenuRefresher | null = null;
+
+export const setMenuRefresher = (refresher: MenuRefresher): void => {
+  menuRefresher = refresher;
+};
 
 const menuTemplateMap: Record<string, MenuItemConstructorOptions[]> = {};
 const createContext = (
@@ -33,7 +39,9 @@ const createContext = (
   },
   window: win,
   refresh: async () => {
-    await setApplicationMenu(win);
+    if (menuRefresher) {
+      await menuRefresher(win);
+    }
 
     if (await config.plugins.isEnabled('in-app-menu')) {
       win.webContents.send('refresh-in-app-menu');

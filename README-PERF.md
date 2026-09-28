@@ -31,7 +31,7 @@ This document outlines the standard operating procedures for auditing, profiling
    pnpm start --inspect=9229
    ```
 2. Open Google Chrome or Chromium and navigate to:
-   ```
+   ```text
    chrome://inspect
    ```
 3. Under **Remote Target**, locate `Pear Desktop / Electron Main Process` and click **inspect**.

@@ -51,8 +51,18 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers an architectural overhaul of the *
      - Added `.devskim.json` to configure DevSkim rule suppression for false-positive domain identifiers (`DS148264` for media queue shuffle, `DS137138` for W3C SVG namespace XML URL, and `DS126858` for Last.fm MD5 API requirements) and ignore lockfiles.
      - Created root `.mega-linter.yml` disabling noisy duplicate code checker (`jscpd` on multi-lingual i18n JSON files) and excluding build artifacts.
      - Aligned `.github/workflows/MegaLinter.yml` branch triggers and conditions with the repository's `master` branch.
+     - Hardened `.github/workflows/MegaLinter.yml` by replacing undefined `PAT` context references with `${{ secrets.GITHUB_TOKEN }}`.
 
-6. **13-Pillar Production Code Review & Quality Assurance**:
+6. **IDE / Linter Warning Resolution & Circular Dependency Decoupling**:
+   - **`src/utils/wait-for-element.ts`**: Extracted `WaitForElementOptions` interface and `DEFAULT_WAIT_OPTIONS` constant, eliminating object literal parameter defaults (SonarLint `S6578`).
+   - **`src/utils/memory-watch.ts`**: Replaced indexed array length access `samples[samples.length - 1]` with ECMAScript `samples.at(-1)` with safe null assertions (SonarLint `S6571`).
+   - **`README-PERF.md`**: Added `text` syntax specifier to fenced code blocks on line 34, satisfying markdownlint `MD040`.
+   - **`.vscode/css.custom-data.json` & `.vscode/settings.json`**: Updated custom CSS property definitions and vendor prefix settings for Electron/Chromium-specific `-webkit-app-region` and `-webkit-user-drag`, eliminating false-positive browser incompatibility alerts.
+   - **Eliminated Architectural Circular Dependencies**:
+     - Decoupled `src/providers/app-controls.ts` from `src/config/index.ts` by directly importing `store` from `@/config/store`.
+     - Decoupled `src/loader/menu.ts` from `src/menu.ts` by introducing `setMenuRefresher` callback registry, completely eliminating static import cycles and eliminating Vite's `[INEFFECTIVE_DYNAMIC_IMPORT]` build warning.
+
+7. **13-Pillar Production Code Review & Quality Assurance**:
    - Comprehensive audit spanning Bug, Syntax, Runtime, Logic, Memory, Dead Code, Duplicate Code, Circular Dependency, Performance, Security (OWASP Top 10 2025 / CWE Top 25 2025), Maintainability, Scalability, and Readability.
    - Verified zero memory leaks (WeakSet for event handlers, complete observer disconnects, zero detached DOM nodes).
    - Validated full codebase with `pnpm check` (`oxlint`, `oxfmt`, `tsc`) achieving **0 errors, 0 warnings, and 100% clean formatting**.

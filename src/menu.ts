@@ -16,7 +16,11 @@ import { allPlugins } from 'virtual:plugins';
 import { APPLICATION_NAME, setLanguage, t } from '@/i18n';
 
 import * as config from './config';
-import { getAllMenuTemplate, loadAllMenuPlugins } from './loader/menu';
+import {
+  getAllMenuTemplate,
+  loadAllMenuPlugins,
+  setMenuRefresher,
+} from './loader/menu';
 import { restart } from './providers/app-controls';
 import { startingPages } from './providers/extracted-data';
 import promptOptions from './providers/prompt-options';
@@ -754,6 +758,8 @@ export const setApplicationMenu = async (win: Electron.BrowserWindow) => {
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 };
+
+setMenuRefresher(setApplicationMenu);
 
 async function setProxy(item: Electron.MenuItem, win: BrowserWindow) {
   const output = await prompt(

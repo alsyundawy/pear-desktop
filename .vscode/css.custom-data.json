@@ -4,7 +4,7 @@
     {
       "name": "-webkit-app-region",
       "description": "Electron/Chromium-specific property that designates a window drag region. 'drag' makes the element act as a title-bar drag target; 'no-drag' excludes interactive children from dragging.",
-      "browsers": ["E0", "C0"],
+      "browsers": ["E0", "C0", "FF0", "FFA0", "S0", "SM0"],
       "values": [
         { "name": "drag", "description": "This element becomes a window drag handle." },
         { "name": "no-drag", "description": "Exclude this element from drag behavior." },
@@ -21,7 +21,7 @@
     {
       "name": "-webkit-user-drag",
       "description": "Chromium/Safari-specific property that controls whether an element can be dragged as a native drag operation (e.g. dragging an image to the desktop).",
-      "browsers": ["E0", "C0", "S0"],
+      "browsers": ["E0", "C0", "FF0", "FFA0", "S0", "SM0"],
       "values": [
         { "name": "none", "description": "The element cannot be dragged." },
         { "name": "auto", "description": "Browser default drag behavior." },

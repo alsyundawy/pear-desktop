@@ -50,9 +50,9 @@ function recordSample(): void {
   // Detect native leak signature: RSS grows > 25% across 10 samples while heapUsed is flat (<= 5% growth)
   if (samples.length >= MAX_SAMPLES) {
     const oldest = samples[0];
-    const newest = samples[samples.length - 1];
+    const newest = samples.at(-1);
 
-    if (oldest.rssMB > 0 && oldest.heapUsedMB > 0) {
+    if (oldest && newest && oldest.rssMB > 0 && oldest.heapUsedMB > 0) {
       const rssGrowthRatio = (newest.rssMB - oldest.rssMB) / oldest.rssMB;
       const heapGrowthRatio =
         (newest.heapUsedMB - oldest.heapUsedMB) / oldest.heapUsedMB;
