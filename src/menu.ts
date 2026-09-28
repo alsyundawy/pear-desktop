@@ -729,6 +729,12 @@ export const setApplicationMenu = async (win: Electron.BrowserWindow) => {
           click: showAbout,
         },
         { type: 'separator' },
+        {
+          label: t('main.menu.navigation.submenu.restart'),
+          accelerator: 'CmdOrCtrl+Shift+R',
+          click: restart,
+        },
+        { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },
         { role: 'unhide' },

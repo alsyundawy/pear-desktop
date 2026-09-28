@@ -10,8 +10,22 @@ import { getSongMenu } from '@/providers/dom-elements';
 
 import { PlaybackSpeedSlider } from './components/slider';
 
+import type { PlaybackSpeedPluginConfig } from './index';
+import type { RendererContext } from '@/types/contexts';
+
 const MIN_PLAYBACK_SPEED = 0.07;
 const MAX_PLAYBACK_SPEED = 16;
+
+const [speed, setSpeed] = createSignal(1);
+const [varispeed, setVarispeed] = createSignal(false);
+const sliderContainer = document.createElement('div');
+
+export const applyPitchPreservation = () => {
+  const videoElement = document.querySelector<HTMLVideoElement>('video');
+  if (videoElement) {
+    videoElement.preservesPitch = !varispeed();
+  }
+};
 
 const forcePlaybackRate = (e: Event) => {
   if (e.target instanceof HTMLVideoElement) {
@@ -19,20 +33,36 @@ const forcePlaybackRate = (e: Event) => {
     if (videoElement.playbackRate !== speed()) {
       videoElement.playbackRate = speed();
     }
+    applyPitchPreservation();
   }
 };
 
 const roundToTwo = (n: number) => Math.round(n * 1e2) / 1e2;
 
-const [speed, setSpeed] = createSignal(1);
-const sliderContainer = document.createElement('div');
+export const onPlayerApiReady = async (
+  _api: unknown,
+  context: RendererContext<PlaybackSpeedPluginConfig>,
+) => {
+  const config = await context.getConfig();
+  setVarispeed(Boolean(config?.varispeed));
+  applyPitchPreservation();
 
-export const onPlayerApiReady = () => {
+  context.ipc.on(
+    'config-changed',
+    (id: string, newConfig: PlaybackSpeedPluginConfig) => {
+      if (id === 'playback-speed') {
+        setVarispeed(Boolean(newConfig?.varispeed));
+        applyPitchPreservation();
+      }
+    },
+  );
+
   const observePopupContainer = () => {
     const updatePlayBackSpeed = () => {
       const videoElement = document.querySelector<HTMLVideoElement>('video');
       if (videoElement) {
         videoElement.playbackRate = speed();
+        applyPitchPreservation();
       }
 
       setSpeed(speed());
@@ -108,6 +138,7 @@ export const onPlayerApiReady = () => {
     if (video) {
       video.addEventListener('ratechange', forcePlaybackRate);
       video.addEventListener('peard:src-changed', forcePlaybackRate);
+      applyPitchPreservation();
     }
   };
 
@@ -120,6 +151,9 @@ export const onUnload = () => {
   if (video) {
     video.removeEventListener('ratechange', forcePlaybackRate);
     video.removeEventListener('peard:src-changed', forcePlaybackRate);
+    video.preservesPitch = true;
   }
-  getSongMenu()?.removeChild(sliderContainer);
+  if (sliderContainer.parentElement) {
+    sliderContainer.parentElement.removeChild(sliderContainer);
+  }
 };

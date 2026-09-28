@@ -4,6 +4,7 @@ import { allPlugins } from 'virtual:plugins';
 import * as config from '@/config';
 import { t } from '@/i18n';
 import { setApplicationMenu } from '@/menu';
+import { restart } from '@/providers/app-controls';
 import { LoggerPrefix } from '@/utils';
 
 import type { MenuContext } from '@/types/contexts';
@@ -26,6 +27,9 @@ const createContext = (
       newConfig,
       (await allPlugins())[id].config,
     );
+  },
+  restart: () => {
+    restart();
   },
   window: win,
   refresh: async () => {

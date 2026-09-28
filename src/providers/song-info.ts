@@ -177,11 +177,18 @@ export type SongInfoCallback = (
   event: SongInfoEvent,
 ) => void;
 const callbacks: Set<SongInfoCallback> = new Set();
+let currentSongInfo: SongInfo | null = null;
 
 // This function will allow plugins to register callback that will be triggered when data changes
 export const registerCallback = (callback: SongInfoCallback) => {
   callbacks.add(callback);
 };
+
+export const unregisterCallback = (callback: SongInfoCallback) => {
+  callbacks.delete(callback);
+};
+
+export const getCurrentSongInfo = (): SongInfo | null => currentSongInfo;
 
 const registerProvider = (win: BrowserWindow) => {
   const dataMutex = new Mutex();
@@ -197,6 +204,7 @@ const registerProvider = (win: BrowserWindow) => {
     );
 
     if (tempSongInfo) {
+      currentSongInfo = tempSongInfo;
       for (const c of callbacks) {
         c(tempSongInfo, SongInfoEvent.VideoSrcChanged);
       }
@@ -223,6 +231,7 @@ const registerProvider = (win: BrowserWindow) => {
       });
 
       if (tempSongInfo) {
+        currentSongInfo = tempSongInfo;
         for (const c of callbacks) {
           c(tempSongInfo, SongInfoEvent.PlayOrPaused);
         }
@@ -242,6 +251,7 @@ const registerProvider = (win: BrowserWindow) => {
     });
 
     if (tempSongInfo) {
+      currentSongInfo = tempSongInfo;
       for (const c of callbacks) {
         c(tempSongInfo, SongInfoEvent.TimeChanged);
       }

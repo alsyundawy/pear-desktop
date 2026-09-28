@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-05](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-04...v3.12.0-05)
+
+> 28 September 2026 (Release 3.12.0-05)
+
+- **TouchBar & Video-Toggle Runtime Fixes & Restart Lifecycle**:
+  - **Native TouchBar Plugin Hardening (`src/plugins/touchbar/index.ts`)**:
+    - Fix issue where TouchBar failed to mount if enabled after initial window creation by binding `window.setTouchBar(touchBar)` immediately when the window is loaded or visible
+    - Add real-time track metadata sync upon activation via `songInfo.getCurrentSongInfo()`
+    - Implement complete `stop({ window })` lifecycle method: unregister callback via `songInfo.unregisterCallback()`, clear TouchBar with `window.setTouchBar(null)`, and reset state
+  - **Song Info Provider Expansion (`src/providers/song-info.ts`)**:
+    - Export `getCurrentSongInfo()` returning current song metadata synchronously
+    - Export `unregisterCallback(callback)` enabling clean listener disposal on plugin deactivation
+  - **Video / Music Toggle Lifecycle & Stream Mode Hardening (`src/plugins/video-toggle/index.tsx`)**:
+    - Add complete `stop()` lifecycle hook in renderer: clean up custom toggle button container, disconnect MutationObservers, remove `peard:video-src-changed` listener, remove custom body classes, and restore native player element attributes
+    - Add dynamic `updateMode()` support in `onConfigChange` to transition between `custom`, `native`, and `disabled` without DOM state corruption
+    - Add interactive `Restart Application` menu action in `src/plugins/video-toggle/menu.ts`
+  - **Application-Wide Restart Dialog & Menu Integration**:
+    - Add native `Restart YouTube Music` (`CmdOrCtrl+Shift+R`) item in macOS application menu (`src/menu.ts`)
+    - Expose `restart()` in `MenuContext` (`src/types/contexts.ts` and `src/loader/menu.ts`)
+    - Fix config watcher in `src/index.ts` to trigger `showNeedToRestartDialog(id)` whenever any plugin requiring a restart (`restartNeeded: true`) has its settings modified or toggled
+- **Upstream Feature & Stability Integrations (Selective High-Value Merges)**:
+  - **Last.fm Re-authentication Freeze Fix (`src/plugins/scrobbler/services/lastfm.ts`)** (Upstream PR #4717):
+    - Replace CPU-blocking `while (authWindowOpened) {}` busy-wait loop in Last.fm authentication with non-blocking interval polling and 5-minute timeout
+    - Export `login(authWindowOpened, config)` and persist session token to user config
+    - Add interactive `Log in with Last.fm` menu action in `src/plugins/scrobbler/menu.ts`
+    - Full bilingual translations in `en.json` and `id.json`
+  - **Skip Disliked Songs Double-Skipping Fix (`src/plugins/skip-disliked-songs/index.ts`)** (Upstream PR #4618):
+    - Fix race condition where premature like-status mutations caused immediate double skipping on track changes
+    - Add `currentVideoId` tracking, 1000ms debounce timer, and restrict MutationObserver to `['like-status']`
+    - Add clean observer and timer teardown in `stop()` lifecycle method
+  - **Crossfade Random Muting Bug & Listener Leak Fix (`src/plugins/crossfade/index.ts`)** (Upstream PR #4307):
+    - Fix random muting where video volume was set to 0 and failed to restore if crossfade transition was cancelled or audio failed to load
+    - Implement cached volume tracking and `ensureVideoVolume()` fallback
+    - Clean up video element event listeners in `stop()` to eliminate memory leaks
+  - **Navigation Button Cleanup on Teardown (`src/plugins/navigation/index.tsx`)** (Upstream PR #4650):
+    - Clear navigation button DOM elements with `this.buttonContainer.replaceChildren()` when plugin is stopped, preventing leftover buttons and memory leaks
+  - **Pitch Preservation / Varispeed Toggle (`src/plugins/playback-speed/index.ts`, `renderer.tsx`)** (Upstream PR #4605):
+    - Add user configurable `preservePitch` setting (allowing toggling between pitch-corrected time stretch and analog tape varispeed)
+    - Add bilingual translations in `en.json` and `id.json`
+  - **Always Show Volume Slider Plugin (`src/plugins/always-show-volume-slider/`)** (Upstream PR #4716):
+    - Add opt-in plugin keeping player-bar volume slider permanently visible and interactive
+    - Override hover opacity and pointer events using adopted CSS stylesheets with clean teardown in `stop()`
+    - Add bilingual translations in `en.json` and `id.json`
+  - **Dismiss Multidevice Popup Plugin (`src/plugins/dismiss-multidevice-popup/`)** (Upstream PR #4718):
+    - Add opt-in background observer automatically closing the intrusive "Listen on this device" modal popup (`ytmusic-you-there-renderer`)
+    - Add clean observer teardown in `stop()` and full bilingual translations in `en.json` and `id.json`
+- **README Modernization & Branding**:
+  - Embedded enterprise 16:9 cybernetic flyer banner (`assets/pear-desktop-banner.jpg`) modeled directly after `https://github.com/alsyundawy/PnetLab-v8`
+  - Added interactive status badges, quick action badges, maintainer attribution, feature capability matrix table, Mermaid system architecture diagram, Apple Silicon hardware acceleration guide, artifact distribution table, quarantine removal instructions, and clean MIT license
+  - Verified 0 trailing spaces across all lines (MD009 compliance)
+- **Quality Verification & Maintenance**:
+  - Bumped version in `package.json` to `3.12.0-5` (release `3.12.0-05`)
+  - 100% clean check: 0 warnings, 0 errors across 260 files with OxLint, Oxfmt, and TypeScript
+  - 11/11 tests passing on Playwright
+
 #### [v3.12.0-04](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-03...v3.12.0-04)
 
 > 28 September 2026 (Release 3.12.0-04)

@@ -236,6 +236,10 @@
       },
       "name": "Tema Warna Album"
     },
+    "always-show-volume-slider": {
+      "name": "Selalu Tampilkan Penggeser Volume",
+      "description": "Menjaga penggeser volume tetap terlihat dan dapat digeser alih-alih hanya muncul saat kursor diarahkan."
+    },
     "ambient-mode": {
       "description": "Menerapkan efek pencahayaan dengan memancarkan warna-warna lembut dari video, ke dalam latar belakang layar Anda",
       "menu": {
@@ -584,6 +588,10 @@
         "button": "Unduh"
       }
     },
+    "dismiss-multidevice-popup": {
+      "name": "Tutup Otomatis Popup Multiperangkat",
+      "description": "Secara otomatis menutup popup \"Dengarkan di perangkat ini\" yang muncul ketika pemutaran dimulai di perangkat lain."
+    },
     "equalizer": {
       "description": "Menambahkan equalizer ke pemutar",
       "menu": {
@@ -731,6 +739,9 @@
     "playback-speed": {
       "description": "Dengarkan cepat, dengarkan perlahan! Tambahkan penggeser untuk mengendalikan kecepatan lagu",
       "name": "Kecepatan Pemutar",
+      "menu": {
+        "varispeed": "Kaitkan Nada (Varispeed)"
+      },
       "templates": {
         "button": "Kecepatan"
       }
@@ -788,7 +799,8 @@
       },
       "menu": {
         "lastfm": {
-          "api-settings": "Pengaturan API Last.fm"
+          "api-settings": "Pengaturan API Last.fm",
+          "login": "Masuk ke Last.fm…"
         },
         "listenbrainz": {
           "token": "Masukkan token pengguna ListenBrainz"

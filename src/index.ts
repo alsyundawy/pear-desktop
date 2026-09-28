@@ -257,10 +257,10 @@ const initHook = async (win: BrowserWindow) => {
             ipcMain.emit('plugin:unload', id);
             forceUnloadMainPlugin(id, win);
           }
+        }
 
-          if (allPluginStubs[id]?.restartNeeded) {
-            showNeedToRestartDialog(id);
-          }
+        if (allPluginStubs[id]?.restartNeeded) {
+          showNeedToRestartDialog(id);
         }
 
         const mainPlugin = getAllLoadedMainPlugins()[id];

@@ -26,6 +26,9 @@ export default createPlugin<
   {
     config?: CrossfadePluginConfig;
     ipc?: RendererContext<CrossfadePluginConfig>['ipc'];
+    transitionAudio?: Howl;
+    cleanupVideoListeners?: () => void;
+    ensureVideoVolume?: () => void;
   },
   CrossfadePluginConfig
 >({
@@ -184,9 +187,9 @@ export default createPlugin<
       this.config = newConfig;
     },
     onPlayerApiReady() {
-      let transitionAudio: Howl; // Howler audio used to fade out the current music
       let firstVideo = true;
-      let waitForTransition: Promise<unknown>;
+      let waitForTransition: Promise<unknown> = Promise.resolve();
+      let originalVolume = 1;
 
       const getStreamURL = async (videoID: string): Promise<string> =>
         this.ipc?.invoke('audio-url', videoID) as Promise<string>;
@@ -195,7 +198,33 @@ export default createPlugin<
         new URLSearchParams(url.split('?')?.at(-1)).get('v');
 
       const isReadyToCrossfade = () =>
-        transitionAudio && transitionAudio.state() === 'loaded';
+        this.transitionAudio && this.transitionAudio.state() === 'loaded';
+
+      const ensureVideoVolume = () => {
+        const video = document.querySelector('video');
+        if (video && video.volume === 0 && originalVolume > 0) {
+          video.volume = originalVolume;
+        }
+      };
+      this.ensureVideoVolume = ensureVideoVolume;
+
+      let currentVideo: HTMLVideoElement | null = null;
+      let onSeeking: (() => void) | null = null;
+      let onPause: (() => void) | null = null;
+      let onPlay: (() => void) | null = null;
+      let transitionBeforeEnd: (() => void) | null = null;
+
+      const cleanupVideoListeners = () => {
+        if (currentVideo) {
+          if (onSeeking) currentVideo.removeEventListener('seeking', onSeeking);
+          if (onPause) currentVideo.removeEventListener('pause', onPause);
+          if (onPlay) currentVideo.removeEventListener('play', onPlay);
+          if (transitionBeforeEnd) {
+            currentVideo.removeEventListener('timeupdate', transitionBeforeEnd);
+          }
+        }
+      };
+      this.cleanupVideoListeners = cleanupVideoListeners;
 
       const watchVideoIDChanges = (cb: (id: string) => void) => {
         window.navigation.addEventListener('navigate', (event) => {
@@ -214,6 +243,7 @@ export default createPlugin<
                 cb(nextVideoID);
               });
             } else {
+              ensureVideoVolume();
               cb(nextVideoID);
               firstVideo = false;
             }
@@ -222,11 +252,11 @@ export default createPlugin<
       };
 
       const createAudioForCrossfade = (url: string) => {
-        if (transitionAudio) {
-          transitionAudio.unload();
+        if (this.transitionAudio) {
+          this.transitionAudio.unload();
         }
 
-        transitionAudio = new Howl({
+        this.transitionAudio = new Howl({
           src: url,
           html5: true,
           volume: 0,
@@ -235,42 +265,63 @@ export default createPlugin<
       };
 
       const syncVideoWithTransitionAudio = () => {
-        const video = document.querySelector('video')!;
+        const video = document.querySelector('video');
+        if (!video) return;
+
+        cleanupVideoListeners();
+        currentVideo = video;
+
+        if (video.volume > 0) {
+          originalVolume = video.volume;
+        }
 
         const videoFader = new VolumeFader(video, {
           fadeScaling: this.config?.fadeScaling,
           fadeDuration: this.config?.fadeInDuration,
         });
 
-        transitionAudio.play();
-        transitionAudio.seek(video.currentTime);
+        this.transitionAudio?.play();
+        this.transitionAudio?.seek(video.currentTime);
 
-        video.addEventListener('seeking', () => {
-          transitionAudio.seek(video.currentTime);
-        });
+        onSeeking = () => {
+          this.transitionAudio?.seek(video.currentTime);
+        };
 
-        video.addEventListener('pause', () => {
-          transitionAudio.pause();
-        });
+        onPause = () => {
+          this.transitionAudio?.pause();
+        };
 
-        video.addEventListener('play', () => {
-          transitionAudio.play();
-          transitionAudio.seek(video.currentTime);
+        onPlay = () => {
+          this.transitionAudio?.play();
+          this.transitionAudio?.seek(video.currentTime);
 
           // Fade in
-          const videoVolume = video.volume;
+          const videoVolume = originalVolume || video.volume || 1;
           video.volume = 0;
           videoFader.fadeTo(videoVolume);
-        });
+        };
+
+        video.addEventListener('seeking', onSeeking);
+        video.addEventListener('pause', onPause);
+        video.addEventListener('play', onPlay);
+
+        if (!video.paused) {
+          const videoVolume = originalVolume || video.volume || 1;
+          if (video.volume === 0) {
+            videoFader.fadeTo(videoVolume);
+          }
+        }
 
         // Exit just before the end for the transition
-        const transitionBeforeEnd = () => {
+        transitionBeforeEnd = () => {
           if (
             video.currentTime >=
               video.duration - (this.config?.secondsBeforeEnd ?? 0) &&
             isReadyToCrossfade()
           ) {
-            video.removeEventListener('timeupdate', transitionBeforeEnd);
+            if (transitionBeforeEnd) {
+              video.removeEventListener('timeupdate', transitionBeforeEnd);
+            }
 
             // Go to next video - XXX: does not support "repeat 1" mode
             document.querySelector<HTMLButtonElement>('.next-button')?.click();
@@ -282,6 +333,7 @@ export default createPlugin<
 
       const crossfade = (cb: () => void) => {
         if (!isReadyToCrossfade()) {
+          ensureVideoVolume();
           cb();
           return;
         }
@@ -291,16 +343,21 @@ export default createPlugin<
           resolveTransition = resolve;
         });
 
-        const video = document.querySelector('video')!;
+        const video = document.querySelector('video');
+        if (video && video.volume > 0) {
+          originalVolume = video.volume;
+        }
 
-        const fader = new VolumeFader(transitionAudio._sounds[0]._node, {
-          initialVolume: video.volume,
+        const fader = new VolumeFader(this.transitionAudio!._sounds[0]._node, {
+          initialVolume: originalVolume,
           fadeScaling: this.config?.fadeScaling,
           fadeDuration: this.config?.fadeOutDuration,
         });
 
         // Fade out the music
-        video.volume = 0;
+        if (video) {
+          video.volume = 0;
+        }
         fader.fadeOut(() => {
           resolveTransition();
           cb();
@@ -311,11 +368,18 @@ export default createPlugin<
         await waitForTransition;
         const url = await getStreamURL(videoID);
         if (!url) {
+          ensureVideoVolume();
           return;
         }
 
         createAudioForCrossfade(url);
       });
+    },
+    stop() {
+      this.cleanupVideoListeners?.();
+      this.transitionAudio?.unload();
+      this.transitionAudio = undefined;
+      this.ensureVideoVolume?.();
     },
   },
 });

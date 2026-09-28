@@ -29,6 +29,7 @@ export interface MenuContext<
 > extends BaseContext<Config> {
   window: BrowserWindow;
   refresh: () => Promise<void> | void;
+  restart: () => void;
 }
 
 /* oxlint-disable typescript/no-empty-object-type */

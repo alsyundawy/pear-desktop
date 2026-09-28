@@ -314,11 +314,29 @@ const authenticate = async (
         });
       });
     } else {
-      // wait for the previous window to close
-      while (authWindowOpened) {
-        // wait
-      }
-      resolve(latestAuthResult);
+      // wait for the previous window to close without blocking the main process
+      const timer = setInterval(() => {
+        if (!authWindowOpened) {
+          clearInterval(timer);
+          resolve(latestAuthResult);
+        }
+      }, 100);
     }
   });
+};
+
+/**
+ * Opens the Last.fm authorization window without discarding the current
+ * session key; the stored session is only replaced after a successful login.
+ */
+export const login = async (
+  config: ScrobblerPluginConfig,
+  setConfig: SetConfType,
+  mainWindow: BrowserWindow,
+) => {
+  config.scrobblers.lastfm.token = await createToken(config);
+  const authorized = await authenticate(config, mainWindow);
+  if (authorized) {
+    await new LastFmScrobbler(mainWindow).createSession(config, setConfig);
+  }
 };

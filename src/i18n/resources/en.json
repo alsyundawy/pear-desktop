@@ -236,6 +236,10 @@
       },
       "name": "Album Color Theme"
     },
+    "always-show-volume-slider": {
+      "name": "Always Show Volume Slider",
+      "description": "Keeps the volume slider visible and draggable instead of only showing it on hover."
+    },
     "ambient-mode": {
       "description": "Applies a lighting effect by casting gentle colors from the video, into your screen’s background",
       "menu": {
@@ -584,6 +588,10 @@
         "button": "Download"
       }
     },
+    "dismiss-multidevice-popup": {
+      "name": "Dismiss Multidevice Popup",
+      "description": "Automatically closes the \"Listen on this device\" popup that appears when playback starts on another device."
+    },
     "equalizer": {
       "description": "Adds an equalizer to the player",
       "menu": {
@@ -731,6 +739,9 @@
     "playback-speed": {
       "description": "Listen fast, listen slow! Adds a slider that controls song speed",
       "name": "Playback Speed",
+      "menu": {
+        "varispeed": "Link Pitch (Varispeed)"
+      },
       "templates": {
         "button": "Speed"
       }
@@ -788,7 +799,8 @@
       },
       "menu": {
         "lastfm": {
-          "api-settings": "Last.fm API Settings"
+          "api-settings": "Last.fm API Settings",
+          "login": "Log in to Last.fm…"
         },
         "listenbrainz": {
           "token": "Enter ListenBrainz user token"

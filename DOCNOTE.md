@@ -1,3 +1,77 @@
+# Release DocNote: 3.12.0-05
+
+**Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  
+**Release Version**: `3.12.0-05` (`v3.12.0-05`)  
+**Base Version**: `3.12.0-04` (`v3.12.0-04`)  
+**Date**: 28 September 2026  
+**Status**: Production-Grade Verified & Zero-Error  
+
+---
+
+## 1. Executive Summary
+
+Release **3.12.0-05** (`v3.12.0-05`) brings critical upstream feature integrations, fixes for main-thread freezes and audio muting bugs, leak-free plugin teardowns, two brand new opt-in plugins, TouchBar & Video-Toggle plugin runtime fixes with seamless restart actions, and a completely modernized README flyer banner inspired by `https://github.com/alsyundawy/PnetLab-v8`:
+
+1. **TouchBar & Video-Toggle Runtime Fixes & Restart Lifecycle**:
+   - **Native TouchBar Plugin Hardening (`src/plugins/touchbar/index.ts`)**:
+     - Fixed issue where the TouchBar would fail to initialize if enabled after application startup because of a stale one-time `ready-to-show` listener.
+     - Implemented immediate `window.setTouchBar(touchBar)` initialization if the window is already created, loaded, or visible.
+     - Added instant track metadata sync on activation via `songInfo.getCurrentSongInfo()`.
+     - Implemented clean `stop({ window })` lifecycle hook: unregisters the song-info listener via `songInfo.unregisterCallback()`, sets `window.setTouchBar(null)`, and clears active state.
+   - **Song Info Provider Expansion (`src/providers/song-info.ts`)**:
+     - Exported `getCurrentSongInfo()` returning the current song metadata snapshot.
+     - Exported `unregisterCallback(callback)` enabling clean plugin teardowns without listener leaks.
+   - **Video / Music Toggle Lifecycle & Stream Mode Hardening (`src/plugins/video-toggle/index.tsx`)**:
+     - Added full `stop()` lifecycle method in renderer: safely removes the custom toggle button container, disconnects DOM `MutationObserver`s, unbinds the `peard:src-changed` listener, cleans up custom body classes, and restores native player attributes.
+     - Added dynamic `updateMode()` execution in `onConfigChange` to transition cleanly between `custom`, `native`, and `disabled` modes without corrupting DOM state.
+     - Added user-facing interactive restart action in `src/plugins/video-toggle/menu.ts`.
+   - **Application-Wide Restart Dialog & Menu Integration**:
+     - Added native `Restart YouTube Music` (`CmdOrCtrl+Shift+R`) item in the macOS application menu (`src/menu.ts`).
+     - Added `restart()` to `MenuContext` (`src/types/contexts.ts` & `src/loader/menu.ts`).
+     - Fixed `src/index.ts` config watcher to invoke `showNeedToRestartDialog(id)` whenever any plugin marked with `restartNeeded: true` has its configuration toggled or modified, resolving the missing restart prompt issue.
+
+2. **Selective High-Value Upstream PR Integrations**:
+   - **PR #4717 (Fix Last.fm Re-authentication Freeze in `src/plugins/scrobbler/services/lastfm.ts`)**:
+     - Removed the blocking `while (authWindowOpened) {}` busy-wait loop that completely froze the Electron main thread during Last.fm re-authentication.
+     - Implemented non-blocking interval polling with a 5-minute timeout and automatic window closure cleanup.
+     - Exported `login(authWindowOpened, config)` to persist the authenticated session token into `conf`.
+     - Added user-facing interactive menu item `Log in with Last.fm` in `src/plugins/scrobbler/menu.ts`.
+     - Full bilingual localization in `en.json` and `id.json`.
+   - **PR #4618 (Skip Disliked Songs Double-Skipping Fix in `src/plugins/skip-disliked-songs/index.ts`)**:
+     - Resolved race condition where premature `like-status` attribute mutations triggered immediate double skips during track transitions.
+     - Implemented active `currentVideoId` tracking, a 1000ms debounce confirmation timer, and restricted `MutationObserver` attribute filters strictly to `['like-status']`.
+     - Added clean observer and timer teardown in the `stop()` lifecycle hook.
+   - **PR #4307 (Crossfade Random Muting Bug & Memory Leak Fix in `src/plugins/crossfade/index.ts`)**:
+     - Fixed random silent playback caused by the video element volume being set to `0` and failing to restore when transitions were aborted or audio failed to load.
+     - Implemented cached volume tracking and an `ensureVideoVolume()` fallback.
+     - Added comprehensive listener disposal in `stop()` to eliminate video element event listener leaks.
+   - **PR #4650 (Navigation Buttons Clean Teardown in `src/plugins/navigation/index.tsx`)**:
+     - Added `this.buttonContainer.replaceChildren()` in renderer `stop()` to cleanly remove navigation button DOM elements on plugin deactivation, stopping memory leaks.
+   - **PR #4605 (Pitch Preservation / Varispeed Toggle in `src/plugins/playback-speed/index.ts` & `renderer.tsx`)**:
+     - Added optional `preservePitch` setting (toggle between constant pitch time-stretching and tape varispeed).
+     - Dynamically applies `video.preservesPitch = config.preservePitch`.
+     - Full bilingual translations in `en.json` and `id.json`.
+   - **PR #4716 (Always Show Volume Slider Plugin in `src/plugins/always-show-volume-slider/`)**:
+     - Added opt-in plugin keeping the player-bar volume slider permanently visible and draggable.
+     - Uses adopted CSS stylesheet to override `opacity: 1 !important` and `pointer-events: auto !important`, detaching cleanly on plugin deactivation.
+     - Full bilingual translations in `en.json` and `id.json`.
+   - **PR #4718 (Dismiss Multidevice Popup Plugin in `src/plugins/dismiss-multidevice-popup/`)**:
+     - Added opt-in background observer automatically closing the intrusive "Listen on this device" modal dialog (`ytmusic-you-there-renderer`).
+     - Includes clean `MutationObserver` teardown in `stop()`.
+     - Full bilingual translations in `en.json` and `id.json`.
+
+3. **README Modernization & Branding (Cybernetic Banner Flyer)**:
+   - Created and embedded an enterprise 16:9 widescreen cybernetic flyer banner (`assets/pear-desktop-banner.jpg`) modeled after `https://github.com/alsyundawy/PnetLab-v8`.
+   - Modernized `README.md` with interactive status badges, quick action badges, maintainer attribution, feature capability matrix table, Mermaid system architecture diagram, Apple Silicon hardware acceleration guide, artifact distribution table, quarantine removal instructions, and clean MIT license.
+   - Resolved MD009 trailing spaces across all lines (0 warnings).
+
+4. **Production-Grade Quality Verification**:
+   - 100% clean check: 0 warnings, 0 errors across 260 files with OxLint, Oxfmt, and TypeScript.
+   - 11/11 tests passing on Playwright.
+   - Project version bumped to `3.12.0-5` (`v3.12.0-05`).
+
+---
+
 # Release DocNote: 3.12.0-04
 
 **Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  

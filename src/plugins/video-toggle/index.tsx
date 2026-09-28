@@ -19,7 +19,21 @@ export type VideoTogglePluginConfig = {
   align: 'left' | 'middle' | 'right';
 };
 
-export default createPlugin({
+export default createPlugin<
+  unknown,
+  unknown,
+  {
+    config: VideoTogglePluginConfig | null;
+    switchButtonContainer: HTMLElement | null;
+    playbackModeObserver: MutationObserver | null;
+    thumbnailObserver: MutationObserver | null;
+    videoStartedHandler: (() => void) | null;
+    setVideoStateFn: ((showVideo: boolean) => void) | null;
+    applyStyleClass: (config: VideoTogglePluginConfig) => void;
+    updateMode: (config: VideoTogglePluginConfig) => void;
+  },
+  VideoTogglePluginConfig
+>({
   name: () => t('plugins.video-toggle.name'),
   description: () => t('plugins.video-toggle.description'),
   restartNeeded: true,
@@ -31,7 +45,7 @@ export default createPlugin({
     align: 'left',
   } as VideoTogglePluginConfig,
   stylesheets: [buttonSwitcherStyle, forceHideStyle],
-  menu: async ({ getConfig, setConfig }): Promise<MenuTemplate> => {
+  menu: async ({ getConfig, setConfig, restart }): Promise<MenuTemplate> => {
     const config = await getConfig();
 
     return [
@@ -101,25 +115,57 @@ export default createPlugin({
           setConfig({ forceHide: item.checked });
         },
       },
+      { type: 'separator' },
+      {
+        label: t('main.menu.navigation.submenu.restart'),
+        click: restart,
+      },
     ];
   },
 
   renderer: {
-    config: null as VideoTogglePluginConfig | null,
-    applyStyleClass: (config: VideoTogglePluginConfig) => {
+    config: null,
+    switchButtonContainer: null,
+    playbackModeObserver: null,
+    thumbnailObserver: null,
+    videoStartedHandler: null,
+    setVideoStateFn: null,
+
+    applyStyleClass(config: VideoTogglePluginConfig) {
       if (config.forceHide) {
         document.body.classList.add('video-toggle-force-hide');
         document.body.classList.remove('video-toggle-custom-mode');
       } else if (!config.mode || config.mode === 'custom') {
         document.body.classList.add('video-toggle-custom-mode');
         document.body.classList.remove('video-toggle-force-hide');
+      } else {
+        document.body.classList.remove('video-toggle-force-hide');
+        document.body.classList.remove('video-toggle-custom-mode');
       }
     },
-    async start({ getConfig }) {
-      const config = await getConfig();
-      this.applyStyleClass(config);
+
+    updateMode(config: VideoTogglePluginConfig) {
+      const switchBtn =
+        this.switchButtonContainer ??
+        document.getElementById('ytmd-video-toggle-switch-button-container');
+
+      if (switchBtn) {
+        switchBtn.style.display =
+          !config.forceHide && (!config.mode || config.mode === 'custom')
+            ? 'flex'
+            : 'none';
+      }
 
       if (config.forceHide) {
+        document
+          .querySelector('ytmusic-player-page')
+          ?.removeAttribute('has-av-switcher');
+        document
+          .querySelector('ytmusic-player')
+          ?.removeAttribute('has-av-switcher');
+        document
+          .querySelector('ytmusic-av-toggle')
+          ?.setAttribute('toggle-disabled', '');
         return;
       }
 
@@ -134,7 +180,7 @@ export default createPlugin({
           document
             .querySelector('ytmusic-av-toggle')
             ?.removeAttribute('toggle-disabled');
-          return;
+          break;
         }
 
         case 'disabled': {
@@ -147,10 +193,35 @@ export default createPlugin({
           document
             .querySelector('ytmusic-av-toggle')
             ?.setAttribute('toggle-disabled', '');
-          return;
+          break;
+        }
+
+        case 'custom':
+        default: {
+          document
+            .querySelector('ytmusic-player-page')
+            ?.removeAttribute('has-av-switcher');
+          document
+            .querySelector('ytmusic-player')
+            ?.removeAttribute('has-av-switcher');
+          document
+            .querySelector('ytmusic-av-toggle')
+            ?.setAttribute('toggle-disabled', '');
+          if (this.setVideoStateFn) {
+            this.setVideoStateFn(!config.hideVideo);
+          }
+          break;
         }
       }
     },
+
+    async start({ getConfig }) {
+      const config = await getConfig();
+      this.config = config;
+      this.applyStyleClass(config);
+      this.updateMode(config);
+    },
+
     async onPlayerApiReady(api, { getConfig }) {
       const [showButton, setShowButton] = createSignal(true);
 
@@ -170,14 +241,18 @@ export default createPlugin({
 
       const switchButtonContainer = document.createElement('div');
       switchButtonContainer.id = 'ytmd-video-toggle-switch-button-container';
-      switchButtonContainer.style.display = 'flex';
+      switchButtonContainer.style.display =
+        !config.forceHide && (!config.mode || config.mode === 'custom')
+          ? 'flex'
+          : 'none';
+      this.switchButtonContainer = switchButtonContainer;
+
       render(
         () => (
           <Show when={showButton()}>
             <VideoSwitchButton
               onChange={(e) => {
                 const target = e.target as HTMLInputElement;
-
                 setVideoState(target.checked);
               }}
               onClick={(e) => e.stopPropagation()}
@@ -238,6 +313,7 @@ export default createPlugin({
           moveVolumeHud(showVideo);
         }
       };
+      this.setVideoStateFn = setVideoState;
 
       const videoStarted = () => {
         if (
@@ -271,6 +347,7 @@ export default createPlugin({
           }
         }
       };
+      this.videoStartedHandler = videoStarted;
 
       /**
        * On load, after a delay, the page overrides the playback-mode to 'OMV_PREFERRED' which causes weird aspect ratio in the image container
@@ -292,11 +369,12 @@ export default createPlugin({
           playbackModeObserver.observe(player, {
             attributeFilter: ['playback-mode'],
           });
+          this.playbackModeObserver = playbackModeObserver;
         }
       };
 
       const observeThumbnail = () => {
-        const playbackModeObserver = new MutationObserver((mutations) => {
+        const thumbnailObserver = new MutationObserver((mutations) => {
           if (!player?.videoMode_) {
             return;
           }
@@ -316,13 +394,14 @@ export default createPlugin({
           '#song-image #img.style-scope.yt-img-shadow',
         );
         if (thumbnailElement) {
-          playbackModeObserver.observe(thumbnailElement, {
+          thumbnailObserver.observe(thumbnailElement, {
             attributeFilter: ['src'],
           });
+          this.thumbnailObserver = thumbnailObserver;
         }
       };
 
-      if (config.mode !== 'native' && config.mode != 'disabled') {
+      if (config.mode !== 'native' && config.mode !== 'disabled') {
         setTimeout(() => {
           const playerSelector =
             document.querySelector<HTMLVideoElement>('#player');
@@ -357,13 +436,23 @@ export default createPlugin({
         }, 0);
       }
     },
+
     onConfigChange(newConfig) {
+      const oldConfig = this.config;
       this.config = newConfig;
       this.applyStyleClass(newConfig);
 
-      const switchButtonContainer = document.getElementById(
-        'ytmd-video-toggle-switch-button-container',
-      );
+      if (
+        oldConfig?.mode !== newConfig.mode ||
+        oldConfig?.forceHide !== newConfig.forceHide
+      ) {
+        this.updateMode(newConfig);
+      }
+
+      const switchButtonContainer =
+        this.switchButtonContainer ??
+        document.getElementById('ytmd-video-toggle-switch-button-container');
+
       if (switchButtonContainer) {
         switch (newConfig.align) {
           case 'right': {
@@ -381,6 +470,75 @@ export default createPlugin({
           }
         }
       }
+    },
+
+    stop() {
+      // Remove button container from DOM
+      if (this.switchButtonContainer) {
+        this.switchButtonContainer.remove();
+        this.switchButtonContainer = null;
+      } else {
+        const container = document.getElementById(
+          'ytmd-video-toggle-switch-button-container',
+        );
+        container?.remove();
+      }
+
+      // Remove body classes
+      document.body.classList.remove(
+        'video-toggle-force-hide',
+        'video-toggle-custom-mode',
+      );
+
+      // Disconnect MutationObservers
+      this.playbackModeObserver?.disconnect();
+      this.playbackModeObserver = null;
+      this.thumbnailObserver?.disconnect();
+      this.thumbnailObserver = null;
+
+      // Remove video event listener
+      const video = document.querySelector<HTMLVideoElement>('video');
+      if (video && this.videoStartedHandler) {
+        video.removeEventListener(
+          'peard:src-changed',
+          this.videoStartedHandler,
+        );
+        this.videoStartedHandler = null;
+      }
+
+      // Reset DOM attributes and styles
+      document
+        .querySelector('ytmusic-player-page')
+        ?.removeAttribute('has-av-switcher');
+      document
+        .querySelector('ytmusic-player')
+        ?.removeAttribute('has-av-switcher');
+      document
+        .querySelector('ytmusic-av-toggle')
+        ?.removeAttribute('toggle-disabled');
+
+      const songVideoElement = document.querySelector<HTMLElement>(
+        '#song-video.ytmusic-player',
+      );
+      if (songVideoElement) songVideoElement.style.display = '';
+
+      const songImageElement =
+        document.querySelector<HTMLElement>('#song-image');
+      if (songImageElement) songImageElement.style.display = '';
+
+      const player = document.querySelector<HTMLElement>('ytmusic-player');
+      if (player) {
+        player.style.margin = '';
+        player.removeAttribute('playback-mode');
+      }
+
+      if (video) {
+        video.style.height = '';
+        video.style.top = '';
+      }
+
+      this.config = null;
+      this.setVideoStateFn = null;
     },
   },
 });
