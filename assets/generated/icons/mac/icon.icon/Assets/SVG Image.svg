@@ -1,61 +1,75 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- ReVanced Signature Gradient: Magenta -> Purple -> Cyan -->
-    <linearGradient id="revancedGlowRing" x1="120" y1="120" x2="904" y2="904" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FF007F" />
-      <stop offset="45%" stop-color="#8A2BE2" />
+    <!-- ReVanced Signature Gradient: Neon Magenta -> Violet -> Cyan -->
+    <linearGradient id="revancedRingGradient" x1="180" y1="180" x2="844" y2="844" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF2A85" />
+      <stop offset="30%" stop-color="#DB3EB1" />
+      <stop offset="55%" stop-color="#8B5CF6" />
+      <stop offset="80%" stop-color="#3B82F6" />
       <stop offset="100%" stop-color="#00D4FF" />
     </linearGradient>
 
-    <!-- YouTube Music Signature Red Gradient -->
-    <radialGradient id="ytmRedDisc" cx="50%" cy="40%" r="55%">
-      <stop offset="0%" stop-color="#FF2E2E" />
-      <stop offset="85%" stop-color="#E60000" />
-      <stop offset="100%" stop-color="#B80000" />
+    <!-- YouTube Music Deep Vibrant Red Gradient -->
+    <radialGradient id="ytmRedDisc" cx="48%" cy="44%" r="58%">
+      <stop offset="0%" stop-color="#FF1A2A" />
+      <stop offset="70%" stop-color="#EE0000" />
+      <stop offset="100%" stop-color="#D40000" />
     </radialGradient>
-
-    <!-- Outer Ring Neon Glow Filter -->
-    <filter id="neonRingGlow" x="0" y="0" width="1024" height="1024" filterUnits="userSpaceOnUse">
-      <feGaussianBlur stdDeviation="16" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-
-    <!-- Red Disc Drop Shadow Filter -->
-    <filter id="discShadow" x="120" y="120" width="784" height="784" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.6" />
-    </filter>
-
-    <!-- Pear Emblem Shadow Filter -->
-    <filter id="emblemShadow" x="250" y="200" width="524" height="600" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.3" />
-    </filter>
   </defs>
 
-  <!-- Dark Base Circle -->
-  <circle cx="512" cy="512" r="500" fill="#0A0B0E" />
+  <!-- Dark Base Circle (Transparent outside dock ring) -->
+  <circle cx="512" cy="512" r="465" fill="#080A0E" />
 
-  <!-- ReVanced Outer Neon Gradient Ring -->
-  <circle cx="512" cy="512" r="446" stroke="url(#revancedGlowRing)" stroke-width="26" fill="none" filter="url(#neonRingGlow)" />
+  <!-- ReVanced Neon Gradient Outer Ring -->
+  <circle cx="512" cy="512" r="448" stroke="url(#revancedRingGradient)" stroke-width="28" fill="none" />
 
-  <!-- YouTube Music Central Red Disc -->
-  <g filter="url(#discShadow)">
-    <circle cx="512" cy="512" r="378" fill="url(#ytmRedDisc)" />
-    <circle cx="512" cy="512" r="376" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="3" fill="none" />
-  </g>
+  <!-- YouTube Music Central Red Circle -->
+  <circle cx="512" cy="512" r="366" fill="url(#ytmRedDisc)" />
 
-  <!-- Central Pear Fruit Emblem with Play Button -->
-  <g filter="url(#emblemShadow)">
-    <!-- Pear Leaf & Stem -->
-    <path d="M492 278 C492 278 458 274 446 304 C434 334 466 350 492 350 C518 350 514 316 492 278 Z" fill="#FFFFFF" />
-    <path d="M504 354 C506 322 522 284 546 274 C548 273 550 277 548 281 C532 305 522 328 518 354 Z" fill="#FFFFFF" />
+  <!-- White Pear Fruit & Play Button Emblem -->
+  <g transform="translate(512, 512) scale(0.498638) translate(-975.2, 1029.5) scale(0.1, -0.1)" fill="#FFFFFF" stroke="none">
 
-    <!-- Left Half of Pear -->
-    <path d="M486 364 L486 462 C458 462 432 478 418 504 C402 534 402 572 418 602 C432 628 458 644 486 644 L486 678 C424 678 356 646 356 558 C356 496 394 456 422 412 C444 378 466 364 486 364 Z" fill="#FFFFFF" />
+<path d="M8470 14314 c-47 -43 -88 -101 -132 -188 -34 -68 -88 -196 -88 -210
+0 -5 -9 -28 -19 -50 -42 -87 -109 -308 -152 -501 -23 -101 -69 -385 -69 -425
+0 -14 -7 -36 -16 -48 -15 -21 -21 -22 -180 -22 -232 0 -358 -29 -569 -130
+-197 -95 -372 -253 -509 -463 -69 -107 -195 -406 -247 -587 -5 -19 -16 -51
+-23 -70 -8 -19 -33 -96 -56 -170 -87 -281 -129 -386 -225 -554 -80 -138 -182
+-287 -251 -366 -31 -36 -84 -96 -118 -135 -33 -38 -159 -171 -280 -295 -218
+-224 -389 -435 -491 -602 -137 -226 -242 -534 -292 -858 -35 -227 -17 -612 38
+-799 11 -35 19 -70 19 -78 0 -29 81 -254 140 -388 9 -22 20 -48 23 -57 4 -10
+22 -43 42 -73 19 -31 35 -57 35 -60 0 -2 41 -64 92 -137 99 -143 261 -320 385
+-419 141 -113 351 -230 489 -273 272 -85 516 -76 894 34 199 58 359 58 560 0
+145 -42 180 -54 288 -96 148 -58 223 -61 236 -10 3 13 -8 61 -29 118 -18 52
+-48 155 -65 229 -18 74 -39 156 -47 183 -8 26 -18 84 -23 127 -5 43 -14 95
+-19 116 -47 177 -44 1023 5 1208 7 31 14 71 14 88 0 18 7 60 16 92 9 33 22 89
+29 125 43 225 141 483 243 635 93 139 139 194 362 420 267 272 370 404 450
+582 17 37 35 76 41 85 16 31 50 122 64 173 46 166 58 218 87 385 32 181 33
+191 33 485 -1 284 -2 308 -28 455 -63 351 -148 547 -311 719 -117 122 -226
+190 -401 251 -49 17 -102 36 -116 41 -73 28 -55 113 84 399 149 308 338 569
+535 741 39 33 73 67 76 75 24 63 -210 249 -393 313 -34 11 -68 21 -76 21 -8 0
+-33 -16 -55 -36z"/>
+<path d="M10655 11830 c-278 -41 -543 -178 -681 -354 -167 -211 -198 -391
+-129 -756 32 -169 109 -385 207 -585 59 -118 206 -343 332 -508 128 -166 160
+-211 279 -387 153 -226 234 -372 321 -580 15 -36 34 -78 41 -95 70 -154 142
+-409 175 -615 17 -106 24 -490 11 -655 -12 -165 -51 -374 -105 -560 -35 -122
+-49 -161 -105 -295 -43 -105 -42 -133 10 -167 34 -22 54 -27 122 -30 87 -5
+121 3 383 80 66 20 141 39 165 43 24 3 69 13 99 22 119 33 299 19 485 -39 176
+-54 212 -61 349 -66 303 -13 485 50 771 263 148 111 172 134 333 317 178 202
+395 521 511 752 44 88 84 171 90 185 6 14 15 32 20 40 49 78 179 424 236 625
+10 33 26 89 36 125 29 100 49 180 59 234 5 26 16 67 24 90 8 22 17 73 21 111
+3 39 10 86 15 105 5 19 19 116 31 215 19 151 23 231 23 500 0 281 -3 338 -22
+463 -13 79 -29 168 -37 200 -8 31 -15 70 -15 87 0 16 -9 50 -20 74 -11 24 -20
+49 -20 57 0 7 -6 28 -14 46 -7 18 -24 60 -36 93 -42 113 -150 320 -202 390
+-137 182 -302 322 -498 423 -136 70 -195 93 -340 130 -99 25 -118 26 -330 25
+-219 -1 -228 -2 -335 -31 -166 -46 -200 -57 -330 -107 -363 -139 -449 -165
+-552 -165 -87 0 -215 35 -348 96 -87 39 -282 113 -340 129 -27 7 -63 18 -80
+24 -103 38 -205 53 -375 56 -96 2 -202 0 -235 -5z"/>
+<path d="M8776 8854 c-3 -9 -6 -461 -6 -1005 0 -914 1 -990 17 -996 22 -9 148
+58 413 219 118 71 224 134 235 139 11 6 55 31 97 57 42 26 125 76 185 111 59
+35 124 73 143 86 44 28 466 279 500 297 91 49 136 89 127 112 -5 14 -76 62
+-147 101 -19 10 -73 43 -120 74 -47 30 -110 68 -140 84 -30 17 -77 44 -105 62
+-27 17 -104 62 -170 100 -66 37 -127 74 -135 80 -8 7 -60 37 -115 67 -95 53
+-272 156 -435 255 -106 64 -311 173 -326 173 -6 0 -15 -7 -18 -16z"/>
 
-    <!-- Right Half of Pear -->
-    <path d="M538 364 L538 462 C544 462 550 464 556 468 C582 484 602 516 602 554 C602 590 582 622 556 638 C550 642 544 644 538 644 L538 678 C600 678 668 646 668 558 C668 496 630 456 602 412 C580 378 558 364 538 364 Z" fill="#FFFFFF" />
-
-    <!-- YouTube Music Play Button Triangle in Center -->
-    <path d="M462 466 C462 458 471 453 478 457 L586 518 C593 522 593 532 586 536 L478 597 C471 601 462 596 462 588 Z" fill="#FFFFFF" />
   </g>
 </svg>

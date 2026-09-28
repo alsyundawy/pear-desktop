@@ -28,6 +28,15 @@ All notable changes to this project will be documented in this file. Dates are d
     - Write volume changes directly to `api?.setVolume(value)` in `src/renderer.ts` and synchronize input slider elements (`#volume-slider`, `#expand-volume-slider`), ensuring volume changes round-trip accurately with `getVolume()`
   - **Cold Start Window Presentation (`src/index.ts`)** (Upstream PR #4673):
     - Add `EARLY_SHOW_DELAY = 500` fallback timer in `createMainWindow` allowing the dark native window frame to appear immediately without waiting seconds for remote Polymer scripts to paint
+- **Brand Identity & App Logo Redesign (ReVanced × YouTube Music Aesthetic)**:
+  - Vector redesign of the official Pear Desktop emblem based on user concept and YouTube Music ReVanced aesthetic:
+    - Pure mathematical vector SVG (`assets/icon.svg`) featuring ReVanced vibrant neon gradient ring (Electric Magenta `#FF2A85` $\to$ Violet `#8B5CF6` $\to$ Electric Cyan `#00D4FF`).
+    - YouTube Music signature deep red circular disc (`#FF1A2A` $\to$ `#D40000`).
+    - Organic sliced pear fruit emblem with tilted stem and central white Play Button (`▶`) triangle, optically and geometrically centered to within $\le 1\text{px}$.
+    - Pitch-black inner separation space with 100% transparent alpha canvas outside the dock ring for flawless presentation on macOS Sequoia/Sonoma Light & Dark wallpapers.
+  - Razor-sharp 2048×2048 master high-resolution PNG (`assets/icon.png`) rendered directly from vector SVG via Playwright Chromium with 2x supersampling — zero blur, zero fuzziness, zero compression artifacts.
+  - Multi-resolution Apple ICNS bundle (`assets/generated/icons/mac/icon.icns`, 710 KB) compiled with native macOS `iconutil` spanning 16×16 up to 1024×1024 @2x Retina display resolutions.
+  - Regenerated all 9 raster PNG icon assets in `assets/generated/icons/png/` (16×16 to 1024×1024) and synchronized `assets/generated/icons/mac/icon.icon/Assets/SVG Image.svg`.
 - **Bug Fixes & Code Review Polish**:
   - Fix default checked fallback in `src/plugins/do-not-track/index.ts` from loose `|| blockers.WithBlocklists` to nullish `?? blockers.InPlayer`
   - Add renderer `stop()` method to `src/plugins/do-not-track/index.ts` to cleanly invoke `unloadAdSpeedup()` when plugin is disabled

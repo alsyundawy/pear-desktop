@@ -48,6 +48,19 @@ Release **v3.12.0-4** (`3.12.0-04`) delivers critical upstream feature integrati
    - **PR #4690 (Network Stream Separation)**: Explicitly rejected because it forces `loadCosmeticFilters: false`, disabling CSS element hiding and leaving empty broken ad containers in the YouTube Music DOM. Our hybrid Ghostery + uBlock + HaGeZi + AdSpeedup stack provides full cosmetic hiding and zero playback stalls.
 4. **Dedicated macOS Repository Focus & Parity Maintenance**:
    - Retained 100% of custom improvements: 27 vendor filter lists + HaGeZi blocklists, SponsorBlock category manager with URI sanitization, glassmorphism Video Toggle pill switcher, and exclusive macOS GitHub runner architecture.
+5. **Brand Identity & App Logo Redesign (ReVanced × YouTube Music Aesthetic)**:
+   - Re-designed the official Pear Desktop emblem based on the user concept sketch and the YouTube Music ReVanced aesthetic:
+     - **Pure Vector SVG (`assets/icon.svg`)**:
+       - ReVanced vibrant neon gradient outer ring transitioning smoothly from Electric Magenta (`#FF2A85`) $\to$ Violet (`#8B5CF6`) $\to$ Electric Cyan (`#00D4FF`).
+       - YouTube Music deep vibrant red disc (`#FF1A2A` $\to$ `#D40000`).
+       - Organic sliced pear fruit emblem with tilted stem and central white Play Button (`▶`) triangle, optically and geometrically centered to within $\le 1\text{px}$.
+       - Pitch-black inner separation space with 100% transparent alpha canvas outside the dock ring for flawless presentation on macOS Sequoia/Sonoma Light & Dark wallpapers.
+     - **Razor-Sharp 2048×2048 Master High-Resolution PNG (`assets/icon.png`)**:
+       - Rendered directly from vector SVG via Playwright Chromium with 2x supersampling (`deviceScaleFactor: 2`) — zero blur, zero fuzziness, zero compression artifacts.
+     - **Apple Multi-Resolution ICNS Bundle (`assets/generated/icons/mac/icon.icns`, 710 KB)**:
+       - Compiled with macOS native `iconutil -c icns` spanning 16×16 up to 1024×1024 @2x Retina display resolutions.
+     - **Complete PNG Icon Suite (`assets/generated/icons/png/`)**:
+       - Re-rendered all 9 standard resolutions (16×16, 24×24, 32×32, 48×48, 64×64, 128×128, 256×256, 512×512, 1024×1024) and synchronized `assets/generated/icons/mac/icon.icon/Assets/SVG Image.svg`.
 
 ## 2. Infrastructure & Multi-Architecture macOS Runners
 
