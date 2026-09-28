@@ -15,6 +15,7 @@ export default createPlugin<
   {
     qualitySettingsButtonContainer: HTMLDivElement | null;
     playerPageObserver: MutationObserver | null;
+    videoChangeListener: (() => void) | null;
     injected: boolean;
     chooseQuality: ((e: MouseEvent) => Promise<void>) | null;
     injectButton(): void;
@@ -56,18 +57,21 @@ export default createPlugin<
   renderer: {
     qualitySettingsButtonContainer: null,
     playerPageObserver: null,
+    videoChangeListener: null,
     injected: false,
     chooseQuality: null,
 
     injectButton() {
-      if (this.injected || !this.qualitySettingsButtonContainer) return;
+      if (!this.qualitySettingsButtonContainer) return;
 
       const target = document.querySelector<HTMLElement>(
-        '.top-row-buttons.ytmusic-player',
+        '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .top-row-buttons',
       );
       if (!target) return;
 
-      target.prepend(this.qualitySettingsButtonContainer);
+      if (!target.contains(this.qualitySettingsButtonContainer)) {
+        target.prepend(this.qualitySettingsButtonContainer);
+      }
       this.injected = true;
     },
 
@@ -75,6 +79,10 @@ export default createPlugin<
       // Create container lazily inside lifecycle — not at module-parse time
       const container = document.createElement('div');
       container.id = 'ytmd-quality-changer-button-container';
+      container.style.display = 'inline-flex';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'center';
+      container.style.verticalAlign = 'middle';
       this.qualitySettingsButtonContainer = container;
       this.injected = false;
 
@@ -116,34 +124,41 @@ export default createPlugin<
       // Attempt immediate injection in case the player bar is already in DOM
       this.injectButton();
 
-      // Resilient injection: wait up to 5 s for .top-row-buttons to appear
+      // Resilient injection: wait up to 5 s for top-row-buttons to appear
       if (!this.injected) {
-        waitForElement<HTMLElement>('.top-row-buttons.ytmusic-player', {
-          maxRetry: 50,
-          retryInterval: 100,
-        })
+        waitForElement<HTMLElement>(
+          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .top-row-buttons',
+          {
+            maxRetry: 50,
+            retryInterval: 100,
+          },
+        )
           .then((target) => {
-            if (this.qualitySettingsButtonContainer && !this.injected) {
-              target.prepend(this.qualitySettingsButtonContainer);
+            if (this.qualitySettingsButtonContainer) {
+              if (!target.contains(this.qualitySettingsButtonContainer)) {
+                target.prepend(this.qualitySettingsButtonContainer);
+              }
               this.injected = true;
             }
           })
           .catch(() => {});
       }
 
+      // Re-inject on video track/source changes
+      const onVideoChange = () => {
+        this.injectButton();
+      };
+      this.videoChangeListener = onVideoChange;
+      const video = document.querySelector<HTMLVideoElement>('video');
+      if (video) {
+        video.removeEventListener('peard:src-changed', onVideoChange);
+        video.addEventListener('peard:src-changed', onVideoChange);
+      }
+
       // Re-inject when the player page navigates (YouTube SPA route changes
-      // unmount / remount .top-row-buttons between tracks or page transitions)
+      // unmount / remount top-row-buttons between tracks or page transitions)
       const observer = new MutationObserver(() => {
-        if (!this.injected) {
-          this.injectButton();
-        } else if (
-          this.qualitySettingsButtonContainer &&
-          !this.qualitySettingsButtonContainer.isConnected
-        ) {
-          // Container was removed from DOM — re-inject
-          this.injected = false;
-          this.injectButton();
-        }
+        this.injectButton();
       });
 
       const appOrLayout =
@@ -162,6 +177,12 @@ export default createPlugin<
     stop() {
       this.playerPageObserver?.disconnect();
       this.playerPageObserver = null;
+      if (this.videoChangeListener) {
+        document
+          .querySelector<HTMLVideoElement>('video')
+          ?.removeEventListener('peard:src-changed', this.videoChangeListener);
+        this.videoChangeListener = null;
+      }
       this.qualitySettingsButtonContainer?.remove();
       this.qualitySettingsButtonContainer = null;
       this.injected = false;

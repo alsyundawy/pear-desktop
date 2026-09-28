@@ -32,6 +32,7 @@ export default createPlugin<
     thumbnailObserver: MutationObserver | null;
     nativeAttrObserver: MutationObserver | null;
     nativeDomObserver: MutationObserver | null;
+    customDomObserver: MutationObserver | null;
     boundNativeButtons: WeakSet<Element>;
     isApplyingNativeAttributes: boolean;
     videoStartedHandler: (() => void) | null;
@@ -63,7 +64,7 @@ export default createPlugin<
   config: {
     enabled: true,
     hideVideo: false,
-    mode: 'native',
+    mode: 'custom',
     forceHide: false,
     align: 'left',
   } as VideoTogglePluginConfig,
@@ -154,6 +155,7 @@ export default createPlugin<
     thumbnailObserver: null,
     nativeAttrObserver: null,
     nativeDomObserver: null,
+    customDomObserver: null,
     boundNativeButtons: new WeakSet<Element>(),
     isApplyingNativeAttributes: false,
     videoStartedHandler: null,
@@ -567,6 +569,34 @@ export default createPlugin<
       this.forcePlaybackMode();
       this.observeThumbnail();
 
+      // Ensure container stays prepended across SPA navigation or player re-rendering
+      this.customDomObserver?.disconnect();
+      const customDomObserver = new MutationObserver(() => {
+        if (this.config?.mode !== 'custom' || this.config.forceHide) return;
+        const player = document.querySelector<HTMLElement>(
+          '#player, ytmusic-player',
+        );
+        if (
+          player &&
+          this.switchButtonContainer &&
+          (!this.switchButtonContainer.isConnected ||
+            !player.contains(this.switchButtonContainer))
+        ) {
+          player.prepend(this.switchButtonContainer);
+        }
+      });
+
+      const appOrLayout =
+        document.querySelector('ytmusic-app-layout') ??
+        document.querySelector('ytmusic-app') ??
+        document.body;
+
+      customDomObserver.observe(appOrLayout, {
+        childList: true,
+        subtree: true,
+      });
+      this.customDomObserver = customDomObserver;
+
       const video = document.querySelector<HTMLVideoElement>('video');
       if (video) {
         video.style.height = 'auto';
@@ -583,6 +613,9 @@ export default createPlugin<
     },
 
     cleanupCustomMode() {
+      this.customDomObserver?.disconnect();
+      this.customDomObserver = null;
+
       if (this.switchButtonContainer) {
         this.switchButtonContainer.style.display = 'none';
       }
@@ -696,14 +729,15 @@ export default createPlugin<
           return;
         }
 
+        // Always show toggle button in custom mode when not force-hidden
+        this.setShowButtonFn?.(true);
+
         const playerResponse = this.playerApi?.getPlayerResponse?.();
         const musicVideoType = playerResponse?.videoDetails?.musicVideoType;
 
         if (musicVideoType === 'MUSIC_VIDEO_TYPE_ATV') {
-          // Video doesn't exist -> switch to song mode
+          // Video doesn't exist -> default to song mode
           this.setVideoStateFn?.(false);
-          // Hide custom toggle button on ATV
-          this.setShowButtonFn?.(false);
         } else {
           const songImage = document.querySelector<HTMLImageElement>(
             '#song-image img, #song-image #img',
@@ -711,8 +745,6 @@ export default createPlugin<
           if (songImage) {
             this.forceThumbnail(songImage);
           }
-          // Show toggle button when video is available
-          this.setShowButtonFn?.(true);
 
           if (
             !this.config?.hideVideo &&
@@ -734,6 +766,7 @@ export default createPlugin<
       }
 
       this.updateMode(config);
+      videoStarted();
     },
 
     onConfigChange(newConfig) {

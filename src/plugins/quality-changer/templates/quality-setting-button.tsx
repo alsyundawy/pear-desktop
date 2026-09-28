@@ -11,6 +11,14 @@ export const QualitySettingButton = (props: QualitySettingButtonProps) => (
     icon={'yt-icons:settings'}
     on:click={(e) => props.onClick(e)}
     role={'button'}
+    style={{
+      'display': 'inline-flex',
+      'align-items': 'center',
+      'justify-content': 'center',
+      'width': '40px',
+      'height': '40px',
+      'cursor': 'pointer',
+    }}
     tabindex={0}
     title={props.label}
   >

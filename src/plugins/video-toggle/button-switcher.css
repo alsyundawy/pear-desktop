@@ -15,7 +15,8 @@
   display: none;
 }
 
-.video-toggle-custom-mode #ytmd-video-toggle-switch-button-container {
+.video-toggle-custom-mode:not(.video-toggle-force-hide)
+  #ytmd-video-toggle-switch-button-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -26,6 +27,10 @@
   box-sizing: border-box;
   z-index: 1000;
   pointer-events: none;
+}
+
+.video-toggle-force-hide #ytmd-video-toggle-switch-button-container {
+  display: none !important;
 }
 
 .video-toggle-custom-mode .video-switch-button,

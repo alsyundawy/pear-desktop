@@ -6,24 +6,20 @@ All notable changes to this project will be documented in this file. Dates are d
 
 > 29 September 2026 (Release 3.12.0-07)
 
-- **Video Toggle Plugin — Full Architecture Overhaul (`src/plugins/video-toggle/index.tsx`)**:
-  - Changed default mode from `'custom'` to `'native'` — delivers authentic YouTube Music `ytmusic-av-toggle` Song|Video pill switcher out of the box
-  - Fixed `applyStyleClass` mode check: `!config.mode || config.mode === 'custom'` → `config.mode === 'custom'` (eliminates undefined-mode fallthrough)
-  - Implemented `applyNativeMode()` with atomic `enforce()` setting `has-av-switcher` on `ytmusic-player-page`/`ytmusic-player`, removing `toggle-disabled` from `ytmusic-av-toggle`
-  - `nativeAttrObserver`: watches `has-av-switcher`, `toggle-disabled`, and critically `hidden` on `ytmusic-player-page` — `enforce()` fires when user opens full player screen (YTM toggles `hidden` off, does not re-add the element)
-  - `nativeDomObserver`: watches `childList` subtree to re-bind observers when player components reconnect after SPA navigation
-  - `isApplyingNativeAttributes` re-entrancy lock prevents infinite mutation loops
-  - `WeakSet<Element>` prevents duplicate resize listener registration on native video button
-  - `waitForElement` bounded at max 100 retries @ 100ms (10s); previously unbounded
-  - Custom mode refactored into `mountCustomSwitcher(config)`: idempotent, Solid.js `createSignal` for reactive state
-  - `cleanupNativeMode()` / `cleanupCustomMode()` symmetrical teardown — all observers disconnected, body classes/styles reset
-  - Fixed `stop()` duplicate `classList.remove`: only removes `video-toggle-force-hide` (cleanupCustomMode already removes `video-toggle-custom-mode`)
-  - `restartNeeded: false` — all mode changes apply live
+- **Video Toggle Plugin — Song / Video Switcher Resolution (`src/plugins/video-toggle/`)**:
+  - Restored default mode to `'custom'` (parity with official v3.11.0), guaranteeing that the Song / Video switch pill is rendered and active out of the box
+  - Fixed critical bug where the toggle button disappeared on ATV (`MUSIC_VIDEO_TYPE_ATV`) songs: `setShowButtonFn(true)` is now maintained across all tracks so the pill remains visible
+  - Fixed HTML semantics in `VideoSwitchButton`: eliminated illegal interactive nesting of `<input>` and `<label>` inside `<button type="button">`, migrating to accessible `<div role="group" aria-label="Toggle song or video mode" tabindex={0}>` with full keyboard and click event support
+  - Hardened CSS in `button-switcher.css`: container displays via `display: flex` under `.video-toggle-custom-mode:not(.video-toggle-force-hide)` while `.video-toggle-force-hide` enforces `display: none !important`
+  - Added `customDomObserver` MutationObserver to ensure the switcher container automatically re-prepends if detached or replaced during YouTube Music SPA page transitions
+  - Trigger `videoStarted()` immediately on `onPlayerApiReady` to evaluate initial state on startup
 
-- **CSS Hardening (`src/plugins/video-toggle/button-switcher.css`)**:
-  - Default-hide `#ytmd-video-toggle-switch-button-container` — container was always visible regardless of mode
-  - Scoped show rule to `.video-toggle-custom-mode` only
-  - `!important` on `#av-id { display: none }` ensures native pill is reliably suppressed in custom mode
+- **Video Quality Changer Plugin — Injection & Layout Hardening (`src/plugins/quality-changer/`)**:
+  - Expanded button injection query selectors to fallback across `.top-row-buttons.ytmusic-player`, `ytmusic-player .top-row-buttons`, `#top-row-buttons`, and `.top-row-buttons` to support all Polymer / Web Component DOM structures
+  - Configured container styles (`display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;`) to prevent layout collapse in flex containers
+  - Added explicit inline dimensions (`width: 40px; height: 40px; display: inline-flex; cursor: pointer;`) on `<yt-icon-button>` in `QualitySettingButton` to eliminate 0x0 collapse
+  - Wired `peard:src-changed` video event listener so quality changer automatically re-injects on track changes and SPA navigations
+  - Symmetrical lifecycle teardown in `stop()`: removes video event listener, disconnects observer, and removes container
 
 - **Circular Import Elimination (`src/loader/menu.ts`, `src/menu.ts`)**:
   - Introduced `setMenuRefresher(refresher)` DI pattern — completely eliminates static import cycle between `loader/menu.ts` and `menu.ts`
@@ -52,8 +48,8 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Documentation**:
   - `README-PERF.md`: Memory & CPU profiling guide; `scripts/soak-test.md`: 6-phase formal soak test protocol
 
-- **Linter**: `pnpm tsc --noEmit` 0 errors; `pnpm oxlint` 0 warnings, 0 errors (261 files, 146 rules)
-- **Version**: `3.12.0-7` in `package.json`
+- **Linter**: `pnpm tsc --noEmit` 0 errors; `pnpm oxlint` 0 warnings, 0 errors (261 files, 146 rules); `pnpm oxfmt` 332 files formatted
+- **Version**: Strictly `3.12.0-7` in `package.json` (`v3.12.0-07`)
 
 #### [v3.12.0-06](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-05...v3.12.0-06)
 

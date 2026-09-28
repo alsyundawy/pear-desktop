@@ -41,14 +41,15 @@ export const VideoSwitchButton = (props: VideoSwitchButtonProps) => {
   };
 
   return (
-    <button
+    <div
       aria-label="Toggle song or video mode"
       class="video-switch-button"
       data-video-button-text={props.videoButtonText}
       onChange={(e) => props.onChange?.(e)}
       onClick={handleContainerClick}
       onKeyDown={handleKeyDown}
-      type="button"
+      role="group"
+      tabindex={0}
     >
       <input
         checked={props.checked ?? true}
@@ -67,6 +68,6 @@ export const VideoSwitchButton = (props: VideoSwitchButtonProps) => {
           {props.songButtonText}
         </span>
       </label>
-    </button>
+    </div>
   );
 };

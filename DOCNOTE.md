@@ -16,57 +16,29 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 
 ## 2. Changes by Category
 
-### 2.1 Video Toggle Plugin — Full Architecture Overhaul (`src/plugins/video-toggle/index.tsx`, `button-switcher.css`)
+### 2.1 Video Toggle Plugin — Song / Video Switcher Resolution (`src/plugins/video-toggle/index.tsx`, `button-switcher.css`, `templates/video-switch-button.tsx`)
 
-**Root Problem (inherited from 3.12.0-06):** The plugin's `updateMode()` had a logic error: `!config.mode || config.mode === 'custom'` treated an undefined mode as custom, causing mode switching bugs. Custom mode used a `mountSwitcher()` local function that duplicated state, and native mode had no attribute enforcement mechanism — `has-av-switcher` was set once at start but immediately stripped by YTM's Polymer hydration scripts.
-
-**Changes:**
-
-#### New: Native Mode (`applyNativeMode()`)
-- Implements `enforce()` — an atomic function that sets `has-av-switcher` on `ytmusic-player-page` and `ytmusic-player`, and removes `toggle-disabled` from `ytmusic-av-toggle`
-- Dual-layer `MutationObserver` enforcement:
-  - **`nativeAttrObserver`**: Watches `has-av-switcher` on `ytmusic-player-page`/`ytmusic-player` and `toggle-disabled` on `ytmusic-av-toggle`. Crucially also watches `hidden` on `ytmusic-player-page` — so when the user opens the full player screen (YTM toggles `hidden` off, not adds/removes the element), `enforce()` fires immediately and the pill renders
-  - **`nativeDomObserver`**: Watches `childList` subtree on `ytmusic-app-layout`/`ytmusic-app`/`body` to re-apply attributes and re-bind observers when player components connect/reconnect after SPA navigation
-- `isApplyingNativeAttributes` re-entrancy lock prevents infinite mutation loops
-- `WeakSet<Element>` (`boundNativeButtons`) tracks which native video buttons have resize listeners attached, preventing duplicate listener registration
-- `waitForElement` bounded retry (max 100 retries @ 100ms = 10s) for cold-start resilience
-
-#### New: Custom Mode refactored into `mountCustomSwitcher(config)` method
-- Solid.js `createSignal` for `showButton` and `isVideoActive` — reactive state replaces imperative DOM manipulation
-- `setShowButtonFn` and `setIsVideoActiveFn` stored as instance refs for external trigger
-- `mountCustomSwitcher` is idempotent: creates button container only once, re-uses it on subsequent calls
-- Properly guards against re-rendering `render()` into an already-rendered container
-
-#### New: Symmetrical Mode Lifecycle
-- `cleanupNativeMode(resetDom?: boolean)`: disconnects `nativeAttrObserver` and `nativeDomObserver`, optionally restores DOM to pre-native state
-- `cleanupCustomMode()`: hides container, disconnects `playbackModeObserver`/`thumbnailObserver`, removes body classes, resets inline styles
-- `updateMode(config)`: single entry point that calls `cleanupNativeMode`, `cleanupCustomMode`, or `mountCustomSwitcher` depending on config state
-- `stop()`: calls `cleanupNativeMode(true)` + `cleanupCustomMode()`, removes switcher container, removes `video-toggle-force-hide` body class, removes `peard:src-changed` listener, nulls all refs
-
-#### New: `applyAlign(align)` method
-- Extracted from `onConfigChange` into dedicated method to avoid duplication
-- Only called when `mode === 'custom'` and `!forceHide`
-
-#### Fixed: Default mode
-- Changed default from `'custom'` to `'native'` — delivers authentic YTM pill switcher out of the box
-
-#### Fixed: `applyStyleClass` mode check
-- `!config.mode || config.mode === 'custom'` → `config.mode === 'custom'` — eliminates undefined-mode fallthrough bug
-
-#### Fixed: `forcePlaybackMode()` and `observeThumbnail()` extracted as instance methods
-- Previously inlined as closures inside `onPlayerApiReady`, preventing reuse and proper disconnect in lifecycle methods
-
-#### Fixed: `stop()` duplicate `classList.remove`
-- `cleanupCustomMode()` already removes `video-toggle-custom-mode`; redundant `document.body.classList.remove('video-toggle-force-hide', 'video-toggle-custom-mode')` in `stop()` replaced with single `remove('video-toggle-force-hide')`
-
-#### CSS: `button-switcher.css`
-- `#ytmd-video-toggle-switch-button-container { display: none; }` — container hidden by default
-- `.video-toggle-custom-mode #ytmd-video-toggle-switch-button-container { ... }` — shown only in custom mode (was missing, container was always visible)
-- `.video-toggle-custom-mode #av-id { display: none !important; }` — strengthened to `!important` to reliably suppress native pill in custom mode
+**Root Causes & Fixes:**
+1. **Default Mode Parity**: In official v3.11.0, the default mode was `'custom'`. In 3.12.0-07, it had been set to `'native'` which targeted `ytmusic-av-toggle` (a component YouTube Music omits on desktop web). Mode is now restored to `'custom'`.
+2. **ATV (Audio Track Video) Button Retention**: Previously, `videoStarted()` called `this.setShowButtonFn?.(false)` for `MUSIC_VIDEO_TYPE_ATV` tracks. Since the majority of songs are classified as ATV, the switcher disappeared on nearly all played tracks. Now `this.setShowButtonFn?.(true)` is maintained so the switcher pill stays consistently visible.
+3. **HTML Semantics & A11y in `VideoSwitchButton`**: Previously, `<input>` and `<label>` were nested inside `<button type="button">`. In browser DOM specifications, nesting interactive controls inside a button breaks click dispatch and accessibility. Replaced with `<div role="group" aria-label="Toggle song or video mode" tabindex={0}>`.
+4. **CSS Container Display**: Container `#ytmd-video-toggle-switch-button-container` is styled `display: flex` under `.video-toggle-custom-mode:not(.video-toggle-force-hide)`, and `.video-toggle-force-hide` enforces `display: none !important`.
+5. **SPA Resilience (`customDomObserver`)**: Added a MutationObserver to watch `ytmusic-app-layout` and immediately re-prepend the switcher container if the player is unmounted/recreated during SPA route transitions.
+6. **Immediate Startup Evaluation**: `videoStarted()` is invoked immediately in `onPlayerApiReady` so current playback state is evaluated on startup.
 
 ---
 
-### 2.2 Circular Import Elimination (`src/loader/menu.ts`, `src/menu.ts`)
+### 2.2 Video Quality Changer Plugin — Injection & Layout Hardening (`src/plugins/quality-changer/index.tsx`, `templates/quality-setting-button.tsx`)
+
+**Root Causes & Fixes:**
+1. **Resilient Multi-Target Selector**: Selector expanded from `.top-row-buttons.ytmusic-player` to `.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .top-row-buttons` to support all Polymer / Web Component DOM variations.
+2. **Flex Layout & Dimension Hardening**: Container configured with `display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;`. In `QualitySettingButton`, explicit inline dimensions (`width: 40px; height: 40px; display: inline-flex; cursor: pointer;`) were added to `<yt-icon-button>` to prevent 0x0 collapse.
+3. **Video Event Binding**: Registered `peard:src-changed` video event listener so quality changer automatically injects when tracks change and when player elements mount.
+4. **Clean Teardown**: Symmetrical lifecycle cleanup in `stop()` removes event listeners and observers.
+
+---
+
+### 2.3 Circular Import Elimination (`src/loader/menu.ts`, `src/menu.ts`)
 
 **Root Problem:** `loader/menu.ts` imported `setApplicationMenu` from `menu.ts`, while `menu.ts` imported `loadAllMenuPlugins` from `loader/menu.ts` — a direct circular dependency that caused ESM initialization order bugs.
 
@@ -77,7 +49,7 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 
 ---
 
-### 2.3 Security: Request Key Hardening (`src/plugins/downloader/main/index.ts`)
+### 2.4 Security: Request Key Hardening (`src/plugins/downloader/main/index.ts`)
 
 - YouTube Web Client PoToken public request key previously stored as plaintext `'O43z0dpjhgX20SCx4KAo'`
 - Now decoded at runtime from base64: `Buffer.from('TzQzejBkcGpoZ1gyMFNDeDRLQW8=', 'base64').toString('ascii')`
@@ -85,7 +57,7 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 
 ---
 
-### 2.4 Dependency Fix: `app-controls.ts` (`src/providers/app-controls.ts`)
+### 2.5 Dependency Fix: `app-controls.ts` (`src/providers/app-controls.ts`)
 
 - `config.get('url')` replaced with `store.get('url') as string`
 - Imports `store` directly from `@/config/store` instead of the full `* as config` namespace
@@ -93,7 +65,7 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 
 ---
 
-### 2.5 Memory Governance Watchdog (`src/utils/memory-watch.ts`, `src/index.ts`)
+### 2.6 Memory Governance Watchdog (`src/utils/memory-watch.ts`, `src/index.ts`)
 
 **New file: `src/utils/memory-watch.ts`**
 - `startMemoryWatch()`: starts a 30-second `setInterval` sampling `process.memoryUsage()` (RSS, heapUsed, heapTotal, external) and `BrowserWindow.getAllWindows().length`
@@ -107,7 +79,7 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 
 ---
 
-### 2.6 `waitForElement` Refactor (`src/utils/wait-for-element.ts`)
+### 2.7 `waitForElement` Refactor (`src/utils/wait-for-element.ts`)
 
 - Exported `WaitForElementOptions` interface (was inline anonymous type)
 - Extracted `DEFAULT_WAIT_OPTIONS` as a module-level constant — prevents a new object allocation on every call with default options
@@ -115,7 +87,7 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 
 ---
 
-### 2.7 Security: CVE Remediation (`pnpm-workspace.yaml`, `pnpm-lock.yaml`)
+### 2.8 Security: CVE Remediation (`pnpm-workspace.yaml`, `pnpm-lock.yaml`)
 
 New `overrides` added to `pnpm-workspace.yaml`:
 
@@ -129,7 +101,7 @@ New `overrides` added to `pnpm-workspace.yaml`:
 
 ---
 
-### 2.8 MegaLinter CI Integration (`.github/workflows/MegaLinter.yml`, `.mega-linter.yml`, `.devskim.json`)
+### 2.9 MegaLinter CI Integration (`.github/workflows/MegaLinter.yml`, `.mega-linter.yml`, `.devskim.json`)
 
 **New: `.github/workflows/MegaLinter.yml`**
 - MegaLinter v10 integration on `push` to `master` and `pull_request`
@@ -152,13 +124,13 @@ New `overrides` added to `pnpm-workspace.yaml`:
 
 ---
 
-### 2.9 IDE & Workspace (`vscode/css.custom-data.json`)
+### 2.10 IDE & Workspace (`vscode/css.custom-data.json`)
 
 - `-webkit-app-region` and `-webkit-user-drag` custom data entries extended with `FF0`, `FFA0`, `SM0` browser identifiers — suppresses "unknown browser" warnings in VS Code CSS IntelliSense
 
 ---
 
-### 2.10 Documentation (`README-PERF.md`, `scripts/soak-test.md`)
+### 2.11 Documentation (`README-PERF.md`, `scripts/soak-test.md`)
 
 **New: `README-PERF.md`** — Memory & CPU Performance Profiling Guide:
 - Renderer heap snapshot workflow (Chrome DevTools)
@@ -177,6 +149,7 @@ New `overrides` added to `pnpm-workspace.yaml`:
 |---|---|
 | `pnpm tsc -p tsconfig.json --noEmit` | ✅ Zero errors |
 | `pnpm oxlint --type-aware src` | ✅ 0 warnings, 0 errors (261 files, 146 rules) |
+| `pnpm oxfmt --check src` | ✅ 332 files formatted |
 | No `!` non-null assertions added | ✅ |
 | No `// @ts-ignore` / `// eslint-disable` added | ✅ |
 
@@ -186,8 +159,11 @@ New `overrides` added to `pnpm-workspace.yaml`:
 
 | File | Change Type | Description |
 |---|---|---|
-| `src/plugins/video-toggle/index.tsx` | Major rewrite | Native mode MutationObserver engine, custom mode refactor, lifecycle symmetry, mode default `native`, duplicate code removed |
-| `src/plugins/video-toggle/button-switcher.css` | Fix | Default-hide container, scope to custom mode, `!important` on native pill suppressor |
+| `src/plugins/video-toggle/index.tsx` | Major rewrite | Custom mode default, ATV button retention, customDomObserver SPA resilience, lifecycle symmetry |
+| `src/plugins/video-toggle/templates/video-switch-button.tsx` | Accessibility & Semantics | `<div role="group">` replacing nested interactive button, keyboard navigation, click detection |
+| `src/plugins/video-toggle/button-switcher.css` | Fix | Container flex display under custom mode, scoped force-hide rules, `!important` native pill suppressor |
+| `src/plugins/quality-changer/index.tsx` | Fix | Multi-target selector fallback, inline-flex container styling, video src-changed event listener |
+| `src/plugins/quality-changer/templates/quality-setting-button.tsx` | Fix | Explicit inline dimensions to prevent 0x0 collapse in Polymer layout |
 | `src/loader/menu.ts` | Fix | Circular import elimination via `setMenuRefresher` indirection |
 | `src/menu.ts` | Fix | Registers `setMenuRefresher(setApplicationMenu)`, removes circular `setApplicationMenu` import from loader |
 | `src/plugins/downloader/main/index.ts` | Security | Base64-encode PoToken request key |
@@ -205,6 +181,8 @@ New `overrides` added to `pnpm-workspace.yaml`:
 | `.vscode/css.custom-data.json` | IDE | Extended browser identifiers for custom CSS properties |
 | `README-PERF.md` | Docs | Memory & CPU profiling guide |
 | `scripts/soak-test.md` | Docs | Formal soak test protocol |
+| `changelog.md` | Docs | Rebuilt changelog entry for v3.12.0-07 |
+| `DOCNOTE.md` | Docs | Comprehensive release documentation for v3.12.0-07 |
 
 ---
 
