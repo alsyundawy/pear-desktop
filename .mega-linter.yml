@@ -1,0 +1,29 @@
+---
+# MegaLinter Configuration
+# Reference: https://megalinter.io/10.1.0/configuration/
+
+APPLY_FIXES: none
+
+# Disable noisy / non-applicable scanners:
+# - COPYPASTE: jscpd false-flags normal code patterns across multi-lingual i18n files and plugin wrappers
+# - SPELL: cspell flags arbitrary package and domain names
+DISABLE:
+  - COPYPASTE
+  - SPELL
+
+# Disable transitive dependency CVE scanners (managed via pnpm audit / Renovate / dependabot)
+DISABLE_LINTERS:
+  - REPOSITORY_GRYPE
+  - REPOSITORY_OSV_SCANNER
+  - REPOSITORY_TRIVY
+
+# Exclude generated output and build artifacts
+EXCLUDED_DIRECTORIES:
+  - dist
+  - pack
+  - .vite-inspect
+  - node_modules
+  - megalinter-reports
+
+# DevSkim options
+REPOSITORY_DEVSKIM_ARGUMENTS: "--options-json .devskim.json"

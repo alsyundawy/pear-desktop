@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/DevSkim/main/guidance/devskim.schema.json",
+  "Globs": [
+    "**/.git/**",
+    "**/megalinter-reports/**",
+    "**/dist/**",
+    "**/pack/**",
+    "**/.vite-inspect/**",
+    "pnpm-lock.yaml"
+  ],
+  "IgnoreRulesList": [
+    "DS148264",
+    "DS126858",
+    "DS137138"
+  ]
+}

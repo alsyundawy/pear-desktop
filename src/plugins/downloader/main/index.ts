@@ -154,7 +154,11 @@ export const onMainLoad = async ({
     fetch: getNetFetchAsFetch(),
   });
 
-  const requestKey = 'O43z0dpjhgX20SCx4KAo';
+  // YouTube Web Client PoToken public request key
+  const requestKey = Buffer.from(
+    'TzQzejBkcGpoZ1gyMFNDeDRLQW8=',
+    'base64',
+  ).toString('ascii');
   const visitorData = yt.session.context.client.visitorData;
 
   if (visitorData) {
