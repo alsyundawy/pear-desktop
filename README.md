@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
-    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.12.0-05 Enterprise Music Client Flyer Banner" width="100%">
+    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.12.0-06 Enterprise Music Client Flyer Banner" width="100%">
   </a>
 </p>
 
@@ -17,7 +17,7 @@
 <h3 align="center">High-Performance, Privacy-Hardened YouTube Music Desktop Client for macOS</h3>
 
 <p align="center">
-  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.12.0--05-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.12.0-05"></a>
+  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.12.0--06-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.12.0-06"></a>
   <a href="https://apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%20Sequoia%20%7C%20Sonoma%20%7C%20Ventura-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Platform"></a>
   <a href="https://www.electronjs.org/"><img src="https://img.shields.io/badge/Engine-Electron%20%7C%20Node.js-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron Engine"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.x"></a>
@@ -33,7 +33,7 @@
 
 <p align="center">
   <a href="#downloads--artifact-catalogs">
-    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.12.0--05-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
+    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.12.0--06-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
   </a>
   <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest">
     <img src="https://img.shields.io/badge/🪞_Releases_&_Changelog-GitHub-0284c7?style=for-the-badge&logo=github&logoColor=white" alt="Releases & Changelog">
@@ -50,7 +50,7 @@
 > **[`HARRY DERTIN SUTISNA ALSYUNDAWY (@alsyundawy)`](https://github.com/alsyundawy)** —<br>
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
-> 🍏 **[`Latest Releases (v3.12.0-05)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
+> 🍏 **[`Latest Releases (v3.12.0-06)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
 > 📖 **[`Release DocNotes`](file:///Users/alsyundawy/Downloads/GitHub/pear-desktop/DOCNOTE.md)** &nbsp;|&nbsp;
 > 📜 **[`Changelog`](file:///Users/alsyundawy/Downloads/GitHub/pear-desktop/changelog.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
@@ -84,7 +84,7 @@
 - [Plugin System & Custom Extensions](#plugin-system--custom-extensions)
 - [Developer Setup & Quality Verification](#developer-setup--quality-verification)
 - [Code Review & Quality Standards](#code-review--quality-standards)
-- [Changelog (v3.12.0 — v3.12.0-05)](#changelog-v3120--v3120-05)
+- [Changelog (v3.12.0 — v3.12.0-06)](#changelog-v3120--v3120-06)
 - [Upstream Credits & Attribution](#upstream-credits--attribution)
 - [FAQ & Troubleshooting](#faq--troubleshooting)
 - [Support & Donation](#support--donation)
@@ -189,10 +189,10 @@ Official distribution packages are compiled, signed, and published for macOS und
 
 | Target Architecture | Package Type | Minimum OS | File Artifact Name | Recommended Hardware |
 | :--- | :--- | :--- | :--- | :--- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `Pear-Desktop-3.12.0-05-arm64.dmg` | MacBook Air/Pro, Mac mini, Mac Studio (M1, M2, M3, M4) |
-| **Apple Silicon (ARM64)** | Portable `.zip` | macOS 12+ | `Pear-Desktop-3.12.0-05-arm64-mac.zip` | Standalone portable execution without DMG mounting |
-| **Intel x64** | `.dmg` Installer | macOS 12+ | `Pear-Desktop-3.12.0-05-x64.dmg` | Intel-based MacBook Pro, iMac, Mac Pro |
-| **Intel x64** | Portable `.zip` | macOS 12+ | `Pear-Desktop-3.12.0-05-x64-mac.zip` | Standalone portable execution without DMG mounting |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `Pear-Desktop-3.12.0-06-arm64.dmg` | MacBook Air/Pro, Mac mini, Mac Studio (M1, M2, M3, M4) |
+| **Apple Silicon (ARM64)** | Portable `.zip` | macOS 12+ | `Pear-Desktop-3.12.0-06-arm64-mac.zip` | Standalone portable execution without DMG mounting |
+| **Intel x64** | `.dmg` Installer | macOS 12+ | `Pear-Desktop-3.12.0-06-x64.dmg` | Intel-based MacBook Pro, iMac, Mac Pro |
+| **Intel x64** | Portable `.zip` | macOS 12+ | `Pear-Desktop-3.12.0-06-x64-mac.zip` | Standalone portable execution without DMG mounting |
 
 ---
 
@@ -330,7 +330,27 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 
 ---
 
-## Changelog (v3.12.0 — v3.12.0-05)
+## Changelog (v3.12.0 — v3.12.0-06)
+
+### [v3.12.0-06] — 28 September 2026 (Production Release)
+- **Zero-Warning Architecture & Full-Stack Hardening**:
+  - Upgraded `VideoSwitchButton` to native `<button type="button">`, satisfying WCAG 4.1.2 accessibility standards and eliminating manual keyboard dispatch shims.
+  - Decomposed `setVideoState` by extracting `updatePlayerDisplay()`, reducing cognitive complexity to <= 15.
+  - Modernized `in-app-menu` DOM attribute access with `.dataset` and flattened hover handlers to module scope (depth <= 3) with full `menuitem` keyboard accessibility.
+  - Replaced deprecated `parentNode.removeChild()` with standard `childNode.remove()` in `quality-changer`.
+  - Adopted nullish operators (`??`, `??=`) across `touchbar` and memoization decorators.
+- **ES2022 API Compatibility & ReDoS Immunization**:
+  - Migrated `URL.parse()` (ES2025) call sites across `src/index.ts` and `src/providers/song-info.ts` to `URL.canParse()` + `new URL()` guard pattern for `es2022` target compatibility.
+  - Replaced 10 backtracking regular expressions in `cleanupName` with deterministic constant-time `endsWith()` and Set lookups, achieving O(1) performance and 100% ReDoS immunity.
+  - Replaced anchored regex in `tools/eslint-core-plugin.mjs` with index-based while-loop trim, eliminating SonarQube S6326 false positives.
+- **Build Pipeline & Main/Renderer Architecture Optimization**:
+  - Decomposed `pluginLoader` Vite plugin into modular helpers, slashing cognitive complexity from 50 to 1.
+  - Ensured standard `Error` objects on throws and refactored `app.whenReady()` to clean top-level await with modular lifecycle initializers.
+  - Added Vite `html-doctype-uppercase` plugin in `electron.vite.config.mts` ensuring permanent uppercase `<!DOCTYPE html>`.
+  - Encapsulated renderer and preload initialization with proper promise error handling.
+- **IDE Workspace Hardening**:
+  - Created `.vscode/css.custom-data.json` for Electron CSS properties (`-webkit-app-region`, `-webkit-user-drag`).
+  - Added comprehensive IDE suppressions in `.vscode/settings.json` and empty project stubs in `dist/`.
 
 ### [v3.12.0-05] — 28 September 2026 (Production Release)
 - **Touchbar Plugin Hardening & Lifecycle Fixes**:
