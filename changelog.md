@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-4](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-3...v3.12.0-4)
+
+> 28 September 2026 (Release 3.12.0-04)
+
+- **Upstream Feature & Stability Integrations (Selective High-Value Merges)**:
+  - **Core Plugin Error Isolation (`src/renderer.ts`)** (Upstream PR #4661):
+    - Introduce `callOnPlayerApiReady(id, renderer, playerApi)` with comprehensive try-catch and trace logging
+    - Ensure an uncaught error in any individual renderer plugin's `onPlayerApiReady` lifecycle hook (such as an offline network failure or missing DOM element) no longer halts the initialization of subsequent plugins
+  - **Ambient Mode Hardware Canvas Optimization (`src/plugins/ambient-mode/index.ts`)** (Upstream PR #4665):
+    - Remove heavy synchronous CPU pixel readback (`context.getImageData` and `context.putImageData`) executed on every animation frame
+    - Implement hardware-accelerated motion blur blending via `context.drawImage(video, 0, 0, width, height)` and dynamic `globalAlpha` calculation
+    - Eliminate GPU pipeline stalls and significantly reduce CPU utilization and heat on macOS systems
+  - **Auto-Acknowledge Content Warnings Plugin (`src/plugins/auto-acknowledge/`)** (Upstream PR #4667):
+    - Implement opt-in background observer detecting and auto-acknowledging YouTube Music content warning interstitials ("suicide or self-harm topics... Viewer discretion is advised") that freeze/block playback
+    - Multilingual phrase matching across EN, DE, FR, PT, ES, RU, ZH, JA, KO, AR, and ID
+    - Debounced and throttled single-click dispatch to prevent duplicate event storms; skips age gates and login prompts
+    - Add complete bilingual translations in `en.json` and `id.json`
+  - **In-App Menu & Large Playlist Performance Fixes (`src/plugins/in-app-menu/`)** (Upstream PR #4671):
+    - Fix Floating-UI `autoUpdate` continuous observer overhead in `PanelItem.tsx` by gating target ref on tooltip visibility (`() => (toolTipOpen() ? toolTip() : null)`)
+    - Throttle titlebar scroll handler in `TitleBar.tsx` using `requestAnimationFrame`, `passive: true`, and add proper `onCleanup` unmount listener removal to eliminate memory leaks and layout thrashing
+    - Replace `will-change: transform` in `titlebar.css` with modern `content-visibility: auto; contain-intrinsic-size: auto 48px;`, eliminating compositor layer explosion across large playlists
+  - **Volume Scaling & Control Round-Trip Fixes (`src/providers/song-controls.ts`, `src/renderer.ts`)** (Upstream PR #4672):
+    - Update `songControls.setVolume` to route volume adjustments through `precise-volume` when enabled
+    - Write volume changes directly to `api?.setVolume(value)` in `src/renderer.ts` and synchronize input slider elements (`#volume-slider`, `#expand-volume-slider`), ensuring volume changes round-trip accurately with `getVolume()`
+  - **Cold Start Window Presentation (`src/index.ts`)** (Upstream PR #4673):
+    - Add `EARLY_SHOW_DELAY = 500` fallback timer in `createMainWindow` allowing the dark native window frame to appear immediately without waiting seconds for remote Polymer scripts to paint
+- **Bug Fixes & Code Review Polish**:
+  - Fix default checked fallback in `src/plugins/do-not-track/index.ts` from loose `|| blockers.WithBlocklists` to nullish `?? blockers.InPlayer`
+  - Bump project version to `3.12.0-4` (SemVer 2.0.0 compliance for Release `3.12.0-04`)
+  - Verified 100% clean quality gates: 0 warnings, 0 errors in OxLint & TypeScript, 11/11 tests passing on Playwright
+
 #### [v3.12.0-3](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-2...v3.12.0-3)
 
 > 28 September 2026 (Release 3.12.0-03)

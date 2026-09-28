@@ -62,7 +62,7 @@ export default createPlugin({
         submenu: Object.values(blockers).map((blocker) => ({
           label: blocker,
           type: 'radio',
-          checked: (config.blocker || blockers.WithBlocklists) === blocker,
+          checked: (config.blocker ?? blockers.InPlayer) === blocker,
           click() {
             setConfig({ blocker });
           },

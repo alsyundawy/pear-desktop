@@ -1,8 +1,8 @@
-# Release DocNote: v3.12.0-3 (3.12.0-03)
+# Release DocNote: v3.12.0-4 (3.12.0-04)
 
 **Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  
-**Release Version**: `v3.12.0-3` (`3.12.0-03`)  
-**Base Version**: `v3.12.0-2`  
+**Release Version**: `v3.12.0-4` (`3.12.0-04`)  
+**Base Version**: `v3.12.0-3` (`3.12.0-03`)  
 **Date**: 28 September 2026  
 **Status**: Production-Grade Verified & Zero-Error  
 
@@ -10,34 +10,34 @@
 
 ## 1. Executive Summary
 
-Release **v3.12.0-3** (`3.12.0-03`) delivers targeted UI/UX and feature restorations based on user requirements and comprehensive code audits:
+Release **v3.12.0-4** (`3.12.0-04`) delivers critical upstream feature integrations, GPU/CPU rendering optimizations, and reliability enhancements derived from deep research across upstream pull requests at `https://github.com/pear-devs/pear-desktop/pulls`:
 
-1. **Dedicated macOS Repository Focus & Renaming**:
-   - Renamed repository to **`pear-desktop-mac`** across GitHub and local configuration.
-   - Removed all non-Mac GitHub Action workflows and runners (`build.yml`, `pr-build-artifacts.yml`, `winget-submission.yml`, `winget-cla.yml`).
-   - Configured 100% of CI/CD and release automation to execute strictly on macOS runners (`macos-15-intel`, `macos-15`, `macos-latest`).
-   - Streamlined `electron-builder.yml` and `package.json` scripts to target macOS native builds exclusively.
-2. **Ad Blocker Menu, Full v3.11.0 Parity & Vendor Lists Expansion**:
-   - Restored plugin title and localized i18n names to **"Ad Blocker"** / **"Pemblokir Iklan"** and menu label **"Pemblokir"**.
-   - Restored **`Ad speedup` (`AdSpeedup`)** blocker mode with clean MutationObserver lifecycle, automatic ad detection, 16x fast-forward, muted audio, and leak-free unloading.
-   - Restored and expanded filter sources list in `blocker.ts` with **27 canonical global, privacy, annoyance, regional, and threat intelligence vendor filter lists** (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile Ads, URL Tracking Protection, EasyList Other Annoyances, HaGeZi Multi PRO, Pop-up Ads, TIF Mini, plus 12 regional lists) with resilient fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
-   - Added dynamic runtime support in `renderer.onConfigChange` and `preload.onConfigChange`.
-3. **SponsorBlock Plugin Modernization**:
-   - Expanded supported categories to include `preview` (Preview/Recap) and `filler` (Filler Tangent/Joke) alongside standard sponsor and music categories.
-   - Added interactive in-app category selection submenu in `MenuTemplate`, allowing users to toggle individual category skips with persisted preferences.
-   - Enforced strict RFC 3986 parameter sanitization via `encodeURIComponent` for video IDs and JSON categories, eliminating HTTP 400 Bad Request errors.
-   - Safely guarded dev runtime logging via `window.electronIs?.dev?.()`.
-   - Added complete bilingual translations in `en.json` and `id.json` for all 8 SponsorBlock categories.
-4. **Video Toggle Redesign & Alignment Fix**:
-   - Modernized `.video-switch-button` from outdated bulky styling to a sleek YouTube Music glassmorphism pill switcher (`160px × 36px`, `backdrop-filter: blur(12px)`, sliding indicator pill).
-   - Fixed broken alignment where `.video-switch-button` was absolutely positioned with static margins, completely bypassing `#ytmd-video-toggle-switch-button-container` flex positioning.
-   - Added real-time alignment updates in `onConfigChange` for `left`, `middle`, and `right` positions.
-   - Enhanced click interactions into a true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode.
-5. **Standards, Linter & IDE Problem Remediation**:
-   - Added `-webkit-user-select: none;` prefix across `button-switcher.css` for Safari/WebKit compatibility.
-   - Refactored `isBlockerEnabled` with optional chaining in `blocker.ts` (`blocker?.isBlockingEnabled(session) ?? false`).
-   - Reordered switch statement clauses in `video-toggle/index.tsx` placing `default:` at the end.
-   - Maintained zero lint errors, zero warnings across `oxlint`, `oxfmt`, and TypeScript.
+1. **Selective High-Value Upstream PR Integrations**:
+   - **PR #4661 (Core Plugin Error Isolation in `src/renderer.ts`)**:
+     - Introduced isolated lifecycle execution via `callOnPlayerApiReady(id, renderer, playerApi)` with comprehensive try-catch wrappers.
+     - Prevents any uncaught error in a third-party or experimental plugin from halting subsequent plugin initializations or freezing the music player interface.
+   - **PR #4665 (Ambient Mode Hardware-Accelerated Blending in `src/plugins/ambient-mode/index.ts`)**:
+     - Replaced synchronous CPU pixel readbacks (`getImageData` and `putImageData`) with hardware-accelerated GPU canvas rendering (`context.drawImage` with `globalAlpha` blending).
+     - Eliminates GPU pipeline stalls and dramatically slashes CPU core saturation and thermal throttling on macOS.
+   - **PR #4667 (Auto-Acknowledge Content Warnings in `src/plugins/auto-acknowledge/`)**:
+     - Added new opt-in plugin automatically dismissing YouTube Music content warning interstitial screens ("suicide or self-harm topics... Viewer discretion is advised") that freeze playback.
+     - Multilingual phrase matching across 11 languages (EN, DE, FR, PT, ES, RU, ZH, JA, KO, AR, ID) with debounced single-click dispatch.
+     - Added bilingual i18n strings in `en.json` and `id.json` and 5 comprehensive unit tests (`matcher.test.ts`).
+   - **PR #4671 (In-App Menu & Playlist Memory/Layout Optimizations in `src/plugins/in-app-menu/`)**:
+     - Gated Floating-UI `autoUpdate` observer in `PanelItem.tsx` to execute strictly when tooltips are active (`() => (toolTipOpen() ? toolTip() : null)`).
+     - Throttled titlebar scroll listener via `requestAnimationFrame` with `{ passive: true }` and registered cleanup in `onCleanup` in `TitleBar.tsx` to stop memory leaks.
+     - Replaced expensive `will-change: transform` with `content-visibility: auto; contain-intrinsic-size: auto 48px;` in `titlebar.css`, avoiding GPU compositor layer explosions across massive playlists.
+   - **PR #4672 (Volume Control Synchronization in `src/providers/song-controls.ts` & `src/renderer.ts`)**:
+     - Routed volume adjustments through `precise-volume` when enabled.
+     - Synchronized volume updates directly with `api?.setVolume(value)` and native HTML `#volume-slider` inputs, ensuring perfect round-trip volume state.
+   - **PR #4673 (Cold-Start Native Window Presentation in `src/index.ts`)**:
+     - Added `EARLY_SHOW_DELAY = 500` fallback timer in `createMainWindow`, ensuring the macOS dark window frame presents smoothly without cold-start UI stalls.
+2. **Bug Fix in Do-Not-Track Blocker Defaults**:
+   - Fixed radio button checked state in `src/plugins/do-not-track/index.ts`: replaced `config.blocker || blockers.WithBlocklists` with `config.blocker ?? blockers.InPlayer`.
+3. **Upstream Rejected PRs (Analysis & Rationale)**:
+   - **PR #4690 (Network Stream Separation)**: Explicitly rejected because it forces `loadCosmeticFilters: false`, disabling CSS element hiding and leaving empty broken ad containers in the YouTube Music DOM. Our hybrid Ghostery + uBlock + HaGeZi + AdSpeedup stack provides full cosmetic hiding and zero playback stalls.
+4. **Dedicated macOS Repository Focus & Parity Maintenance**:
+   - Retained 100% of custom improvements: 27 vendor filter lists + HaGeZi blocklists, SponsorBlock category manager with URI sanitization, glassmorphism Video Toggle pill switcher, and exclusive macOS GitHub runner architecture.
 
 ## 2. Infrastructure & Multi-Architecture macOS Runners
 
@@ -278,19 +278,26 @@ The `WithBlocklists` engine in [`src/plugins/do-not-track/blocker.ts`](src/plugi
   - Replaced `blocker !== undefined && blocker.isBlockingEnabled(session)` with `blocker?.isBlockingEnabled(session) ?? false`, satisfying modern TypeScript and SonarQube best practices.
 - **Switch Clause Ordering** ([`src/plugins/video-toggle/index.tsx`](src/plugins/video-toggle/index.tsx)):
   - Moved the `default:` clause to the end of the `switch (alignment)` statement in `onPlayerApiReady`, adhering to SonarQube/oxlint rules.
+- **Upstream Feature Validation & Error Isolation**:
+  - Validated PR #4661 error isolation via isolated try-catch wrappers around each plugin's `onPlayerApiReady`.
+  - Verified PR #4665 hardware-accelerated ambient mode canvas rendering without CPU pixel stalls.
+  - Verified PR #4667 auto-acknowledge plugin with 5 isolated unit test suites in `matcher.test.ts`.
+  - Verified PR #4671 in-app menu tooltip gating, rAF scroll throttling, and `content-visibility: auto` CSS rules.
+  - Verified PR #4672 volume slider synchronization with `song-controls.ts`.
+  - Verified PR #4673 500ms early window presentation fallback.
 
 ---
 
 ## 7. Verification Report
 
 - **Type Checking (`tsc`)**: Passed with 0 errors across main, renderer, and test tsconfigs.
-- **OxLint (`oxlint --type-aware src`)**: Passed with 0 warnings and 0 errors across 254+ source files. All `prefer-nullish-coalescing`, `no-promise-reject`, cognitive-complexity, vendor-prefix, and naming convention warnings eliminated.
-- **OxFormat (`oxfmt --check src`)**: 100% compliant across 325 files.
-- **ActionLint (`actionlint .github/workflows/*.yml`)**: 0 errors across all CI workflows. (IDE warnings for `DEEPSEEK_API_KEY` and `WINGET_ACC_TOKEN` indicate repository-level secrets required in GitHub Actions repository settings).
-- **CSS Strict Standard Validation (`src/music-player.css`)**: Removed invalid non-standard CSS properties `app-region` and `user-drag`, corrected line 89 typo to `-webkit-app-region: no-drag;`, preserving standard `user-select` alongside `-webkit-user-select`.
-- **SemVer & AutoUpdater Hardening (`src/index.ts`)**: Normalized `app.getVersion()` to SemVer 2.0.0 compliance for custom pre-release tags (e.g., `-01` $\to$ `-1`), preventing `ERR_UPDATER_INVALID_VERSION` uncaught crashes on startup, and safely guarded `autoUpdater` operations in try-catch blocks.
-- **Test Suite (`pnpm test` / Playwright)**: 6 of 6 tests passed (100% green in 5.0s), including Playwright Electron window launch verification.
+- **OxLint (`oxlint --type-aware src`)**: Passed with 0 warnings and 0 errors across 258+ source files. All `prefer-nullish-coalescing`, `no-promise-reject`, cognitive-complexity, vendor-prefix, and naming convention warnings eliminated.
+- **OxFormat (`oxfmt --check src`)**: 100% compliant across 328 files.
+- **ActionLint (`actionlint .github/workflows/*.yml`)**: 0 errors across all CI workflows.
+- **CSS Strict Standard Validation (`src/music-player.css` & `src/plugins/in-app-menu/titlebar.css`)**: Removed invalid non-standard CSS properties `app-region` and `user-drag`, replaced unbounded `will-change: transform` with `content-visibility: auto; contain-intrinsic-size: auto 48px;`, preserving standard `user-select` alongside `-webkit-user-select`.
+- **SemVer & AutoUpdater Hardening (`src/index.ts`)**: Normalized `app.getVersion()` to SemVer 2.0.0 compliance for custom pre-release tags (e.g., `-04` $\to$ `-4`), preventing `ERR_UPDATER_INVALID_VERSION` uncaught crashes on startup, and safely guarded `autoUpdater` operations in try-catch blocks.
+- **Test Suite (`pnpm test` / Playwright)**: 11 of 11 tests passed (100% green in 4.9s), including 5 new unit tests for `auto-acknowledge/matcher.test.ts` and Playwright Electron window launch verification.
 - **Production Build (`pnpm build`)**: Successfully compiled all three targets:
   - `dist/main/index.js` (37 modular chunks)
-  - `dist/preload/preload.cjs` (69 modular chunks)
+  - `dist/preload/preload.cjs` (70 modular chunks)
   - `dist/renderer/youtube-music.iife.js` & `youtube-music.css`

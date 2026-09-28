@@ -375,6 +375,13 @@
         }
       }
     },
+    "auto-acknowledge": {
+      "description": "Secara otomatis menyetujui peringatan konten YouTube agar pemutaran tidak terblokir. Bersifat opsional (opt-in); tidak mengabaikan pembatasan usia atau login",
+      "menu": {
+        "debug": "Pencatatan debug"
+      },
+      "name": "Konfirmasi Otomatis Peringatan Konten"
+    },
     "blur-nav-bar": {
       "description": "Jadikan bar navigasi blur dan transparan",
       "name": "Buramkan Bar Navigasi"

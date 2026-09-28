@@ -187,22 +187,31 @@ export const PanelItem = (props: PanelItemProps) => {
   const [anchor, setAnchor] = createSignal<HTMLElement | null>(null);
   const [child, setChild] = createSignal<HTMLElement | null>(null);
 
-  const position = useFloating(anchor, toolTip, {
-    whileElementsMounted: autoUpdate,
-    placement: 'bottom-start',
-    strategy: 'fixed',
-    middleware: [
-      offset({ mainAxis: 8 }),
-      size({
-        apply({ rects, elements }) {
-          elements.floating.style.setProperty(
-            '--max-width',
-            `${rects.reference.width}px`,
-          );
-        },
-      }),
-    ],
-  });
+  // toolTip ref mounts as soon as this item has a toolTip prop at all.
+  // Passing it straight to useFloating would start floating-ui's autoUpdate
+  // (ancestor scroll/resize listeners + a ResizeObserver) the moment the item mounts
+  // and never stop. Passing a conditional getter ensures autoUpdate only runs
+  // when toolTipOpen() is true.
+  const position = useFloating(
+    anchor,
+    () => (toolTipOpen() ? toolTip() : null),
+    {
+      whileElementsMounted: autoUpdate,
+      placement: 'bottom-start',
+      strategy: 'fixed',
+      middleware: [
+        offset({ mainAxis: 8 }),
+        size({
+          apply({ rects, elements }) {
+            elements.floating.style.setProperty(
+              '--max-width',
+              `${rects.reference.width}px`,
+            );
+          },
+        }),
+      ],
+    },
+  );
 
   const handleHover = (event: MouseEvent) => {
     setToolTipOpen(true);

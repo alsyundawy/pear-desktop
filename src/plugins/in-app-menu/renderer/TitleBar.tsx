@@ -190,6 +190,9 @@ export const TitleBar = (props: TitleBarProps) => {
   const [openTarget, setOpenTarget] = createSignal<HTMLElement | null>(null);
   const [menu, setMenu] = createSignal<Menu | null>(null);
   const [mouseY, setMouseY] = createSignal(0);
+  let scrollRafHandle: number | null = null;
+  let scrollListener: (() => void) | undefined;
+  let ytmusicAppLayout: HTMLElement | null = null;
 
   const [data, { refetch }] = createResource(
     async () => (await props.ipc.invoke('get-menu')) as Promise<Menu | null>,
@@ -302,14 +305,22 @@ export const TitleBar = (props: TitleBarProps) => {
 
     // tracking mouse position
     window.addEventListener('mousemove', listener);
-    const ytmusicAppLayout = document.querySelector<HTMLElement>('#layout');
-    ytmusicAppLayout?.addEventListener('scroll', () => {
-      const scrollValue = ytmusicAppLayout.scrollTop;
-      if (scrollValue > 20) {
-        ytmusicAppLayout.classList.add('content-scrolled');
-      } else {
-        ytmusicAppLayout.classList.remove('content-scrolled');
-      }
+    ytmusicAppLayout = document.querySelector<HTMLElement>('#layout');
+
+    let wasScrolled = false;
+    scrollListener = () => {
+      if (scrollRafHandle !== null) return;
+      scrollRafHandle = requestAnimationFrame(() => {
+        scrollRafHandle = null;
+        if (!ytmusicAppLayout) return;
+        const isScrolled = ytmusicAppLayout.scrollTop > 20;
+        if (isScrolled === wasScrolled) return;
+        wasScrolled = isScrolled;
+        ytmusicAppLayout.classList.toggle('content-scrolled', isScrolled);
+      });
+    };
+    ytmusicAppLayout?.addEventListener('scroll', scrollListener, {
+      passive: true,
     });
   });
 
@@ -321,6 +332,10 @@ export const TitleBar = (props: TitleBarProps) => {
 
   onCleanup(() => {
     window.removeEventListener('mousemove', listener);
+    if (scrollRafHandle !== null) cancelAnimationFrame(scrollRafHandle);
+    if (scrollListener) {
+      ytmusicAppLayout?.removeEventListener('scroll', scrollListener);
+    }
   });
 
   return (
