@@ -245,15 +245,33 @@ export default createPlugin<
       // 2. Disconnect previous observers before re-binding to prevent duplicate observers
       this.cleanupNativeMode(false);
 
-      // 3. Attribute Observer to prevent YTM from stripping attributes
+      // 3. Attribute Observer to prevent YTM from stripping attributes AND
+      //    to detect when ytmusic-player-page becomes visible (hidden removed)
       const attrObserver = new MutationObserver((mutations) => {
         if (this.isApplyingNativeAttributes) return;
         for (const mutation of mutations) {
           if (mutation.type === 'attributes') {
             const target = mutation.target as HTMLElement;
             const tag = target.tagName.toLowerCase();
-            if (
-              (tag === 'ytmusic-player-page' || tag === 'ytmusic-player') &&
+            if (tag === 'ytmusic-player-page') {
+              if (
+                mutation.attributeName === 'has-av-switcher' &&
+                !target.hasAttribute('has-av-switcher')
+              ) {
+                // YTM stripped our attribute — restore it
+                enforce();
+                break;
+              } else if (
+                mutation.attributeName === 'hidden' &&
+                !target.hasAttribute('hidden')
+              ) {
+                // Player page became visible — apply attributes so the pill renders
+                enforce();
+                observeTargetElements();
+                break;
+              }
+            } else if (
+              tag === 'ytmusic-player' &&
               mutation.attributeName === 'has-av-switcher' &&
               !target.hasAttribute('has-av-switcher')
             ) {
@@ -274,9 +292,11 @@ export default createPlugin<
       const observeTargetElements = () => {
         const playerPage = document.querySelector('ytmusic-player-page');
         if (playerPage) {
+          // Watch has-av-switcher (YTM may strip it) AND hidden (player page
+          // visibility toggle) so enforce() fires when user opens full player
           attrObserver.observe(playerPage, {
             attributes: true,
-            attributeFilter: ['has-av-switcher'],
+            attributeFilter: ['has-av-switcher', 'hidden'],
           });
         }
         const player = document.querySelector('ytmusic-player');
@@ -340,17 +360,19 @@ export default createPlugin<
       this.nativeDomObserver = domObserver;
 
       // 5. Use waitForElement to be resilient if player elements are not mounted yet
+      //    Increase retry to 100 (10 s) to handle slow cold starts
       waitForElement<HTMLElement>('ytmusic-player-page', {
-        maxRetry: 50,
+        maxRetry: 100,
         retryInterval: 100,
       })
         .then((page) => {
           if (this.config?.mode === 'native' && !this.config.forceHide) {
             enforce();
             if (page && this.nativeAttrObserver) {
+              // Watch has-av-switcher and hidden so pill appears when screen opens
               this.nativeAttrObserver.observe(page, {
                 attributes: true,
-                attributeFilter: ['has-av-switcher'],
+                attributeFilter: ['has-av-switcher', 'hidden'],
               });
             }
           }
@@ -358,7 +380,7 @@ export default createPlugin<
         .catch(() => {});
 
       waitForElement<HTMLElement>('ytmusic-av-toggle', {
-        maxRetry: 50,
+        maxRetry: 100,
         retryInterval: 100,
       })
         .then((toggle) => {
@@ -744,10 +766,7 @@ export default createPlugin<
           ?.remove();
       }
 
-      document.body.classList.remove(
-        'video-toggle-force-hide',
-        'video-toggle-custom-mode',
-      );
+      document.body.classList.remove('video-toggle-force-hide');
 
       const video = document.querySelector<HTMLVideoElement>('video');
       if (video && this.videoStartedHandler) {

@@ -3,12 +3,24 @@ import { render } from 'solid-js/web';
 
 import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
+import { waitForElement } from '@/utils/wait-for-element';
 
 import { QualitySettingButton } from './templates/quality-setting-button';
 
 import type { MusicPlayer } from '@/types/music-player';
 
-export default createPlugin({
+export default createPlugin<
+  unknown,
+  unknown,
+  {
+    qualitySettingsButtonContainer: HTMLDivElement | null;
+    playerPageObserver: MutationObserver | null;
+    injected: boolean;
+    chooseQuality: ((e: MouseEvent) => Promise<void>) | null;
+    injectButton(): void;
+    stop(): void;
+  }
+>({
   name: () => t('plugins.quality-changer.name'),
   description: () => t('plugins.quality-changer.description'),
   restartNeeded: false,
@@ -42,13 +54,34 @@ export default createPlugin({
   },
 
   renderer: {
-    qualitySettingsButtonContainer: document.createElement('div'),
+    qualitySettingsButtonContainer: null,
+    playerPageObserver: null,
+    injected: false,
+    chooseQuality: null,
+
+    injectButton() {
+      if (this.injected || !this.qualitySettingsButtonContainer) return;
+
+      const target = document.querySelector<HTMLElement>(
+        '.top-row-buttons.ytmusic-player',
+      );
+      if (!target) return;
+
+      target.prepend(this.qualitySettingsButtonContainer);
+      this.injected = true;
+    },
+
     onPlayerApiReady(api: MusicPlayer, context) {
-      const chooseQuality = async (e: MouseEvent) => {
+      // Create container lazily inside lifecycle — not at module-parse time
+      const container = document.createElement('div');
+      container.id = 'ytmd-quality-changer-button-container';
+      this.qualitySettingsButtonContainer = container;
+      this.injected = false;
+
+      this.chooseQuality = async (e: MouseEvent) => {
         e.stopPropagation();
 
         const qualityLevels = api.getAvailableQualityLevels();
-
         const currentIndex = qualityLevels.indexOf(api.getPlaybackQuality());
 
         const quality = (await context.ipc.invoke(
@@ -74,22 +107,65 @@ export default createPlugin({
             label={t(
               'plugins.quality-changer.renderer.quality-settings-button.label',
             )}
-            onClick={chooseQuality}
+            onClick={this.chooseQuality!}
           />
         ),
-        this.qualitySettingsButtonContainer,
+        container,
       );
 
-      const setup = () => {
-        document
-          .querySelector('.top-row-buttons.ytmusic-player')
-          ?.prepend(this.qualitySettingsButtonContainer);
-      };
+      // Attempt immediate injection in case the player bar is already in DOM
+      this.injectButton();
 
-      setup();
+      // Resilient injection: wait up to 5 s for .top-row-buttons to appear
+      if (!this.injected) {
+        waitForElement<HTMLElement>('.top-row-buttons.ytmusic-player', {
+          maxRetry: 50,
+          retryInterval: 100,
+        })
+          .then((target) => {
+            if (this.qualitySettingsButtonContainer && !this.injected) {
+              target.prepend(this.qualitySettingsButtonContainer);
+              this.injected = true;
+            }
+          })
+          .catch(() => {});
+      }
+
+      // Re-inject when the player page navigates (YouTube SPA route changes
+      // unmount / remount .top-row-buttons between tracks or page transitions)
+      const observer = new MutationObserver(() => {
+        if (!this.injected) {
+          this.injectButton();
+        } else if (
+          this.qualitySettingsButtonContainer &&
+          !this.qualitySettingsButtonContainer.isConnected
+        ) {
+          // Container was removed from DOM — re-inject
+          this.injected = false;
+          this.injectButton();
+        }
+      });
+
+      const appOrLayout =
+        document.querySelector('ytmusic-app-layout') ??
+        document.querySelector('ytmusic-app') ??
+        document.body;
+
+      observer.observe(appOrLayout, {
+        childList: true,
+        subtree: true,
+      });
+
+      this.playerPageObserver = observer;
     },
+
     stop() {
-      this.qualitySettingsButtonContainer.remove();
+      this.playerPageObserver?.disconnect();
+      this.playerPageObserver = null;
+      this.qualitySettingsButtonContainer?.remove();
+      this.qualitySettingsButtonContainer = null;
+      this.injected = false;
+      this.chooseQuality = null;
     },
   },
 });
