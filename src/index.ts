@@ -51,6 +51,7 @@ import {
 import { setupSongInfo } from '@/providers/song-info';
 import { setUpTray } from '@/tray';
 import { LoggerPrefix } from '@/utils';
+import { startMemoryWatch } from '@/utils/memory-watch';
 import { isTesting } from '@/utils/testing';
 
 import packageJson from '../package.json';
@@ -897,6 +898,7 @@ function setupWindowCloseHandler(win: BrowserWindow) {
 }
 
 async function onAppReady() {
+  startMemoryWatch();
   setupAboutPanel();
   await setupLanguage();
 

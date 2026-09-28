@@ -5,6 +5,7 @@ import { t } from '@/i18n';
 import { type MenuTemplate } from '@/menu';
 import { moveVolumeHud as preciseVolumeMoveVolumeHud } from '@/plugins/precise-volume/renderer';
 import { type ThumbnailElement } from '@/types/get-player-response';
+import { type MusicPlayer } from '@/types/music-player';
 import { createPlugin } from '@/utils';
 import { waitForElement } from '@/utils/wait-for-element';
 
@@ -25,23 +26,44 @@ export default createPlugin<
   unknown,
   {
     config: VideoTogglePluginConfig | null;
+    playerApi: MusicPlayer | null;
     switchButtonContainer: HTMLElement | null;
     playbackModeObserver: MutationObserver | null;
     thumbnailObserver: MutationObserver | null;
+    nativeAttrObserver: MutationObserver | null;
+    nativeDomObserver: MutationObserver | null;
+    boundNativeButtons: WeakSet<Element>;
+    isApplyingNativeAttributes: boolean;
     videoStartedHandler: (() => void) | null;
     setVideoStateFn: ((showVideo: boolean) => void) | null;
+    setShowButtonFn: ((show: boolean) => void) | null;
+    setIsVideoActiveFn: ((active: boolean) => void) | null;
+    moveVolumeHud: (showVideo: boolean) => void;
+    applyAlign: (align: 'left' | 'middle' | 'right') => void;
     applyStyleClass: (config: VideoTogglePluginConfig) => void;
+    applyNativeMode: () => void;
+    cleanupNativeMode: (resetDom?: boolean) => void;
+    mountCustomSwitcher: (config: VideoTogglePluginConfig) => Promise<void>;
+    cleanupCustomMode: () => void;
     updateMode: (config: VideoTogglePluginConfig) => void;
+    forceThumbnail: (img?: HTMLImageElement | null) => void;
+    forcePlaybackMode: () => void;
+    observeThumbnail: () => void;
+    updatePlayerDisplay: (
+      targetPlayer: HTMLElement,
+      targetVideo: HTMLVideoElement | null,
+      showVideo: boolean,
+    ) => void;
   },
   VideoTogglePluginConfig
 >({
   name: () => t('plugins.video-toggle.name'),
   description: () => t('plugins.video-toggle.description'),
-  restartNeeded: true,
+  restartNeeded: false,
   config: {
     enabled: true,
     hideVideo: false,
-    mode: 'custom',
+    mode: 'native',
     forceHide: false,
     align: 'left',
   } as VideoTogglePluginConfig,
@@ -126,17 +148,25 @@ export default createPlugin<
 
   renderer: {
     config: null,
+    playerApi: null,
     switchButtonContainer: null,
     playbackModeObserver: null,
     thumbnailObserver: null,
+    nativeAttrObserver: null,
+    nativeDomObserver: null,
+    boundNativeButtons: new WeakSet<Element>(),
+    isApplyingNativeAttributes: false,
     videoStartedHandler: null,
     setVideoStateFn: null,
+    setShowButtonFn: null,
+    setIsVideoActiveFn: null,
+    moveVolumeHud: () => {},
 
     applyStyleClass(config: VideoTogglePluginConfig) {
       if (config.forceHide) {
         document.body.classList.add('video-toggle-force-hide');
         document.body.classList.remove('video-toggle-custom-mode');
-      } else if (!config.mode || config.mode === 'custom') {
+      } else if (config.mode === 'custom') {
         document.body.classList.add('video-toggle-custom-mode');
         document.body.classList.remove('video-toggle-force-hide');
       } else {
@@ -147,28 +177,211 @@ export default createPlugin<
       }
     },
 
-    updateMode(config: VideoTogglePluginConfig) {
-      const switchBtn =
+    applyAlign(align: 'left' | 'middle' | 'right') {
+      const container =
         this.switchButtonContainer ??
         document.getElementById('ytmd-video-toggle-switch-button-container');
+      if (!container) return;
 
-      if (switchBtn) {
-        switchBtn.style.display =
-          !config.forceHide && (!config.mode || config.mode === 'custom')
-            ? 'flex'
-            : 'none';
+      switch (align) {
+        case 'right':
+          container.style.justifyContent = 'flex-end';
+          break;
+        case 'middle':
+          container.style.justifyContent = 'center';
+          break;
+        case 'left':
+        default:
+          container.style.justifyContent = 'flex-start';
+          break;
+      }
+    },
 
-        if (
-          !switchBtn.isConnected &&
-          !config.forceHide &&
-          (!config.mode || config.mode === 'custom')
-        ) {
-          const playerEl = document.querySelector('#player, ytmusic-player');
-          playerEl?.prepend(switchBtn);
-        }
+    applyNativeMode() {
+      if (this.config?.forceHide || this.config?.mode !== 'native') {
+        return;
       }
 
-      if (config.forceHide) {
+      this.cleanupCustomMode();
+
+      const enforce = () => {
+        if (this.isApplyingNativeAttributes) return;
+        if (this.config?.forceHide || this.config?.mode !== 'native') return;
+
+        this.isApplyingNativeAttributes = true;
+        try {
+          const playerPage = document.querySelector('ytmusic-player-page');
+          if (playerPage && !playerPage.hasAttribute('has-av-switcher')) {
+            playerPage.setAttribute('has-av-switcher', '');
+          }
+
+          const player = document.querySelector('ytmusic-player');
+          if (player && !player.hasAttribute('has-av-switcher')) {
+            player.setAttribute('has-av-switcher', '');
+          }
+
+          const avToggle = document.querySelector('ytmusic-av-toggle');
+          if (avToggle && avToggle.hasAttribute('toggle-disabled')) {
+            avToggle.removeAttribute('toggle-disabled');
+          }
+
+          const videoButton = document.querySelector<HTMLButtonElement>(
+            'button.video-button.ytmusic-av-toggle',
+          );
+          if (videoButton && !this.boundNativeButtons.has(videoButton)) {
+            this.boundNativeButtons.add(videoButton);
+            videoButton.addEventListener('click', () => {
+              window.dispatchEvent(new Event('resize'));
+            });
+          }
+        } finally {
+          this.isApplyingNativeAttributes = false;
+        }
+      };
+
+      // 1. Immediate application on existing DOM elements
+      enforce();
+
+      // 2. Disconnect previous observers before re-binding to prevent duplicate observers
+      this.cleanupNativeMode(false);
+
+      // 3. Attribute Observer to prevent YTM from stripping attributes
+      const attrObserver = new MutationObserver((mutations) => {
+        if (this.isApplyingNativeAttributes) return;
+        for (const mutation of mutations) {
+          if (mutation.type === 'attributes') {
+            const target = mutation.target as HTMLElement;
+            const tag = target.tagName.toLowerCase();
+            if (
+              (tag === 'ytmusic-player-page' || tag === 'ytmusic-player') &&
+              mutation.attributeName === 'has-av-switcher' &&
+              !target.hasAttribute('has-av-switcher')
+            ) {
+              enforce();
+              break;
+            } else if (
+              tag === 'ytmusic-av-toggle' &&
+              mutation.attributeName === 'toggle-disabled' &&
+              target.hasAttribute('toggle-disabled')
+            ) {
+              enforce();
+              break;
+            }
+          }
+        }
+      });
+
+      const observeTargetElements = () => {
+        const playerPage = document.querySelector('ytmusic-player-page');
+        if (playerPage) {
+          attrObserver.observe(playerPage, {
+            attributes: true,
+            attributeFilter: ['has-av-switcher'],
+          });
+        }
+        const player = document.querySelector('ytmusic-player');
+        if (player) {
+          attrObserver.observe(player, {
+            attributes: true,
+            attributeFilter: ['has-av-switcher'],
+          });
+        }
+        const avToggle = document.querySelector('ytmusic-av-toggle');
+        if (avToggle) {
+          attrObserver.observe(avToggle, {
+            attributes: true,
+            attributeFilter: ['toggle-disabled'],
+          });
+        }
+      };
+
+      observeTargetElements();
+      this.nativeAttrObserver = attrObserver;
+
+      // 4. DOM ChildList Observer to catch player-page/player/av-toggle connect/reconnect
+      const domObserver = new MutationObserver((mutations) => {
+        let needsReapply = false;
+        for (const mutation of mutations) {
+          for (let i = 0; i < mutation.addedNodes.length; i++) {
+            const node = mutation.addedNodes[i];
+            if (node instanceof HTMLElement) {
+              const tag = node.tagName.toLowerCase();
+              if (
+                tag === 'ytmusic-player-page' ||
+                tag === 'ytmusic-player' ||
+                tag === 'ytmusic-av-toggle' ||
+                node.querySelector(
+                  'ytmusic-player-page, ytmusic-player, ytmusic-av-toggle',
+                )
+              ) {
+                needsReapply = true;
+                break;
+              }
+            }
+          }
+          if (needsReapply) break;
+        }
+
+        if (needsReapply) {
+          enforce();
+          observeTargetElements();
+        }
+      });
+
+      const appOrLayout =
+        document.querySelector('ytmusic-app-layout') ??
+        document.querySelector('ytmusic-app') ??
+        document.body;
+
+      domObserver.observe(appOrLayout, {
+        childList: true,
+        subtree: true,
+      });
+      this.nativeDomObserver = domObserver;
+
+      // 5. Use waitForElement to be resilient if player elements are not mounted yet
+      waitForElement<HTMLElement>('ytmusic-player-page', {
+        maxRetry: 50,
+        retryInterval: 100,
+      })
+        .then((page) => {
+          if (this.config?.mode === 'native' && !this.config.forceHide) {
+            enforce();
+            if (page && this.nativeAttrObserver) {
+              this.nativeAttrObserver.observe(page, {
+                attributes: true,
+                attributeFilter: ['has-av-switcher'],
+              });
+            }
+          }
+        })
+        .catch(() => {});
+
+      waitForElement<HTMLElement>('ytmusic-av-toggle', {
+        maxRetry: 50,
+        retryInterval: 100,
+      })
+        .then((toggle) => {
+          if (this.config?.mode === 'native' && !this.config.forceHide) {
+            enforce();
+            if (toggle && this.nativeAttrObserver) {
+              this.nativeAttrObserver.observe(toggle, {
+                attributes: true,
+                attributeFilter: ['toggle-disabled'],
+              });
+            }
+          }
+        })
+        .catch(() => {});
+    },
+
+    cleanupNativeMode(resetDom = true) {
+      this.nativeAttrObserver?.disconnect();
+      this.nativeAttrObserver = null;
+      this.nativeDomObserver?.disconnect();
+      this.nativeDomObserver = null;
+
+      if (resetDom) {
         document
           .querySelector('ytmusic-player-page')
           ?.removeAttribute('has-av-switcher');
@@ -178,388 +391,186 @@ export default createPlugin<
         document
           .querySelector('ytmusic-av-toggle')
           ?.setAttribute('toggle-disabled', '');
-        return;
-      }
-
-      switch (config.mode) {
-        case 'native': {
-          document
-            .querySelector('ytmusic-player-page')
-            ?.setAttribute('has-av-switcher', '');
-          document
-            .querySelector('ytmusic-player')
-            ?.setAttribute('has-av-switcher', '');
-          document
-            .querySelector('ytmusic-av-toggle')
-            ?.removeAttribute('toggle-disabled');
-          break;
-        }
-
-        case 'disabled': {
-          document
-            .querySelector('ytmusic-player-page')
-            ?.removeAttribute('has-av-switcher');
-          document
-            .querySelector('ytmusic-player')
-            ?.removeAttribute('has-av-switcher');
-          document
-            .querySelector('ytmusic-av-toggle')
-            ?.setAttribute('toggle-disabled', '');
-          break;
-        }
-
-        case 'custom':
-        default: {
-          document
-            .querySelector('ytmusic-player-page')
-            ?.removeAttribute('has-av-switcher');
-          document
-            .querySelector('ytmusic-player')
-            ?.removeAttribute('has-av-switcher');
-          document
-            .querySelector('ytmusic-av-toggle')
-            ?.setAttribute('toggle-disabled', '');
-          if (this.setVideoStateFn) {
-            this.setVideoStateFn(!config.hideVideo);
-          }
-          break;
-        }
       }
     },
 
-    async start({ getConfig }) {
-      const config = await getConfig();
-      this.config = config;
-      this.applyStyleClass(config);
-      this.updateMode(config);
+    forceThumbnail(img?: HTMLImageElement | null) {
+      const targetImg =
+        img ??
+        document.querySelector<HTMLImageElement>(
+          '#song-image img, #song-image #img',
+        );
+      if (!targetImg) return;
+      const thumbnails: ThumbnailElement[] =
+        this.playerApi?.getPlayerResponse()?.videoDetails?.thumbnail
+          ?.thumbnails ?? [];
+      if (thumbnails && thumbnails.length > 0) {
+        const thumbnail = thumbnails.at(-1)?.url.split('?')[0];
+        if (thumbnail) targetImg.src = thumbnail;
+      }
     },
 
-    async onPlayerApiReady(api, { getConfig }) {
-      const [showButton, setShowButton] = createSignal(true);
-      const [isVideoActive, setIsVideoActive] = createSignal(true);
-
-      const config = await getConfig();
-      this.config = config;
-      this.applyStyleClass(config);
-
-      const moveVolumeHud = (await window.mainConfig.plugins.isEnabled(
-        'precise-volume',
-      ))
-        ? (preciseVolumeMoveVolumeHud as (_: boolean) => void)
-        : () => {};
-
-      let player = document.querySelector<
-        HTMLElement & { videoMode_: boolean }
-      >('ytmusic-player');
-      let video = document.querySelector<HTMLVideoElement>('video');
-
-      const switchButtonContainer = document.createElement('div');
-      switchButtonContainer.id = 'ytmd-video-toggle-switch-button-container';
-      switchButtonContainer.style.display =
-        !config.forceHide && (!config.mode || config.mode === 'custom')
-          ? 'flex'
-          : 'none';
-      this.switchButtonContainer = switchButtonContainer;
-
-      const applyAlign = (align: 'left' | 'middle' | 'right') => {
-        switch (align) {
-          case 'right':
-            switchButtonContainer.style.justifyContent = 'flex-end';
-            break;
-          case 'middle':
-            switchButtonContainer.style.justifyContent = 'center';
-            break;
-          case 'left':
-          default:
-            switchButtonContainer.style.justifyContent = 'flex-start';
-            break;
-        }
-      };
-      applyAlign(config.align);
-
-      render(
-        () => (
-          <Show when={showButton()}>
-            <VideoSwitchButton
-              checked={isVideoActive()}
-              onChange={(e) => {
-                const target = e.target as HTMLInputElement;
-                setVideoState(target.checked);
-              }}
-              onClick={(e) => e.stopPropagation()}
-              songButtonText={t('plugins.video-toggle.templates.button-song')}
-              videoButtonText={t('plugins.video-toggle.templates.button-video')}
-            />
-          </Show>
-        ),
-        switchButtonContainer,
-      );
-
-      const forceThumbnail = (img?: HTMLImageElement | null) => {
-        const targetImg =
-          img ??
-          document.querySelector<HTMLImageElement>(
-            '#song-image img, #song-image #img',
-          );
-        if (!targetImg) return;
-        const thumbnails: ThumbnailElement[] =
-          api?.getPlayerResponse()?.videoDetails?.thumbnail?.thumbnails ?? [];
-        if (thumbnails && thumbnails.length > 0) {
-          const thumbnail = thumbnails.at(-1)?.url.split('?')[0];
-          if (thumbnail) targetImg.src = thumbnail;
-        }
-      };
-
-      const updatePlayerDisplay = (
-        targetPlayer: HTMLElement,
-        targetVideo: HTMLVideoElement | null,
-        showVideo: boolean,
-      ) => {
-        targetPlayer.style.margin = showVideo ? '' : 'auto 0px';
-        targetPlayer.setAttribute(
-          'playback-mode',
-          showVideo ? 'OMV_PREFERRED' : 'ATV_PREFERRED',
-        );
-
-        const songVideoElement = document.querySelector<HTMLElement>(
-          '#song-video.ytmusic-player',
-        );
-        if (songVideoElement) {
-          songVideoElement.style.display = showVideo ? 'block' : 'none';
-        }
-
-        const songImageElement =
-          document.querySelector<HTMLElement>('#song-image');
-        if (songImageElement) {
-          songImageElement.style.display = showVideo ? 'none' : 'block';
-        }
-
-        if (showVideo && targetVideo && !targetVideo.style.top) {
-          targetVideo.style.top = `${
-            (targetPlayer.clientHeight - targetVideo.clientHeight) / 2
-          }px`;
-        }
-      };
-
-      const setVideoState = (showVideo: boolean) => {
-        if (this.config) {
-          this.config.hideVideo = !showVideo;
-        }
-        window.mainConfig.plugins.setOptions('video-toggle', this.config);
-        setIsVideoActive(showVideo);
-
-        const checkbox = document.querySelector<HTMLInputElement>(
-          '#video-toggle-video-switch-button-checkbox',
-        );
-        if (checkbox) checkbox.checked = showVideo;
-
-        player =
-          player ??
-          document.querySelector<HTMLElement & { videoMode_: boolean }>(
-            'ytmusic-player',
-          );
-        video = video ?? document.querySelector<HTMLVideoElement>('video');
-
-        if (player) {
-          updatePlayerDisplay(player, video, showVideo);
-          moveVolumeHud(showVideo);
-        }
-      };
-      this.setVideoStateFn = setVideoState;
-
-      const videoStarted = () => {
-        const playerResponse = api?.getPlayerResponse?.();
-        const musicVideoType = playerResponse?.videoDetails?.musicVideoType;
-
-        if (musicVideoType === 'MUSIC_VIDEO_TYPE_ATV') {
-          // Video doesn't exist -> switch to song mode
-          setVideoState(false);
-          // Hide toggle button
-          setShowButton(false);
-        } else {
-          const songImage = document.querySelector<HTMLImageElement>(
-            '#song-image img, #song-image #img',
-          );
-          if (songImage) {
-            forceThumbnail(songImage);
-          }
-          // Always show toggle button when video is available
-          setShowButton(true);
-
-          // Change display to video mode if video exists & video is hidden & option.hideVideo = false
-          if (
-            !this.config?.hideVideo &&
-            document.querySelector<HTMLElement>('#song-video.ytmusic-player')
-              ?.style.display === 'none'
-          ) {
-            setVideoState(true);
-          } else {
-            moveVolumeHud(!this.config?.hideVideo);
-          }
-        }
-      };
-      this.videoStartedHandler = videoStarted;
-
-      /**
-       * On load, after a delay, the page overrides the playback-mode to 'OMV_PREFERRED' which causes weird aspect ratio in the image container
-       * this function fix the problem by overriding that override :)
-       */
-      const forcePlaybackMode = () => {
-        if (player) {
-          const playbackModeObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-              if (mutation.target instanceof HTMLElement) {
-                const target = mutation.target;
-                if (target.getAttribute('playback-mode') !== 'ATV_PREFERRED') {
-                  playbackModeObserver.disconnect();
-                  target.setAttribute('playback-mode', 'ATV_PREFERRED');
-                }
-              }
-            }
-          });
-          playbackModeObserver.observe(player, {
-            attributeFilter: ['playback-mode'],
-          });
-          this.playbackModeObserver = playbackModeObserver;
-        }
-      };
-
-      const observeThumbnail = () => {
-        const thumbnailObserver = new MutationObserver((mutations) => {
-          if (!player?.videoMode_) {
-            return;
-          }
-
+    forcePlaybackMode() {
+      const player = document.querySelector<HTMLElement>('ytmusic-player');
+      if (player) {
+        this.playbackModeObserver?.disconnect();
+        const playbackModeObserver = new MutationObserver((mutations) => {
           for (const mutation of mutations) {
-            if (mutation.target instanceof HTMLImageElement) {
+            if (mutation.target instanceof HTMLElement) {
               const target = mutation.target;
-              if (!target.src.startsWith('data:')) {
-                continue;
+              if (target.getAttribute('playback-mode') !== 'ATV_PREFERRED') {
+                playbackModeObserver.disconnect();
+                target.setAttribute('playback-mode', 'ATV_PREFERRED');
               }
-
-              forceThumbnail(target);
             }
           }
         });
-        const thumbnailElement = document.querySelector(
-          '#song-image img, #song-image #img',
-        );
-        if (thumbnailElement) {
-          thumbnailObserver.observe(thumbnailElement, {
-            attributeFilter: ['src'],
-          });
-          this.thumbnailObserver = thumbnailObserver;
-        }
-      };
-
-      const mountSwitcher = async () => {
-        const playerElement = await waitForElement<HTMLElement>(
-          '#player, ytmusic-player',
-        );
-        if (!playerElement) return;
-
-        if (!switchButtonContainer.isConnected) {
-          playerElement.prepend(switchButtonContainer);
-        }
-
-        setVideoState(!config.hideVideo);
-        forcePlaybackMode();
-
-        video = video ?? document.querySelector<HTMLVideoElement>('video');
-        if (video) {
-          video.style.height = 'auto';
-          video.removeEventListener('peard:src-changed', videoStarted);
-          video.addEventListener('peard:src-changed', videoStarted);
-        }
-        observeThumbnail();
-        videoStarted();
-        applyAlign(this.config?.align ?? config.align);
-      };
-
-      if (config.mode !== 'native' && config.mode !== 'disabled') {
-        mountSwitcher().catch(console.error);
+        playbackModeObserver.observe(player, {
+          attributeFilter: ['playback-mode'],
+        });
+        this.playbackModeObserver = playbackModeObserver;
       }
     },
 
-    onConfigChange(newConfig) {
-      const oldConfig = this.config;
-      this.config = newConfig;
-      this.applyStyleClass(newConfig);
+    observeThumbnail() {
+      const player = document.querySelector<
+        HTMLElement & { videoMode_: boolean }
+      >('ytmusic-player');
+      this.thumbnailObserver?.disconnect();
+      const thumbnailObserver = new MutationObserver((mutations) => {
+        if (!player?.videoMode_) {
+          return;
+        }
 
-      if (
-        oldConfig?.mode !== newConfig.mode ||
-        oldConfig?.forceHide !== newConfig.forceHide
-      ) {
-        this.updateMode(newConfig);
-      }
+        for (const mutation of mutations) {
+          if (mutation.target instanceof HTMLImageElement) {
+            const target = mutation.target;
+            if (!target.src.startsWith('data:')) {
+              continue;
+            }
 
-      const switchButtonContainer =
-        this.switchButtonContainer ??
-        document.getElementById('ytmd-video-toggle-switch-button-container');
-
-      if (switchButtonContainer) {
-        switch (newConfig.align) {
-          case 'right': {
-            switchButtonContainer.style.justifyContent = 'flex-end';
-            break;
-          }
-          case 'middle': {
-            switchButtonContainer.style.justifyContent = 'center';
-            break;
-          }
-          case 'left':
-          default: {
-            switchButtonContainer.style.justifyContent = 'flex-start';
-            break;
+            this.forceThumbnail(target);
           }
         }
+      });
+      const thumbnailElement = document.querySelector(
+        '#song-image img, #song-image #img',
+      );
+      if (thumbnailElement) {
+        thumbnailObserver.observe(thumbnailElement, {
+          attributeFilter: ['src'],
+        });
+        this.thumbnailObserver = thumbnailObserver;
       }
     },
 
-    stop() {
-      // Remove button container from DOM
-      if (this.switchButtonContainer) {
-        this.switchButtonContainer.remove();
-        this.switchButtonContainer = null;
-      } else {
-        const container = document.getElementById(
-          'ytmd-video-toggle-switch-button-container',
-        );
-        container?.remove();
-      }
-
-      // Remove body classes
-      document.body.classList.remove(
-        'video-toggle-force-hide',
-        'video-toggle-custom-mode',
+    updatePlayerDisplay(
+      targetPlayer: HTMLElement,
+      targetVideo: HTMLVideoElement | null,
+      showVideo: boolean,
+    ) {
+      targetPlayer.style.margin = showVideo ? '' : 'auto 0px';
+      targetPlayer.setAttribute(
+        'playback-mode',
+        showVideo ? 'OMV_PREFERRED' : 'ATV_PREFERRED',
       );
 
-      // Disconnect MutationObservers
+      const songVideoElement = document.querySelector<HTMLElement>(
+        '#song-video.ytmusic-player',
+      );
+      if (songVideoElement) {
+        songVideoElement.style.display = showVideo ? 'block' : 'none';
+      }
+
+      const songImageElement =
+        document.querySelector<HTMLElement>('#song-image');
+      if (songImageElement) {
+        songImageElement.style.display = showVideo ? 'none' : 'block';
+      }
+
+      if (showVideo && targetVideo && !targetVideo.style.top) {
+        targetVideo.style.top = `${
+          (targetPlayer.clientHeight - targetVideo.clientHeight) / 2
+        }px`;
+      }
+    },
+
+    async mountCustomSwitcher(config: VideoTogglePluginConfig) {
+      if (config.mode !== 'custom' || config.forceHide) return;
+
+      const playerElement = await waitForElement<HTMLElement>(
+        '#player, ytmusic-player',
+        { maxRetry: 50, retryInterval: 100 },
+      );
+      if (!playerElement) return;
+
+      if (!this.switchButtonContainer) {
+        const [showButton, setShowButton] = createSignal(true);
+        const [isVideoActive, setIsVideoActive] = createSignal(true);
+        this.setShowButtonFn = setShowButton;
+        this.setIsVideoActiveFn = setIsVideoActive;
+
+        const switchButtonContainer = document.createElement('div');
+        switchButtonContainer.id = 'ytmd-video-toggle-switch-button-container';
+        this.switchButtonContainer = switchButtonContainer;
+
+        render(
+          () => (
+            <Show when={showButton()}>
+              <VideoSwitchButton
+                checked={isVideoActive()}
+                onChange={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  this.setVideoStateFn?.(target.checked);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                songButtonText={t('plugins.video-toggle.templates.button-song')}
+                videoButtonText={t(
+                  'plugins.video-toggle.templates.button-video',
+                )}
+              />
+            </Show>
+          ),
+          switchButtonContainer,
+        );
+      }
+
+      this.switchButtonContainer.style.display = 'flex';
+      if (!this.switchButtonContainer.isConnected) {
+        playerElement.prepend(this.switchButtonContainer);
+      }
+
+      this.applyAlign(config.align);
+      this.setVideoStateFn?.(!config.hideVideo);
+      this.forcePlaybackMode();
+      this.observeThumbnail();
+
+      const video = document.querySelector<HTMLVideoElement>('video');
+      if (video) {
+        video.style.height = 'auto';
+        if (this.videoStartedHandler) {
+          video.removeEventListener(
+            'peard:src-changed',
+            this.videoStartedHandler,
+          );
+          video.addEventListener('peard:src-changed', this.videoStartedHandler);
+        }
+      }
+
+      this.videoStartedHandler?.();
+    },
+
+    cleanupCustomMode() {
+      if (this.switchButtonContainer) {
+        this.switchButtonContainer.style.display = 'none';
+      }
+
       this.playbackModeObserver?.disconnect();
       this.playbackModeObserver = null;
       this.thumbnailObserver?.disconnect();
       this.thumbnailObserver = null;
 
-      // Remove video event listener
-      const video = document.querySelector<HTMLVideoElement>('video');
-      if (video && this.videoStartedHandler) {
-        video.removeEventListener(
-          'peard:src-changed',
-          this.videoStartedHandler,
-        );
-        this.videoStartedHandler = null;
-      }
-
-      // Reset DOM attributes and styles
-      document
-        .querySelector('ytmusic-player-page')
-        ?.removeAttribute('has-av-switcher');
-      document
-        .querySelector('ytmusic-player')
-        ?.removeAttribute('has-av-switcher');
-      document
-        .querySelector('ytmusic-av-toggle')
-        ?.removeAttribute('toggle-disabled');
+      document.body.classList.remove('video-toggle-custom-mode');
 
       const songVideoElement = document.querySelector<HTMLElement>(
         '#song-video.ytmusic-player',
@@ -576,13 +587,183 @@ export default createPlugin<
         player.removeAttribute('playback-mode');
       }
 
+      const video = document.querySelector<HTMLVideoElement>('video');
       if (video) {
         video.style.height = '';
         video.style.top = '';
       }
+    },
+
+    updateMode(config: VideoTogglePluginConfig) {
+      if (config.forceHide) {
+        this.cleanupNativeMode(true);
+        this.cleanupCustomMode();
+        return;
+      }
+
+      switch (config.mode) {
+        case 'native': {
+          this.applyNativeMode();
+          break;
+        }
+
+        case 'disabled': {
+          this.cleanupNativeMode(true);
+          this.cleanupCustomMode();
+          break;
+        }
+
+        case 'custom':
+        default: {
+          this.cleanupNativeMode(true);
+          this.mountCustomSwitcher(config).catch(console.error);
+          break;
+        }
+      }
+    },
+
+    async start({ getConfig }) {
+      const config = await getConfig();
+      this.config = config;
+      this.applyStyleClass(config);
+      this.updateMode(config);
+    },
+
+    async onPlayerApiReady(api, { getConfig }) {
+      this.playerApi = api;
+      const config = await getConfig();
+      this.config = config;
+      this.applyStyleClass(config);
+
+      this.moveVolumeHud = (await window.mainConfig.plugins.isEnabled(
+        'precise-volume',
+      ))
+        ? (preciseVolumeMoveVolumeHud as (_: boolean) => void)
+        : () => {};
+
+      this.setVideoStateFn = (showVideo: boolean) => {
+        if (this.config) {
+          this.config.hideVideo = !showVideo;
+        }
+        window.mainConfig.plugins.setOptions('video-toggle', this.config);
+        this.setIsVideoActiveFn?.(showVideo);
+
+        const checkbox = document.querySelector<HTMLInputElement>(
+          '#video-toggle-video-switch-button-checkbox',
+        );
+        if (checkbox) checkbox.checked = showVideo;
+
+        const player = document.querySelector<
+          HTMLElement & { videoMode_: boolean }
+        >('ytmusic-player');
+        const video = document.querySelector<HTMLVideoElement>('video');
+
+        if (player) {
+          this.updatePlayerDisplay(player, video, showVideo);
+          this.moveVolumeHud(showVideo);
+        }
+      };
+
+      const videoStarted = () => {
+        if (this.config?.mode === 'native' && !this.config.forceHide) {
+          this.applyNativeMode();
+          return;
+        }
+
+        if (this.config?.mode !== 'custom' || this.config.forceHide) {
+          return;
+        }
+
+        const playerResponse = this.playerApi?.getPlayerResponse?.();
+        const musicVideoType = playerResponse?.videoDetails?.musicVideoType;
+
+        if (musicVideoType === 'MUSIC_VIDEO_TYPE_ATV') {
+          // Video doesn't exist -> switch to song mode
+          this.setVideoStateFn?.(false);
+          // Hide custom toggle button on ATV
+          this.setShowButtonFn?.(false);
+        } else {
+          const songImage = document.querySelector<HTMLImageElement>(
+            '#song-image img, #song-image #img',
+          );
+          if (songImage) {
+            this.forceThumbnail(songImage);
+          }
+          // Show toggle button when video is available
+          this.setShowButtonFn?.(true);
+
+          if (
+            !this.config?.hideVideo &&
+            document.querySelector<HTMLElement>('#song-video.ytmusic-player')
+              ?.style.display === 'none'
+          ) {
+            this.setVideoStateFn?.(true);
+          } else {
+            this.moveVolumeHud(!this.config?.hideVideo);
+          }
+        }
+      };
+      this.videoStartedHandler = videoStarted;
+
+      const video = document.querySelector<HTMLVideoElement>('video');
+      if (video) {
+        video.removeEventListener('peard:src-changed', videoStarted);
+        video.addEventListener('peard:src-changed', videoStarted);
+      }
+
+      this.updateMode(config);
+    },
+
+    onConfigChange(newConfig) {
+      const oldConfig = this.config;
+      this.config = newConfig;
+      this.applyStyleClass(newConfig);
+
+      if (
+        oldConfig?.mode !== newConfig.mode ||
+        oldConfig?.forceHide !== newConfig.forceHide
+      ) {
+        this.updateMode(newConfig);
+      }
+
+      if (newConfig.mode === 'custom' && !newConfig.forceHide) {
+        this.applyAlign(newConfig.align);
+      }
+    },
+
+    stop() {
+      this.cleanupNativeMode(true);
+      this.cleanupCustomMode();
+
+      if (this.switchButtonContainer) {
+        this.switchButtonContainer.remove();
+        this.switchButtonContainer = null;
+      } else {
+        document
+          .getElementById('ytmd-video-toggle-switch-button-container')
+          ?.remove();
+      }
+
+      document.body.classList.remove(
+        'video-toggle-force-hide',
+        'video-toggle-custom-mode',
+      );
+
+      const video = document.querySelector<HTMLVideoElement>('video');
+      if (video && this.videoStartedHandler) {
+        video.removeEventListener(
+          'peard:src-changed',
+          this.videoStartedHandler,
+        );
+        this.videoStartedHandler = null;
+      }
 
       this.config = null;
+      this.playerApi = null;
       this.setVideoStateFn = null;
+      this.setShowButtonFn = null;
+      this.setIsVideoActiveFn = null;
+      this.moveVolumeHud = () => {};
     },
   },
 });

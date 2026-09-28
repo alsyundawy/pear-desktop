@@ -12,6 +12,10 @@
 }
 
 #ytmd-video-toggle-switch-button-container {
+  display: none;
+}
+
+.video-toggle-custom-mode #ytmd-video-toggle-switch-button-container {
   position: absolute;
   top: 0;
   left: 0;
@@ -171,5 +175,5 @@
 
 /* disable the native toggler */
 .video-toggle-custom-mode #av-id {
-  display: none;
+  display: none !important;
 }

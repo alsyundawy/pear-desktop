@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-07](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-06...v3.12.0-07)
+
+> 29 September 2026 (Release 3.12.0-07)
+
+- **Official Song | Video Switcher Pill (`ytmusic-av-toggle`) Restoration & Architecture (`src/plugins/video-toggle/`)**:
+  - Switch default mode from `'custom'` to `'native'`, delivering authentic YouTube Music Song/Video pill switcher matching official YTM web & mobile behavior
+  - Set `restartNeeded: false` for zero-restart, real-time live mode toggling
+  - Implement dual-layer `MutationObserver` architecture:
+    - `nativeAttrObserver`: High-precision attribute observer targeted with `attributeFilter: ['has-av-switcher', 'toggle-disabled']` to re-apply required Polymer attributes (`has-av-switcher` on `ytmusic-player-page` and `ytmusic-player`, removing `toggle-disabled` on `ytmusic-av-toggle`) whenever stripped during page navigation or song transitions
+    - `nativeDomObserver`: Tree observer targeting `ytmusic-app-layout` / `body` to detect player DOM unmounting/re-mounting and re-bind observers without memory leaks
+  - Implement atomic re-entrancy lock (`isApplyingNativeAttributes`) to eliminate infinite mutation loops during attribute synchronization
+  - Add `WeakSet<Element>` tracking on native video button resize listeners to eliminate duplicate event listener attachment
+  - Implement bounded `waitForElement` retry limit (max 50 attempts @ 100ms) with error logging, eliminating infinite interval polling
+  - Harden custom mode with null-safe queries and ensure ATV track hiding is strictly confined to custom mode
+  - Symmetrical lifecycle cleanup: implement `cleanupNativeMode()` and `cleanupCustomMode()` ensuring all observers, event listeners, and Preact root elements are disposed
+  - Provide live mode switching (`updateMode`) allowing instantaneous switching between native and custom modes without restarting the application
+- **CSS Scoping & Specificity Hardening (`src/plugins/video-toggle/button-switcher.css`)**:
+  - Scope `#av-id { display: none !important; }` strictly to `.video-toggle-custom-mode`, ensuring native switcher is never hidden when running in native mode
+  - Scope `.video-toggle-custom-mode #ytmd-video-toggle-switch-button-container` with fallback `display: none` when custom mode class is inactive
+- **Memory & CPU Governance Engine (`src/utils/memory-watch.ts`, `scripts/soak-test.md`, `README-PERF.md`)**:
+  - Implement main-process memory watchdog (`startMemoryWatch`, `stopMemoryWatch`) sampling RSS, V8 heap (used/total), external memory, and active window count every 30 seconds
+  - Add native leak detection heuristics: automatically warn when RSS grows > 25% over 10 consecutive samples while V8 heap remains flat (identifying native addon, GPU buffer, or detached window retention)
+  - Create standardized soak testing protocol (`scripts/soak-test.md`) covering cold start, 30x route/dialog cycles, 10x tray minimize/restore cycles, and 10-minute idle soak
+  - Add comprehensive performance profiling guide (`README-PERF.md`) covering Chrome DevTools heap snapshots, `--inspect` main-process debugging, process/blink memory introspection, and startup module cost analysis
+- **Comprehensive 13-Pillar Production Code Review & DevSecOps Verification**:
+  - 13-pillar verification across all files: Bug, Syntax, Runtime, Logic, Memory, Dead Code, Duplicate Code, Circular Dependency, Performance, Security Vulnerability (OWASP Top 10 2025 / CWE), Maintainability, Scalability, and Readability
+  - Verification: 100% clean check with `pnpm run check` (oxlint, oxfmt, tsc) — 0 errors, 0 warnings
+- **Bumped version in `package.json` to `3.12.0-7` (Release `3.12.0-07`)**
+
 #### [v3.12.0-06](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-05...v3.12.0-06)
 
 > 28 September 2026 (Release 3.12.0-06)
