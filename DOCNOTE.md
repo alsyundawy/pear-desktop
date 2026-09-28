@@ -1,8 +1,8 @@
-# Release DocNote: v3.12.0-2
+# Release DocNote: v3.12.0-3 (3.12.0-03)
 
 **Repository**: [alsyundawy/pear-desktop](https://github.com/alsyundawy/pear-desktop)  
-**Release Version**: `v3.12.0-2`  
-**Base Version**: `v3.12.0-01`  
+**Release Version**: `v3.12.0-3` (`3.12.0-03`)  
+**Base Version**: `v3.12.0-2`  
 **Date**: 28 September 2026  
 **Status**: Production-Grade Verified & Zero-Error  
 
@@ -10,14 +10,21 @@
 
 ## 1. Executive Summary
 
-Release **v3.12.0-2** is a targeted bug-fix patch on top of the v3.12.0-01 hardening milestone. This release resolves four production-confirmed bugs — three in the About dialog and one critical adblocker regression:
+Release **v3.12.0-3** (`3.12.0-03`) delivers targeted UI/UX and feature restorations based on user requirements and comprehensive code audits:
 
-1. **TDZ Forward-Reference Fix**: `showAbout` was declared as a `const` arrow function after its first use inside `mainMenuTemplate`. While closures deferred the crash, this violated code ordering best practices and introduced a temporal dead zone risk. The declaration is now hoisted above `mainMenuTemplate`.
-2. **Electron Role/Click Conflict**: Menu items simultaneously carrying `role: 'about'` and `click: showAbout` caused Electron to silently ignore the `click` handler (per Electron docs: *"If role is defined for a menu item, the click property will be ignored"*). The custom About panel with `hardening` copyright notices never appeared. Fixed by removing `role: 'about'` from all items with custom click handlers.
-3. **Dynamic Copyright Year**: Copyright strings in `src/menu.ts`, `src/index.ts` had `2026` hardcoded — replaced with `new Date().getFullYear()` so the notice auto-updates on each application launch.
-4. **Adblocker Default Enabled Regression**: The `do-not-track` plugin (successor to v3.11.0's `adblocker`) defaulted to `enabled: false`, silently disabling ad blocking for all users on first launch. Restored to `enabled: true` for full v3.11.0 behavioral parity.
-
----
+1. **Ad Blocker Menu & Full v3.11.0 Parity**:
+   - Restored plugin title and localized i18n names to **"Ad Blocker"** / **"Pemblokir Iklan"** and menu label **"Pemblokir"**.
+   - Restored **`Ad speedup` (`AdSpeedup`)** blocker mode with clean MutationObserver lifecycle, automatic ad detection, 16x fast-forward, muted audio, and leak-free unloading.
+   - Restored v3.11.0 YouTube ad filter sources list in `blocker.ts` with graceful fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
+   - Added dynamic runtime support in `renderer.onConfigChange` and `preload.onConfigChange`.
+2. **Video Toggle Redesign & Alignment Fix**:
+   - Modernized `.video-switch-button` from outdated bulky styling to a sleek YouTube Music glassmorphism pill switcher (`160px × 36px`, `backdrop-filter: blur(12px)`, sliding indicator pill).
+   - Fixed broken alignment where `.video-switch-button` was absolutely positioned with static margins, completely bypassing `#ytmd-video-toggle-switch-button-container` flex positioning.
+   - Added real-time alignment updates in `onConfigChange` for `left`, `middle`, and `right` positions.
+   - Enhanced click interactions into a true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode.
+3. **Standards & Markdown Formatting Fixes**:
+   - Fixed fenced code block language tags and table formatting in `DOCNOTE.md`.
+   - Maintained zero lint errors, zero warnings across `oxlint`, `oxfmt`, and TypeScript.
 
 ## 2. Infrastructure & Multi-Architecture macOS Runners
 
@@ -140,7 +147,7 @@ Release **v3.12.0-2** is a targeted bug-fix patch on top of the v3.12.0-01 harde
 - **About Dialog & Copyright Synchronization**:
   - Dynamically configured `app.setAboutPanelOptions` in `src/index.ts` and `src/menu.ts` using `packageJson.version` (`3.12.0-01`) to guarantee consistent version display across macOS, Windows, and Linux.
   - Added new line to copyright notice:
-    ```
+    ```text
     Copyright © 2026 th-ch
     Hardening & Optimize by alsyundawy
     ```
@@ -188,37 +195,32 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 
 ---
 
-## 6. Adblocker / Do-Not-Track — Full Parity Verification
+## 6. Adblocker & Video Toggle — Full v3.11.0 Parity & Modernization
 
-### Functional Comparison: v3.11.0 (`adblocker`) vs v3.12.0-2 (`do-not-track`)
+### Functional Comparison: v3.11.0 vs v3.12.0-3 (`3.12.0-03`)
 
-| Feature | v3.11.0 | v3.12.0-2 | Status |
-|---|---|---|---|
-| Package `@ghostery/adblocker-electron` | `2.11.6` | `2.18.2` | ✅ Upgraded |
-| Package `@ghostery/adblocker-electron-preload` | `2.11.6` | `2.18.2` | ✅ Upgraded |
-| **Plugin enabled by default** | `true` | `true` (restored) | ✅ Fixed |
-| Mode `InPlayer` (JSON/Response proxy pruner) | ✅ | ✅ Intact | ✅ Verified |
-| Mode `WithBlocklists` (Ghostery ElectronBlocker) | ✅ | ✅ Intact | ✅ Verified |
-| Mode `AdSpeedup` | ✅ | Removed | ✅ Intentional (upstream) |
-| `injectCliqzPreload` in `WithBlocklists` preload | ❌ | ✅ New feature | ✅ Enhancement |
-| Blocklist source `organization/tb-list/tb.json` | — | HTTP 200 confirmed | ✅ Reachable |
-| `electron-builder.yml` ghostery preload packaging | ✅ | ✅ | ✅ Correct |
-| i18n keys `plugins.do-not-track.*` in `en.json` | — | ✅ Present | ✅ Verified |
-| Preload `dist/index.cjs` self-contained | — | ✅ (250 lines, no ext deps) | ✅ Confirmed |
+| Feature | v3.11.0 | v3.12.0-3 (`3.12.0-03`) | Status |
+| :--- | :--- | :--- | :--- |
+| **Plugin UI Name** | `Ad Blocker` | `Ad Blocker` / `Pemblokir Iklan` | ✅ Restored v3.11.0 naming |
+| **Menu Blocker Label** | `Blocker` | `Blocker` / `Pemblokir` | ✅ Restored v3.11.0 label |
+| **Plugin enabled by default** | `true` | `true` | ✅ Restored |
+| **Mode `WithBlocklists`** | Ghostery `ElectronBlocker` | `SOURCES` list + Prebuilt fallback | ✅ Enhanced resilience |
+| **Mode `InPlayer`** | JSON/Response pruner | JSON/Response pruner | ✅ Intact & functional |
+| **Mode `AdSpeedup`** | Auto-fast-forward 16x | MutationObserver + auto-skip + mute | ✅ Fully Restored & Leak-free |
+| **Preload Injector** | Basic preload | `@ghostery/adblocker-electron-preload` | ✅ Upgraded & Verified |
+| **Video Toggle UI Design** | Outdated bulky container | Modern glassmorphism pill switcher | ✅ Redesigned |
+| **Video Toggle Alignment** | Static margins (broken flex) | Dynamic flex alignment (`left`/`center`/`right`) | ✅ Fixed & Real-time |
+| **Video Toggle Interaction** | Ambiguous checkbox click | Segmented control (click Song / Video) | ✅ Improved UX |
 
-### Blocklist Source Validation (`organization/tb-list`)
+### Adblocker Filter Resilience
+- Restored YouTube-tailored ad filters from `kbinani/adblock-youtube-ads` and uBlock Origin / Fanboy / AdTidy.
+- Added automatic fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking` if external filter network fetch is unavailable, ensuring ads are always blocked even in offline or restricted environments.
+- Implemented singleton lifecycle and proper cleanup (`unloadAdSpeedup`) to eliminate memory leaks upon dynamic mode switching.
 
-The URL `https://raw.githubusercontent.com/organization/tb-list/refs/heads/main/tb.json` is a valid, publicly accessible GitHub repository (the GitHub organization is literally named `organization`). HTTP 200 response confirmed with 12 active filter lists:
-
-- `kbinani/adblock-youtube-ads` — signed.txt
-- uBlock Origin filters (2020–2025 annual lists)
-- uBlock Origin quick-fixes and unbreak lists
-- Fanboy Annoyance List (uBO format)
-- AdTidy Optimized Filter List (filter #122)
-
-### Preload Bundle Architecture
-
-`@ghostery/adblocker-electron-preload` v2.18.2 ships as a **self-contained CJS bundle** (`dist/index.cjs`, 250 lines). It only declares one external dependency: `electron`. All ghostery internals (`@ghostery/adblocker-content` etc.) are already bundled inside. No missing transitive dependencies at runtime.
+### Video Toggle Switcher Enhancements
+- Transformed `.video-switch-button` to a modern compact pill matching native YouTube Music styling (`width: 160px; height: 36px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-radius: 18px;`).
+- Resolved positioning conflicts on `#ytmd-video-toggle-switch-button-container`, allowing `align: 'left' | 'middle' | 'right'` to position correctly across the entire player width.
+- Hooked `onConfigChange` to update container alignment immediately without needing an app restart or page refresh.
 
 ---
 

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-3](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0-2...v3.12.0-3)
+
+> 28 September 2026 (Release 3.12.0-03)
+
+- **Ad Blocker Menu & Full v3.11.0 Parity**:
+  - Restore plugin name to **"Ad Blocker"** (`Pemblokir Iklan`) and menu category label to **"Pemblokir"** in `en.json` and `id.json`
+  - Restore **`Ad speedup`** blocker mode (`src/plugins/do-not-track/adSpeedup.ts`) with MutationObserver ad detection, auto-skip trigger, 16x speedup, muted playback, and clean teardown (`unloadAdSpeedup`)
+  - Restore YouTube-optimized filter `SOURCES` list in `blocker.ts` with graceful fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`
+  - Support seamless dynamic switching in `renderer.onConfigChange` and `preload.onConfigChange`
+- **Video Toggle Modernization & Layout Alignment Fix**:
+  - Redesign `.video-switch-button` with sleek YouTube Music pill aesthetic (`160px × 36px`, `border-radius: 18px`, `backdrop-filter: blur(12px)`, active white pill indicator)
+  - Fix button positioning bug: remove static `margin-left` and `position: absolute` from `.video-switch-button`, enabling `#ytmd-video-toggle-switch-button-container` flexbox alignment (`justify-content`) to function properly across player width
+  - Add real-time alignment response in `onConfigChange` for `left`, `middle`, and `right` positions without reloading
+  - Convert toggle behavior to true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode
+- **Documentation & Standards Compliance**:
+  - Update `DOCNOTE.md` and `changelog.md` to `v3.12.0-3` (`3.12.0-03`)
+  - Fix markdown code block language tag and table column formatting in `DOCNOTE.md`
+  - Bump package version to `3.12.0-3` (strictly compliant with SemVer 2.0.0 for electron-updater compatibility)
+
 #### [v3.12.0-2](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0-01...v3.12.0-2)
 
 > 28 September 2026

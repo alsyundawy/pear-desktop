@@ -3,6 +3,7 @@ import { contextBridge, webFrame, type BrowserWindow } from 'electron';
 import { t } from '@/i18n';
 import { createPlugin } from '@/utils';
 
+import { loadAdSpeedup, unloadAdSpeedup } from './adSpeedup';
 import {
   isBlockerEnabled,
   loadTrackerBlockerEngine,
@@ -69,6 +70,21 @@ export default createPlugin({
       },
     ];
   },
+  renderer: {
+    async onPlayerApiReady(_, { getConfig }) {
+      const config = await getConfig();
+      if (config.blocker === blockers.AdSpeedup) {
+        loadAdSpeedup();
+      }
+    },
+    onConfigChange(newConfig) {
+      if (newConfig.blocker === blockers.AdSpeedup) {
+        loadAdSpeedup();
+      } else {
+        unloadAdSpeedup();
+      }
+    },
+  },
   backend: {
     mainWindow: null as BrowserWindow | null,
     async start({ getConfig, window }) {
@@ -101,6 +117,11 @@ export default createPlugin({
             newConfig.additionalBlockLists,
             newConfig.disableDefaultLists,
           );
+        } else if (
+          newConfig.blocker !== blockers.WithBlocklists &&
+          isBlockerEnabled(this.mainWindow.webContents.session)
+        ) {
+          unloadTrackerBlockerEngine(this.mainWindow.webContents.session);
         }
       }
     },
@@ -133,6 +154,8 @@ export default createPlugin({
       if (newConfig.blocker === blockers.InPlayer && !isInjected()) {
         inject(contextBridge);
         await webFrame.executeJavaScript(this.script);
+      } else if (newConfig.blocker === blockers.WithBlocklists) {
+        await injectCliqzPreload();
       }
     },
   },

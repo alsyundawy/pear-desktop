@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Blokir seluruh pelacak dari awal",
+      "description": "Blokir semua iklan dan pelacakan di luar kotak",
       "menu": {
-        "blocker": "Bloker"
+        "blocker": "Pemblokir"
       },
-      "name": "Jangan Lacak"
+      "name": "Pemblokir Iklan"
     },
     "downloader": {
       "backend": {

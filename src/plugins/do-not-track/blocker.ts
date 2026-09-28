@@ -3,13 +3,24 @@ import path from 'node:path';
 
 import { ElectronBlocker } from '@ghostery/adblocker-electron';
 import { app, net } from 'electron';
-import * as z from 'zod';
 
 let blocker: ElectronBlocker | undefined;
 
-const TbSourcesSchema = z.object({
-  tb: z.array(z.string()),
-});
+const SOURCES = [
+  'https://raw.githubusercontent.com/kbinani/adblock-youtube-ads/master/signed.txt',
+  // UBlock Origin
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters.txt',
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/quick-fixes.txt',
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/unbreak.txt',
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2020.txt',
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2021.txt',
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2022.txt',
+  'https://raw.githubusercontent.com/ghostery/adblocker/master/packages/adblocker/assets/ublock-origin/filters-2023.txt',
+  // Fanboy Annoyances
+  'https://secure.fanboy.co.nz/fanboy-annoyance_ubo.txt',
+  // AdGuard
+  'https://filters.adtidy.org/extension/ublock/filters/122_optimized.txt',
+];
 
 export const loadTrackerBlockerEngine = async (
   session?: Electron.Session,
@@ -18,32 +29,24 @@ export const loadTrackerBlockerEngine = async (
   disableDefaultLists: boolean | unknown[] = false,
 ) => {
   // Only use cache if no additional blocklists are passed
-  const cacheDirectory = path.join(app.getPath('userData'), 'tb_cache');
+  const cacheDirectory = path.join(app.getPath('userData'), 'adblock_cache');
   if (!fs.existsSync(cacheDirectory)) {
-    fs.mkdirSync(cacheDirectory);
+    fs.mkdirSync(cacheDirectory, { recursive: true });
   }
   const cachingOptions =
     cache && additionalBlockLists.length === 0
       ? {
-          path: path.join(cacheDirectory, 'tb-engine.bin'),
+          path: path.join(cacheDirectory, 'adblocker-engine.bin'),
           read: promises.readFile,
           write: promises.writeFile,
         }
       : undefined;
-  const tbSources = TbSourcesSchema.safeParse(
-    await (
-      await net.fetch(
-        'https://raw.githubusercontent.com/organization/tb-list/refs/heads/main/tb.json',
-      )
-    ).json(),
-  );
+
   const lists = [
     ...((disableDefaultLists && !Array.isArray(disableDefaultLists)) ||
     (Array.isArray(disableDefaultLists) && disableDefaultLists.length > 0)
       ? []
-      : tbSources.success
-        ? tbSources.data.tb
-        : []),
+      : SOURCES),
     ...additionalBlockLists,
   ];
 
@@ -64,7 +67,24 @@ export const loadTrackerBlockerEngine = async (
       blocker.enableBlockingInSession(session);
     }
   } catch (error) {
-    console.error('Error loading blocker engine', error);
+    console.error(
+      'Error loading adblocker engine from lists, falling back to prebuilt',
+      error,
+    );
+    try {
+      blocker = await ElectronBlocker.fromPrebuiltAdsAndTracking(
+        (url: string) => net.fetch(url),
+        cachingOptions,
+      );
+      if (session) {
+        blocker.enableBlockingInSession(session);
+      }
+    } catch (fallbackError) {
+      console.error(
+        'Error loading fallback prebuilt blocker engine',
+        fallbackError,
+      );
+    }
   }
 };
 

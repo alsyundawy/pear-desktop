@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Block all tracking out of the box",
+      "description": "Block all ads and tracking out of the box",
       "menu": {
         "blocker": "Blocker"
       },
-      "name": "Do Not Track"
+      "name": "Ad Blocker"
     },
     "downloader": {
       "backend": {

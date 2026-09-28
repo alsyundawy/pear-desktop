@@ -348,6 +348,27 @@ export default createPlugin({
     onConfigChange(newConfig) {
       this.config = newConfig;
       this.applyStyleClass(newConfig);
+
+      const switchButtonContainer = document.getElementById(
+        'ytmd-video-toggle-switch-button-container',
+      );
+      if (switchButtonContainer) {
+        switch (newConfig.align) {
+          case 'right': {
+            switchButtonContainer.style.justifyContent = 'flex-end';
+            break;
+          }
+          case 'middle': {
+            switchButtonContainer.style.justifyContent = 'center';
+            break;
+          }
+          case 'left':
+          default: {
+            switchButtonContainer.style.justifyContent = 'flex-start';
+            break;
+          }
+        }
+      }
     },
   },
 });

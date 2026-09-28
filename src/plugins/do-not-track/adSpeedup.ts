@@ -1,0 +1,70 @@
+let observer: MutationObserver | null = null;
+
+function skipAd(target: Element): void {
+  const skipButton = target.querySelector<HTMLButtonElement>(
+    'button.ytp-ad-skip-button-modern, .ytp-ad-skip-button, .ytp-ad-skip-button-slot',
+  );
+  if (skipButton) {
+    skipButton.click();
+  }
+}
+
+function speedUpAndMute(player: Element, isAdShowing: boolean): void {
+  const video = player.querySelector<HTMLVideoElement>('video');
+  if (!video) return;
+  if (isAdShowing) {
+    video.playbackRate = 16;
+    video.muted = true;
+  } else {
+    video.playbackRate = 1;
+    video.muted = false;
+  }
+}
+
+export const loadAdSpeedup = (): void => {
+  if (observer) return;
+  const player = document.querySelector<HTMLVideoElement>('#movie_player');
+  if (!player) return;
+
+  observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (
+        mutation.type === 'attributes' &&
+        mutation.attributeName === 'class'
+      ) {
+        const target = mutation.target as HTMLElement;
+
+        const isAdShowing =
+          target.classList.contains('ad-showing') ||
+          target.classList.contains('ad-interrupting');
+        speedUpAndMute(target, isAdShowing);
+      }
+      if (
+        mutation.type === 'childList' &&
+        mutation.addedNodes.length &&
+        mutation.target instanceof HTMLElement
+      ) {
+        skipAd(mutation.target);
+      }
+    }
+  });
+
+  observer.observe(player, {
+    attributes: true,
+    childList: true,
+    subtree: true,
+  });
+
+  const isAdShowing =
+    player.classList.contains('ad-showing') ||
+    player.classList.contains('ad-interrupting');
+  speedUpAndMute(player, isAdShowing);
+  skipAd(player);
+};
+
+export const unloadAdSpeedup = (): void => {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+};
