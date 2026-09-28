@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.12.0-06](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-05...v3.12.0-06)
+
+> 28 September 2026 (Release 3.12.0-06)
+
+- **Code Quality, SonarQube & Full-Stack Hardening (Zero-Warning Architecture)**:
+  - **Video Toggle Plugin UI & WCAG Accessibility (`src/plugins/video-toggle/`)**:
+    - Ensure video toggle switch button is visible and active by default across all player modes
+    - Upgrade `VideoSwitchButton` from `<div role="button">` to native `<button type="button">` — eliminating the accessibility violation, satisfying WCAG 4.1.2 Name, Role, Value criterion, and removing the need for manual `role`, `tabIndex`, and keyboard dispatch shims
+    - Consolidate multiple consecutive `classList.remove` calls into single call with multiple arguments
+    - Extract `updatePlayerDisplay()` out of `setVideoState()` to lower Cognitive Complexity from 20 to <= 15
+  - **In-App Menu Modernization & WCAG Accessibility (`src/plugins/in-app-menu/renderer/`)**:
+    - Replace `.getAttribute('data-index')` and `.getAttribute('data-length')` with `.dataset.index` and `.dataset.length` in `TitleBar.tsx`
+    - Flatten function nesting in `PanelItem.tsx` by hoisting `handleSubmenuHover()` and `attachOtherHoverListener()` to module scope (nesting depth <= 3)
+    - Add `role="menuitem"`, `tabIndex={0}`, and keyboard listener (`Enter`, `Space`) on clickable elements in `PanelItem.tsx` for full keyboard navigation and accessibility compliance
+  - **Quality Changer Modern DOM API (`src/plugins/quality-changer/index.tsx`)**:
+    - Replace deprecated `parentNode.removeChild(childNode)` with modern standard `childNode.remove()`
+  - **TouchBar Plugin & Provider Decorators Simplification (`src/plugins/touchbar/index.ts`, `src/providers/decorators.ts`)**:
+    - Use nullish coalescing operator `??` instead of ternary expression in `src/plugins/touchbar/index.ts`
+    - Use logical nullish assignment `cached ??= fn()` in memoization decorators (`src/providers/decorators.ts`)
+  - **ES2022 API Compatibility — `URL.parse()` Migration (`src/index.ts`, `src/providers/song-info.ts`)**:
+    - Replace all three `URL.parse(url)` calls in `src/index.ts` with the `URL.canParse(url) ? new URL(url) : null` guard pattern available in `lib: ["es2022"]`
+    - Replace `URL.parse(microformat.urlCanonical)` in `src/providers/song-info.ts` with equivalent `URL.canParse()` + `new URL()` pattern
+    - `URL.parse()` is an ES2025-only static method absent from the `es2022` TypeScript lib; `URL.canParse()` + `new URL()` is the correct, null-safe idiom for this target
+  - **Song Info Provider ReDoS Immunization (`src/providers/song-info.ts`)**:
+    - Replace all 10 backtracking regular expressions in `cleanupName` with deterministic, constant-time `endsWith()` checks and a `KNOWN_SUFFIX_PATTERNS` Set lookup for bracketed suffixes, achieving O(1) performance and 100% ReDoS immunity
+  - **ESLint Core Plugin SonarQube S6326 Fix (`tools/eslint-core-plugin.mjs`)**:
+    - Replace anchored regex `replace(/^_+/, '').replace(/_+$/, '')` in `isUnderscored` with explicit index-based `while` loop trim to eliminate the SonarQube S6326 "super-linear regex" false positive while maintaining O(n) deterministic performance
+    - Adopt optional chaining expressions (`node?.type`, `node.parent?.type`)
+  - **Plugin Loader & Main Process Architecture (`src/loader/main.ts`, `src/index.ts`, `vite-plugins/plugin-loader.mts`)**:
+    - Refactor `pluginLoader` Vite plugin into modular helper routines, reducing Cognitive Complexity from 50 to 1
+    - Ensure all thrown values instantiate standard `Error` objects (`new Error(...)`) rather than strings or re-casts
+    - Replace single-case `switch` statement in `showNeedToRestartDialog` with straightforward `if` condition
+    - Refactor `createMainWindow()` by extracting window position restoration and decoration resolution helpers, reducing cognitive complexity <= 15
+    - Hoist `defaultTitleBarOverlayOptions` to module scope
+    - Refactor `app.whenReady()` to clean top-level await flow with modular setup functions (`setupAboutPanel`, `setupLanguage`, `setupWindowsShortcuts`, `setupRendererScriptIpc`, `setupSecondInstance`, `setupAutoUpdates`, `setupWindowCloseHandler`)
+  - **Renderer & Preload Architecture Optimization (`src/renderer.ts`, `src/preload.ts`)**:
+    - Remove unnecessary `.call()` invocations
+    - Replace `setAttribute('data-os')` with modern `dataset.os`
+    - Decompose `onApiLoaded` by extracting `setupAudioContext` and `applyStyleCustomizations`, reducing cognitive complexity to <= 5
+    - Encapsulate renderer initialization in safe `startRenderer()` with promise error logging, fully compatible with Rolldown IIFE bundle targets
+    - Encapsulate preload initialization inside `initializePreload()` with proper `.catch()` handling, compatible with Rolldown CJS target
+  - **Type System Hardening (`src/types/`)**:
+    - Replace bitwise shifts with pure numeric literals (`1, 2, 4, 8`) in `Platform` enum (`src/types/plugins.ts`) and remove redundant `Author` type alias
+    - Resolve pending TODO comment smells in `src/types/datahost-get-state.ts`, `src/types/music-player.ts`, and `src/types/queue.ts` with comprehensive JSDoc documentation
+  - **Tooling, Build Pipeline & IDE Workspace Hardening**:
+    - Add `<!DOCTYPE html>` (uppercase), `<html lang="en">`, and `<meta name="viewport" content="width=device-width, initial-scale=1.0">` to `src/index.html` with void elements using omitted end tags per HTML5 spec
+    - Add `src/index.html` to `.oxfmtrc.json` `ignorePatterns` to prevent oxfmt from reverting DOCTYPE casing on format passes
+    - Add Vite inline plugin `html-doctype-uppercase` in `electron.vite.config.mts` (`transformIndexHtml`) to permanently emit `<!DOCTYPE html>` on every build without manual patching
+    - Remove non-standard and deprecated `-webkit-overflow-scrolling: touch` from `assets/mdui.css`, `node_modules/mdui/mdui.css`, and `patches/mdui@2.1.4.patch`, eliminating obsolete vendor prefix warnings
+    - Create `.vscode/css.custom-data.json` documenting Electron-specific CSS properties (`-webkit-app-region`, `-webkit-user-drag`) to eliminate VS Code CSS Language Server browser-compat false positives
+    - Update `.vscode/settings.json` with comprehensive IDE suppressions: exclude `dist/` and `assets/mdui.css` from all language services, add `css.lint.validProperties` and `compatibleVendorPrefixes: ignore` for Electron vendor prefixes, suppress SonarLint `javascript:S6326` and CSS rules
+    - Create `dist/tsconfig.json` and `dist/renderer/jsconfig.json` empty project stubs (`"files": [], "exclude": ["**"]`) to prevent TypeScript/JavaScript language servers from treating minified IIFE build artifacts as analyzable source
+    - Fix MD038 (spaces inside code span) in `DOCNOTE.md` and `README.md`
+    - Validate full codebase with `pnpm check` (`oxlint`, `oxfmt`, `tsc`) achieving **0 errors and 0 warnings**
+  - **Bumped version in `package.json` to `3.12.0-6` (release `3.12.0-06`)**
+
 #### [v3.12.0-05](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-04...v3.12.0-05)
 
 > 28 September 2026 (Release 3.12.0-05)

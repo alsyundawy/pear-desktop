@@ -149,6 +149,77 @@ const getParents = (element: Element | null): (HTMLElement | null)[] => {
   return parents;
 };
 
+const attachOtherHoverListener = (
+  levelPrefix: string,
+  itemClass: string,
+  onClose: () => void,
+) => {
+  const onOtherHover = (event: MouseEvent) => {
+    const parents = getParents(event.target as HTMLElement);
+    const closestLevel =
+      parents.find((it) => it?.dataset?.level)?.dataset.level ?? '';
+    const path = event.composedPath();
+
+    const isOtherItem = path.some(
+      (it) => it instanceof HTMLElement && it.classList.contains(itemClass),
+    );
+    const isChild = closestLevel.startsWith(levelPrefix);
+
+    if (isOtherItem && !isChild) {
+      onClose();
+      document.removeEventListener('mousemove', onOtherHover);
+    }
+  };
+  document.addEventListener('mousemove', onOtherHover);
+};
+
+const handleSubmenuHover = (
+  event: MouseEvent,
+  getChild: () => HTMLElement | null,
+  levelPrefix: string,
+  itemClass: string,
+  setOpen: (open: boolean) => void,
+) => {
+  let mouseX = event.clientX;
+  let mouseY = event.clientY;
+
+  const onMouseMove = (e: MouseEvent) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  };
+  document.addEventListener('mousemove', onMouseMove);
+
+  const checkMousePosition = () => {
+    document.removeEventListener('mousemove', onMouseMove);
+    const parents = getParents(document.elementFromPoint(mouseX, mouseY));
+
+    if (!parents.includes(getChild())) {
+      setOpen(false);
+    } else {
+      attachOtherHoverListener(levelPrefix, itemClass, () => setOpen(false));
+    }
+  };
+
+  const onMouseLeaveTarget = () => {
+    setTimeout(checkMousePosition, 225);
+  };
+
+  const timer = setTimeout(() => {
+    setOpen(true);
+    event.target?.addEventListener('mouseleave', onMouseLeaveTarget, {
+      once: true,
+    });
+  }, 225);
+
+  event.target?.addEventListener(
+    'mouseleave',
+    () => {
+      clearTimeout(timer);
+    },
+    { once: true },
+  );
+};
+
 type BasePanelItemProps = {
   name: string;
   label?: string;
@@ -224,64 +295,12 @@ export const PanelItem = (props: PanelItemProps) => {
     );
 
     if (props.type === 'submenu') {
-      const timer = setTimeout(() => {
-        setOpen(true);
-
-        let mouseX = event.clientX;
-        let mouseY = event.clientY;
-        const onMouseMove = (event: MouseEvent) => {
-          mouseX = event.clientX;
-          mouseY = event.clientY;
-        };
-        document.addEventListener('mousemove', onMouseMove);
-
-        event.target?.addEventListener(
-          'mouseleave',
-          () => {
-            setTimeout(() => {
-              document.removeEventListener('mousemove', onMouseMove);
-              const parents = getParents(
-                document.elementFromPoint(mouseX, mouseY),
-              );
-
-              if (!parents.includes(child())) {
-                setOpen(false);
-              } else {
-                const onOtherHover = (event: MouseEvent) => {
-                  const parents = getParents(event.target as HTMLElement);
-                  const closestLevel =
-                    parents.find((it) => it?.dataset?.level)?.dataset.level ??
-                    '';
-                  const path = event.composedPath();
-
-                  const isOtherItem = path.some(
-                    (it) =>
-                      it instanceof HTMLElement &&
-                      it.classList.contains(itemStyle()),
-                  );
-                  const isChild = closestLevel.startsWith(
-                    props.level.join('/'),
-                  );
-
-                  if (isOtherItem && !isChild) {
-                    setOpen(false);
-                    document.removeEventListener('mousemove', onOtherHover);
-                  }
-                };
-                document.addEventListener('mousemove', onOtherHover);
-              }
-            }, 225);
-          },
-          { once: true },
-        );
-      }, 225);
-
-      event.target?.addEventListener(
-        'mouseleave',
-        () => {
-          clearTimeout(timer);
-        },
-        { once: true },
+      handleSubmenuHover(
+        event,
+        child,
+        props.level.join('/'),
+        itemStyle(),
+        setOpen,
       );
     }
   };
@@ -297,13 +316,23 @@ export const PanelItem = (props: PanelItemProps) => {
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <li
       class={itemStyle()}
       data-selected={open()}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
       onMouseEnter={handleHover}
       ref={setAnchor}
+      role="menuitem"
+      tabIndex={0}
     >
       <Switch fallback={<div class={itemIconStyle()} />}>
         <Match when={props.type === 'checkbox' && props.checked}>

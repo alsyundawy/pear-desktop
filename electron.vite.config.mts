@@ -110,6 +110,14 @@ export default defineConfig(({ mode }) => {
       withFilter(solidPlugin(), {
         load: { id: [/\.(tsx|jsx)$/, '/@solid-refresh'] },
       }),
+      // Upgrade lowercase doctype emitted by Rolldown to uppercase <!DOCTYPE html>
+      // Required for HTML5 conformance per IDE HTML language server validation.
+      {
+        name: 'html-doctype-uppercase',
+        transformIndexHtml(html: string) {
+          return html.replace(/^<!doctype html>/i, '<!DOCTYPE html>');
+        },
+      },
     ],
     root: './src/',
     build: {

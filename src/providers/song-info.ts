@@ -122,7 +122,9 @@ const handleData = async (
     songInfo.uploadDate = microformat.uploadDate;
     songInfo.url = microformat.urlCanonical?.split('&')[0];
     songInfo.playlistId =
-      URL.parse(microformat.urlCanonical)?.searchParams?.get('list') ?? '';
+      (URL.canParse(microformat.urlCanonical)
+        ? new URL(microformat.urlCanonical).searchParams.get('list')
+        : null) ?? '';
     if (microformat.pageOwnerDetails?.externalChannelId) {
       songInfo.artistUrl = `https://music.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com/channel/${microformat.pageOwnerDetails.externalChannelId}`;
     }
@@ -259,32 +261,57 @@ const registerProvider = (win: BrowserWindow) => {
   });
 };
 
-const suffixesToRemove = [
-  // Artist names
-  /\s*(- topic)$/i,
-  /\s*vevo$/i,
-
-  // Video titles
-  /\s*[(|[]official(.*?)[)|\]]/i, // (Official Music Video), [Official Visualizer], etc...
-  /\s*[(|[]((lyrics?|visualizer|audio)\s*(video)?)[)|\]]/i,
-  /\s*[(|[](performance video)[)|\]]/i,
-  /\s*[(|[](clip official)[)|\]]/i,
-  /\s*[(|[](video version)[)|\]]/i,
-  /\s*[(|[](HD|HQ)\s*?(?:audio)?[)|\]]$/i,
-  /\s*[(|[](live)[)|\]]$/i,
-  /\s*[(|[]4K\s*?(?:upgrade)?[)|\]]$/i,
-];
+const KNOWN_SUFFIX_PATTERNS = new Set([
+  'lyrics',
+  'lyric',
+  'lyric video',
+  'lyrics video',
+  'visualizer',
+  'visualizer video',
+  'audio',
+  'audio video',
+  'performance video',
+  'clip official',
+  'video version',
+  'hd',
+  'hq',
+  'hd audio',
+  'hq audio',
+  'live',
+  '4k',
+  '4k upgrade',
+]);
 
 export function cleanupName(name: string): string {
   if (!name) {
     return name;
   }
 
-  for (const suffix of suffixesToRemove) {
-    name = name.replace(suffix, '');
+  let cleaned = name.trim();
+
+  // Artist names
+  if (cleaned.toLowerCase().endsWith(' - topic')) {
+    cleaned = cleaned.slice(0, -8).trimEnd();
+  } else if (cleaned.toLowerCase().endsWith(' vevo')) {
+    cleaned = cleaned.slice(0, -5).trimEnd();
   }
 
-  return name;
+  // Bracketed suffixes at the end of title: (Official...), [Official...], (Live), etc.
+  const lastOpenParen = Math.max(
+    cleaned.lastIndexOf('('),
+    cleaned.lastIndexOf('['),
+  );
+  if (lastOpenParen > 0 && (cleaned.endsWith(')') || cleaned.endsWith(']'))) {
+    const inside = cleaned
+      .slice(lastOpenParen + 1, -1)
+      .trim()
+      .toLowerCase();
+    if (inside.startsWith('official') || KNOWN_SUFFIX_PATTERNS.has(inside)) {
+      cleaned = cleaned.slice(0, lastOpenParen).trimEnd();
+    }
+  }
+
+  return cleaned;
 }
 
 export const setupSongInfo = registerProvider;

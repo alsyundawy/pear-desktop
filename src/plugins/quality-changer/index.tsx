@@ -89,9 +89,7 @@ export default createPlugin({
       setup();
     },
     stop() {
-      document
-        .querySelector('.top-row-buttons.ytmusic-player')
-        ?.removeChild(this.qualitySettingsButtonContainer);
+      this.qualitySettingsButtonContainer.remove();
     },
   },
 });

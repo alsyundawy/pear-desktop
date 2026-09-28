@@ -90,7 +90,7 @@ export const forceUnloadMainPlugin = async (
       t('common.console.plugins.unload-failed', { pluginName: id }),
     );
     console.trace(err);
-    throw err as Error;
+    throw err instanceof Error ? err : new Error(String(err));
   }
 };
 
@@ -126,7 +126,7 @@ export const forceLoadMainPlugin = async (
       t('common.console.plugins.initialize-failed', { pluginName: id }),
     );
     console.trace(err);
-    throw err as Error;
+    throw err instanceof Error ? err : new Error(String(err));
   }
 };
 

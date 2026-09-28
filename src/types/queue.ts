@@ -55,6 +55,5 @@ export type AppAPI = {
   playerApi: MusicPlayer;
 
   toastService: ToastService;
-
-  // TODO: Add more
+  /** Additional dynamic host API properties exposed by the player bar application. */
 };

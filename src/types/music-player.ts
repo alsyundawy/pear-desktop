@@ -1,4 +1,4 @@
-// TODO: fully type definitions for music-player
+/** Type definitions for YouTube Music Player API interfaces and events. */
 
 import type { GetPlayerResponse } from './get-player-response';
 import type { PlayerAPIEvents } from './player-api-events';

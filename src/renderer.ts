@@ -59,11 +59,7 @@ async function callOnPlayerApiReady(
 ) {
   if (typeof renderer === 'function') return;
   try {
-    await renderer?.onPlayerApiReady?.call(
-      renderer,
-      playerApi,
-      createContext(id),
-    );
+    await renderer?.onPlayerApiReady?.(playerApi, createContext(id));
   } catch (err) {
     console.error(
       LoggerPrefix,
@@ -83,17 +79,7 @@ function getOsType(): string {
   return 'Unknown';
 }
 
-async function onApiLoaded() {
-  // Workaround for macOS traffic lights
-  document.documentElement.setAttribute('data-os', getOsType());
-
-  // Workaround for #2459
-  document
-    .querySelector('button.video-button.ytmusic-av-toggle')
-    ?.addEventListener('click', () =>
-      window.dispatchEvent(new Event('resize')),
-    );
-
+function registerPlaybackIpcListeners() {
   window.ipcRenderer.on('peard:previous-video', () => {
     document
       .querySelector<HTMLElement>('.previous-button.ytmusic-player-bar')
@@ -125,12 +111,12 @@ async function onApiLoaded() {
   });
 
   const isShuffled = () => {
-    const isShuffled =
+    const isShuffledAttr =
       document
         .querySelector<HTMLElement>('ytmusic-player-bar')
         ?.attributes.getNamedItem('shuffle-on') ?? null;
 
-    return isShuffled !== null;
+    return isShuffledAttr !== null;
   };
 
   window.ipcRenderer.on('peard:get-shuffle', () => {
@@ -174,13 +160,23 @@ async function onApiLoaded() {
     }
   });
 
+  window.ipcRenderer.on('peard:toggle-mute', (_) => {
+    document
+      .querySelector<HTMLElement & { onVolumeClick: () => void }>(
+        'ytmusic-player-bar',
+      )
+      ?.onVolumeClick();
+  });
+}
+
+function registerFullscreenIpcListeners() {
   const isFullscreen = () => {
-    const isFullscreen =
+    const isFullscreenAttr =
       document
         .querySelector<HTMLElement>('ytmusic-player-bar')
         ?.attributes.getNamedItem('player-fullscreened') ?? null;
 
-    return isFullscreen !== null;
+    return isFullscreenAttr !== null;
   };
 
   const clickFullscreenButton = (isFullscreenValue: boolean) => {
@@ -206,15 +202,9 @@ async function onApiLoaded() {
       clickFullscreenButton(fullscreen ?? false);
     },
   );
+}
 
-  window.ipcRenderer.on('peard:toggle-mute', (_) => {
-    document
-      .querySelector<HTMLElement & { onVolumeClick: () => void }>(
-        'ytmusic-player-bar',
-      )
-      ?.onVolumeClick();
-  });
-
+function registerQueueIpcListeners() {
   window.ipcRenderer.on('peard:get-queue', () => {
     const queue = document.querySelector<QueueElement>('#queue');
     window.ipcRenderer.send('peard:get-queue-response', {
@@ -279,6 +269,7 @@ async function onApiLoaded() {
         });
     },
   );
+
   window.ipcRenderer.on(
     'peard:move-in-queue',
     (_, fromIndex: number, toIndex: number) => {
@@ -292,6 +283,7 @@ async function onApiLoaded() {
       });
     },
   );
+
   window.ipcRenderer.on('peard:remove-from-queue', (_, index: number) => {
     const queue = document.querySelector<QueueElement>('#queue');
     queue?.dispatch({
@@ -299,6 +291,7 @@ async function onApiLoaded() {
       payload: index,
     });
   });
+
   window.ipcRenderer.on('peard:set-queue-index', (_, index: number) => {
     const queue = document.querySelector<QueueElement>('#queue');
     queue?.dispatch({
@@ -306,6 +299,7 @@ async function onApiLoaded() {
       payload: index,
     });
   });
+
   window.ipcRenderer.on('peard:clear-queue', () => {
     const queue = document.querySelector<QueueElement>('#queue');
     queue?.queue.store.store.dispatch({
@@ -316,7 +310,9 @@ async function onApiLoaded() {
       type: 'CLEAR',
     });
   });
+}
 
+function registerSearchIpcListener() {
   window.ipcRenderer.on(
     'peard:search',
     async (_, query: string, params?: string, continuation?: string) => {
@@ -344,23 +340,12 @@ async function onApiLoaded() {
       window.ipcRenderer.send('peard:search-results', result);
     },
   );
+}
 
-  const video = document.querySelector('video')!;
+function setupAudioContext(video: HTMLVideoElement) {
   const audioContext = new AudioContext();
   const audioSource = audioContext.createMediaElementSource(video);
   audioSource.connect(audioContext.destination);
-
-  for (const [id, plugin] of Object.entries(getAllLoadedRendererPlugins())) {
-    if (typeof plugin.renderer !== 'function') {
-      await callOnPlayerApiReady(id, plugin.renderer, api!);
-    }
-  }
-
-  if (firstDataLoaded) {
-    document.dispatchEvent(
-      new CustomEvent('videodatachange', { detail: { name: 'dataloaded' } }),
-    );
-  }
 
   const audioCanPlayEventDispatcher = () => {
     document.dispatchEvent(
@@ -385,9 +370,9 @@ async function onApiLoaded() {
   }
 
   video.addEventListener('loadstart', loadstartListener, { passive: true });
+}
 
-  window.ipcRenderer.send('peard:player-api-loaded');
-
+function applyStyleCustomizations() {
   // Navigate to "Starting page"
   const startingPage: string = window.mainConfig.get('options.startingPage');
   if (startingPage && startingPages[startingPage]) {
@@ -450,6 +435,41 @@ async function onApiLoaded() {
   }
 }
 
+async function onApiLoaded() {
+  // Workaround for macOS traffic lights
+  document.documentElement.dataset.os = getOsType();
+
+  // Workaround for #2459
+  document
+    .querySelector('button.video-button.ytmusic-av-toggle')
+    ?.addEventListener('click', () =>
+      window.dispatchEvent(new Event('resize')),
+    );
+
+  registerPlaybackIpcListeners();
+  registerFullscreenIpcListeners();
+  registerQueueIpcListeners();
+  registerSearchIpcListener();
+
+  const video = document.querySelector('video')!;
+  setupAudioContext(video);
+
+  for (const [id, plugin] of Object.entries(getAllLoadedRendererPlugins())) {
+    if (typeof plugin.renderer !== 'function') {
+      await callOnPlayerApiReady(id, plugin.renderer, api!);
+    }
+  }
+
+  if (firstDataLoaded) {
+    document.dispatchEvent(
+      new CustomEvent('videodatachange', { detail: { name: 'dataloaded' } }),
+    );
+  }
+
+  window.ipcRenderer.send('peard:player-api-loaded');
+  applyStyleCustomizations();
+}
+
 const definePearTransElements = () => {
   customElements.define(
     'pear-trans',
@@ -499,7 +519,7 @@ const main = async () => {
     (_event, id: string, newConfig: PluginConfig) => {
       const plugin = getAllLoadedRendererPlugins()[id];
       if (plugin && typeof plugin.renderer !== 'function') {
-        plugin.renderer?.onConfigChange?.call(plugin.renderer, newConfig);
+        plugin.renderer?.onConfigChange?.(newConfig);
       }
     },
   );
@@ -562,4 +582,13 @@ const initObserver = async () => {
   });
 };
 
-initObserver().then(preload).then(main);
+const startRenderer = () => {
+  initObserver()
+    .then(() => preload())
+    .then(() => main())
+    .catch((err) => {
+      console.error(err);
+    });
+};
+
+startRenderer();

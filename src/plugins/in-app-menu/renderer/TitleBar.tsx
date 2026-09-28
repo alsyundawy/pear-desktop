@@ -385,19 +385,21 @@ export const TitleBar = (props: TitleBarProps) => {
         }}
         onBeforeEnter={(element) => {
           if (ignoreTransition()) return;
-          const index = Number(element.getAttribute('data-index') ?? 0);
+          const htmlElement = element as HTMLElement;
+          const index = Number(htmlElement.dataset.index ?? 0);
 
-          (element as HTMLElement).style.setProperty(
+          htmlElement.style.setProperty(
             'transition-delay',
             `${index * 0.025}s`,
           );
         }}
         onBeforeExit={(element) => {
           if (ignoreTransition()) return;
-          const index = Number(element.getAttribute('data-index') ?? 0);
-          const length = Number(element.getAttribute('data-length') ?? 1);
+          const htmlElement = element as HTMLElement;
+          const index = Number(htmlElement.dataset.index ?? 0);
+          const length = Number(htmlElement.dataset.length ?? 1);
 
-          (element as HTMLElement).style.setProperty(
+          htmlElement.style.setProperty(
             'transition-delay',
             `${length * 0.025 - index * 0.025}s`,
           );

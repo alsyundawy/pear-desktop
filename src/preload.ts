@@ -38,10 +38,18 @@ new MutationObserver((mutations, observer) => {
   }
 }).observe(document, { subtree: true, childList: true });
 
-loadI18n().then(async () => {
-  await setLanguage(config.get('options.language') ?? 'en');
-  await loadAllPreloadPlugins();
-});
+const initializePreload = () => {
+  loadI18n()
+    .then(async () => {
+      await setLanguage(config.get('options.language') ?? 'en');
+      await loadAllPreloadPlugins();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+};
+
+initializePreload();
 
 ipcRenderer.on('plugin:unload', async (_, id: string) => {
   await forceUnloadPreloadPlugin(id);

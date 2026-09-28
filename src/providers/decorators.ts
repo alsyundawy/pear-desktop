@@ -41,11 +41,9 @@ export function cache<T extends (...params: P) => R, P extends never[], R>(
 }
 
 export function cacheNoArgs<R>(fn: () => R): () => R {
-  let cached: R;
+  let cached: R | undefined;
   return () => {
-    if (cached === undefined) {
-      cached = fn();
-    }
+    cached ??= fn();
     return cached;
   };
 }

@@ -1,0 +1,49 @@
+{
+  "version": 1.1,
+  "properties": [
+    {
+      "name": "-webkit-app-region",
+      "description": "Electron/Chromium-specific property that designates a window drag region. 'drag' makes the element act as a title-bar drag target; 'no-drag' excludes interactive children from dragging.",
+      "browsers": ["E0", "C0"],
+      "values": [
+        { "name": "drag", "description": "This element becomes a window drag handle." },
+        { "name": "no-drag", "description": "Exclude this element from drag behavior." },
+        { "name": "none", "description": "No drag behavior." }
+      ],
+      "status": "nonstandard",
+      "references": [
+        {
+          "name": "Electron Frameless Window documentation",
+          "url": "https://www.electronjs.org/docs/latest/tutorial/window-customization#set-custom-draggable-region"
+        }
+      ]
+    },
+    {
+      "name": "-webkit-user-drag",
+      "description": "Chromium/Safari-specific property that controls whether an element can be dragged as a native drag operation (e.g. dragging an image to the desktop).",
+      "browsers": ["E0", "C0", "S0"],
+      "values": [
+        { "name": "none", "description": "The element cannot be dragged." },
+        { "name": "auto", "description": "Browser default drag behavior." },
+        { "name": "element", "description": "Only the element itself is draggable." }
+      ],
+      "status": "nonstandard",
+      "references": [
+        {
+          "name": "WebKit Feature Status",
+          "url": "https://webkit.org/standards-positions/"
+        }
+      ]
+    },
+    {
+      "name": "-webkit-overflow-scrolling",
+      "description": "Legacy iOS Safari momentum-based scrolling. Deprecated since iOS 13 — modern iOS uses momentum scrolling by default. Retained in mdui vendor CSS for backward compatibility.",
+      "browsers": ["S0"],
+      "values": [
+        { "name": "touch", "description": "Enable momentum-based scrolling (legacy, now default on iOS 13+)." },
+        { "name": "auto", "description": "Standard scrolling without momentum." }
+      ],
+      "status": "nonstandard"
+    }
+  ]
+}

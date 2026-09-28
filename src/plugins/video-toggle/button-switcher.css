@@ -6,6 +6,11 @@
   position: relative;
 }
 
+.video-toggle-custom-mode #player,
+.video-toggle-custom-mode ytmusic-player {
+  position: relative !important;
+}
+
 #ytmd-video-toggle-switch-button-container {
   position: absolute;
   top: 0;
@@ -15,11 +20,12 @@
   align-items: center;
   padding: 16px 20px;
   box-sizing: border-box;
-  z-index: 999;
+  z-index: 1000;
   pointer-events: none;
 }
 
-.video-toggle-custom-mode .video-switch-button {
+.video-toggle-custom-mode .video-switch-button,
+.video-switch-button {
   position: relative;
   pointer-events: auto;
   box-sizing: border-box;
@@ -42,12 +48,14 @@
     box-shadow 0.2s ease;
 }
 
-.video-toggle-custom-mode .video-switch-button:hover {
+.video-toggle-custom-mode .video-switch-button:hover,
+.video-switch-button:hover {
   border-color: rgba(255, 255, 255, 0.28);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
-.video-toggle-custom-mode .video-switch-button:before {
+.video-toggle-custom-mode .video-switch-button:before,
+.video-switch-button:before {
   content: attr(data-video-button-text);
   position: absolute;
   top: 0;
@@ -69,7 +77,8 @@
   pointer-events: none;
 }
 
-.video-toggle-custom-mode .video-switch-button-checkbox {
+.video-toggle-custom-mode .video-switch-button-checkbox,
+.video-switch-button-checkbox {
   pointer-events: none;
   position: absolute;
   top: 0;
@@ -84,7 +93,8 @@
 
 .video-toggle-custom-mode
   .video-switch-button-checkbox
-  + .video-switch-button-label {
+  + .video-switch-button-label,
+.video-switch-button-checkbox + .video-switch-button-label {
   position: absolute;
   top: 0;
   left: 0;
@@ -101,7 +111,8 @@
   z-index: 2;
 }
 
-.video-toggle-custom-mode .video-switch-button-label-span {
+.video-toggle-custom-mode .video-switch-button-label-span,
+.video-switch-button-label-span {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2px;
@@ -116,7 +127,8 @@
 /* Sliding active pill indicator */
 .video-toggle-custom-mode
   .video-switch-button-checkbox
-  + .video-switch-button-label:before {
+  + .video-switch-button-label:before,
+.video-switch-button-checkbox + .video-switch-button-label:before {
   content: '';
   position: absolute;
   top: 3px;
@@ -134,12 +146,16 @@
 /* Active states when checked (Video mode) */
 .video-toggle-custom-mode
   .video-switch-button-checkbox:checked
-  + .video-switch-button-label:before {
+  + .video-switch-button-label:before,
+.video-switch-button-checkbox:checked + .video-switch-button-label:before {
   transform: translateX(80px);
 }
 
 .video-toggle-custom-mode
   .video-switch-button-checkbox:checked
+  + .video-switch-button-label
+  .video-switch-button-label-span,
+.video-switch-button-checkbox:checked
   + .video-switch-button-label
   .video-switch-button-label-span {
   opacity: 0.65;
@@ -147,15 +163,8 @@
 }
 
 .video-toggle-custom-mode
-  .video-switch-button:has(.video-switch-button-checkbox:checked):before {
-  opacity: 1;
-  font-weight: 600;
-}
-
-/* Fallback for when checked */
-.video-toggle-custom-mode
-  .video-switch-button-checkbox:checked
-  ~ .video-switch-button:before {
+  .video-switch-button:has(.video-switch-button-checkbox:checked):before,
+.video-switch-button:has(.video-switch-button-checkbox:checked):before {
   opacity: 1;
   font-weight: 600;
 }

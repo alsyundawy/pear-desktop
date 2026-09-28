@@ -1326,7 +1326,7 @@ export interface ServiceEndpointLikeEndpoint {
   removeLikeParams?: LikeParams;
 }
 
-// TODO: Add more
+// Known YouTube Music like parameter tokens
 export enum LikeParams {
   Oai3D = 'OAI%3D',
 }

@@ -6,8 +6,6 @@ import type {
 } from './contexts';
 import type { MusicPlayer } from '@/types/music-player';
 
-type Author = string;
-
 export type PluginConfig = {
   enabled: boolean;
 };
@@ -38,10 +36,10 @@ export type RendererPluginLifecycle<Config, Context, This> =
   | RendererPluginLifecycleExtra<Config, Context, This>;
 
 export enum Platform {
-  Windows = 1 << 0,
-  macOS = 1 << 1,
-  Linux = 1 << 2,
-  Freebsd = 1 << 3,
+  Windows = 1,
+  macOS = 2,
+  Linux = 4,
+  Freebsd = 8,
 }
 
 export interface PluginDef<
@@ -51,7 +49,7 @@ export interface PluginDef<
   Config extends PluginConfig = PluginConfig,
 > {
   name: () => string;
-  authors?: Author[];
+  authors?: string[];
   description?: () => string;
   addedVersion?: string;
   config?: Config;

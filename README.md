@@ -395,7 +395,7 @@ Pear Desktop Mac is built upon the extraordinary contributions of the global ope
 ## FAQ & Troubleshooting
 
 ### Why is the application menu hidden?
-If the menu bar is hidden, tap the <kbd>Alt</kbd> key or press <kbd>`</kbd> (backtick) when using the `in-app-menu` plugin to toggle the navigation overlay.
+If the menu bar is hidden, tap the <kbd>Alt</kbd> key or press the backtick (<kbd>&#96;</kbd>) key when using the `in-app-menu` plugin to toggle the navigation overlay.
 
 ### Does Pear Desktop Mac require a YouTube Music Premium subscription?
 No. Pear Desktop Mac provides full audio and video playback, high-fidelity audio streams, and complete ad blocking on standard free accounts without requiring a paid subscription.

@@ -109,9 +109,7 @@ export default createPlugin<
         pausePlayButton.label = songInfo.isPaused ? '▶️' : '⏸';
 
         songImage.icon = (
-          songInfo.image
-            ? songInfo.image
-            : nativeImage.createFromPath(musicPlayerIcon)
+          songInfo.image ?? nativeImage.createFromPath(musicPlayerIcon)
         ).resize({ height: 23 });
 
         window.setTouchBar(touchBar);

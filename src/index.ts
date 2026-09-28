@@ -264,13 +264,12 @@ const initHook = async (win: BrowserWindow) => {
         }
 
         const mainPlugin = getAllLoadedMainPlugins()[id];
-        if (mainPlugin) {
-          if (config.enabled && typeof mainPlugin.backend !== 'function') {
-            mainPlugin.backend?.onConfigChange?.call(
-              mainPlugin.backend,
-              config,
-            );
-          }
+        if (
+          mainPlugin &&
+          config.enabled &&
+          typeof mainPlugin.backend !== 'function'
+        ) {
+          mainPlugin.backend?.onConfigChange?.(config);
         }
 
         win.webContents.send('config-changed', id, config);
@@ -299,26 +298,13 @@ const showNeedToRestartDialog = async (id: string) => {
     cancelId: 1,
   };
 
-  let dialogPromise: Promise<Electron.MessageBoxReturnValue>;
-  if (mainWindow) {
-    dialogPromise = dialog.showMessageBox(mainWindow, dialogOptions);
-  } else {
-    dialogPromise = dialog.showMessageBox(dialogOptions);
+  const dialogOutput = await (mainWindow
+    ? dialog.showMessageBox(mainWindow, dialogOptions)
+    : dialog.showMessageBox(dialogOptions));
+
+  if (dialogOutput.response === 0) {
+    restart();
   }
-
-  dialogPromise.then((dialogOutput) => {
-    switch (dialogOutput.response) {
-      case 0: {
-        restart();
-        break;
-      }
-
-      // Ignore
-      default: {
-        break;
-      }
-    }
-  });
 };
 
 function initTheme(win: BrowserWindow) {
@@ -350,18 +336,15 @@ function initTheme(win: BrowserWindow) {
   });
 }
 
-async function createMainWindow() {
-  const windowSize = config.get('window-size');
-  const windowMaximized = config.get('window-maximized');
-  const windowPosition: Electron.Point = config.get('window-position');
-  const useInlineMenu = await config.plugins.isEnabled('in-app-menu');
+const defaultTitleBarOverlayOptions: Electron.TitleBarOverlay = {
+  color: '#00000000',
+  symbolColor: '#ffffff',
+  height: 32,
+};
 
-  const defaultTitleBarOverlayOptions: Electron.TitleBarOverlay = {
-    color: '#00000000',
-    symbolColor: '#ffffff',
-    height: 32,
-  };
-
+function getWindowDecorations(
+  useInlineMenu: boolean,
+): Partial<BrowserWindowConstructorOptions> {
   const getTitleBarStyle =
     (): BrowserWindowConstructorOptions['titleBarStyle'] => {
       if (useInlineMenu) return 'hidden';
@@ -382,6 +365,60 @@ async function createMainWindow() {
     delete decorations.titleBarStyle;
   }
 
+  return decorations;
+}
+
+function restoreWindowPosition(
+  win: BrowserWindow,
+  windowPosition: Electron.Point | null | undefined,
+  windowSize: { width: number; height: number },
+) {
+  if (!windowPosition) return;
+
+  const { x: windowX, y: windowY } = windowPosition;
+  const winSize = win.getSize();
+  const display = screen.getDisplayNearestPoint(windowPosition);
+  const primaryDisplay = screen.getPrimaryDisplay();
+
+  const scaleFactor = is.windows()
+    ? primaryDisplay.scaleFactor / display.scaleFactor
+    : 1;
+  const scaledWidth = Math.floor(windowSize.width * scaleFactor);
+  const scaledHeight = Math.floor(windowSize.height * scaleFactor);
+
+  const scaledX = windowX;
+  const scaledY = windowY;
+
+  const isOffscreen =
+    scaledX + scaledWidth / 2 < display.bounds.x - 8 || // Left
+    scaledX + scaledWidth / 2 > display.bounds.x + display.bounds.width || // Right
+    scaledY < display.bounds.y - 8 || // Top
+    scaledY + scaledHeight / 2 > display.bounds.y + display.bounds.height; // Bottom
+
+  if (isOffscreen) {
+    // Window is offscreen
+    if (is.dev()) {
+      console.warn(
+        LoggerPrefix,
+        t('main.console.window.tried-to-render-offscreen', {
+          windowSize: String(winSize),
+          displaySize: JSON.stringify(display.bounds),
+          position: JSON.stringify(windowPosition),
+        }),
+      );
+    }
+  } else {
+    win.setSize(scaledWidth, scaledHeight);
+    win.setPosition(scaledX, scaledY);
+  }
+}
+
+async function createMainWindow() {
+  const windowSize = config.get('window-size');
+  const windowMaximized = config.get('window-maximized');
+  const windowPosition: Electron.Point = config.get('window-position');
+  const useInlineMenu = await config.plugins.isEnabled('in-app-menu');
+
   const electronWindowSettings: Electron.BrowserWindowConstructorOptions = {
     icon,
     width: windowSize.width,
@@ -401,7 +438,7 @@ async function createMainWindow() {
             sandbox: false,
           }),
     },
-    ...decorations,
+    ...getWindowDecorations(useInlineMenu),
   };
 
   const win = new BrowserWindow(electronWindowSettings);
@@ -411,43 +448,7 @@ async function createMainWindow() {
 
   await loadAllMainPlugins(win);
 
-  if (windowPosition) {
-    const { x: windowX, y: windowY } = windowPosition;
-    const winSize = win.getSize();
-    const display = screen.getDisplayNearestPoint(windowPosition);
-    const primaryDisplay = screen.getPrimaryDisplay();
-
-    const scaleFactor = is.windows()
-      ? primaryDisplay.scaleFactor / display.scaleFactor
-      : 1;
-    const scaledWidth = Math.floor(windowSize.width * scaleFactor);
-    const scaledHeight = Math.floor(windowSize.height * scaleFactor);
-
-    const scaledX = windowX;
-    const scaledY = windowY;
-
-    if (
-      scaledX + scaledWidth / 2 < display.bounds.x - 8 || // Left
-      scaledX + scaledWidth / 2 > display.bounds.x + display.bounds.width || // Right
-      scaledY < display.bounds.y - 8 || // Top
-      scaledY + scaledHeight / 2 > display.bounds.y + display.bounds.height // Bottom
-    ) {
-      // Window is offscreen
-      if (is.dev()) {
-        console.warn(
-          LoggerPrefix,
-          t('main.console.window.tried-to-render-offscreen', {
-            windowSize: String(winSize),
-            displaySize: JSON.stringify(display.bounds),
-            position: JSON.stringify(windowPosition),
-          }),
-        );
-      }
-    } else {
-      win.setSize(scaledWidth, scaledHeight);
-      win.setPosition(scaledX, scaledY);
-    }
-  }
+  restoreWindowPosition(win, windowPosition, windowSize);
 
   if (windowMaximized) {
     win.maximize();
@@ -542,7 +543,7 @@ async function createMainWindow() {
     }
   });
   win.webContents.on('will-redirect', (event) => {
-    const url = URL.parse(event.url);
+    const url = URL.canParse(event.url) ? new URL(event.url) : null;
 
     // Workarounds for regions where YTM is restricted
     const isYouTubeHostname =
@@ -637,7 +638,9 @@ app.once('browser-window-created', (_event, win) => {
         console.log(log);
       }
 
-      const validatedHostname = URL.parse(validatedURL)?.hostname;
+      const validatedHostname = URL.canParse(validatedURL)
+        ? new URL(validatedURL).hostname
+        : undefined;
       const isDoubleClick =
         validatedHostname === 'doubleclick.net' ||
         validatedHostname?.endsWith('.doubleclick.net');
@@ -690,7 +693,7 @@ app.on('activate', async () => {
 const getDefaultLocale = async (locale: string) =>
   Object.keys(await languageResources()).includes(locale) ? locale : null;
 
-app.whenReady().then(async () => {
+function setupAboutPanel() {
   app.setAboutPanelOptions({
     applicationName: APPLICATION_NAME,
     applicationVersion: packageJson.version,
@@ -700,7 +703,9 @@ app.whenReady().then(async () => {
     authors: ['th-ch', 'alsyundawy'],
     website: 'https://github.com/alsyundawy/pear-desktop-mac',
   });
+}
 
+async function setupLanguage() {
   if (!config.get('options.language')) {
     const locale = await getDefaultLocale(app.getLocale());
     if (locale) {
@@ -708,77 +713,55 @@ app.whenReady().then(async () => {
     }
   }
 
-  await loadI18n().then(async () => {
-    await setLanguage(config.get('options.language') ?? 'en');
-    console.log(LoggerPrefix, t('main.console.i18n.loaded'));
-  });
+  await loadI18n();
+  await setLanguage(config.get('options.language') ?? 'en');
+  console.log(LoggerPrefix, t('main.console.i18n.loaded'));
+}
 
-  if (config.get('options.autoResetAppCache')) {
-    // Clear cache after 20s
-    const clearCacheTimeout = setTimeout(() => {
-      if (is.dev()) {
-        console.log(
-          LoggerPrefix,
-          t('main.console.when-ready.clearing-cache-after-20s'),
-        );
+function setupWindowsShortcuts() {
+  if (!is.windows()) return;
+
+  const appID =
+    'com.github.th-ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u002d\u006d\u0075\u0073\u0069\u0063';
+  app.setAppUserModelId(appID);
+  const appLocation = process.execPath;
+  const appData = app.getPath('appData');
+
+  if (
+    !is.dev() &&
+    !appLocation.startsWith(path.join(appData, '..', 'Local', 'Temp'))
+  ) {
+    const shortcutPath = path.join(
+      appData,
+      'Microsoft',
+      'Windows',
+      'Start Menu',
+      'Programs',
+      `${APPLICATION_NAME}.lnk`,
+    );
+    try {
+      const shortcutDetails = shell.readShortcutLink(shortcutPath);
+      if (
+        shortcutDetails.target !== appLocation ||
+        shortcutDetails.appUserModelId !== appID
+      ) {
+        throw new Error('needUpdate');
       }
-
-      session.defaultSession.clearCache();
-      clearTimeout(clearCacheTimeout);
-    }, 20_000);
-  }
-
-  // Register appID on windows
-  if (is.windows()) {
-    const appID =
-      'com.github.th-ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u002d\u006d\u0075\u0073\u0069\u0063';
-    app.setAppUserModelId(appID);
-    const appLocation = process.execPath;
-    const appData = app.getPath('appData');
-    // Check shortcut validity if not in dev mode / running portable app
-    if (
-      !is.dev() &&
-      !appLocation.startsWith(path.join(appData, '..', 'Local', 'Temp'))
-    ) {
-      const shortcutPath = path.join(
-        appData,
-        'Microsoft',
-        'Windows',
-        'Start Menu',
-        'Programs',
-        `${APPLICATION_NAME}.lnk`,
-      );
-      try {
-        // Check if shortcut is registered and valid
-        const shortcutDetails = shell.readShortcutLink(shortcutPath); // Throw error if it doesn't exist yet
-        if (
-          shortcutDetails.target !== appLocation ||
-          shortcutDetails.appUserModelId !== appID
-        ) {
-          // oxlint-disable-next-line typescript/only-throw-error
-          throw 'needUpdate';
-        }
-      } catch (error) {
-        // If not valid -> Register shortcut
-        shell.writeShortcutLink(
-          shortcutPath,
-          error === 'needUpdate' ? 'update' : 'create',
-          {
-            target: appLocation,
-            cwd: path.dirname(appLocation),
-            description: `${APPLICATION_NAME} Desktop App - including custom plugins`,
-            appUserModelId: appID,
-          },
-        );
-      }
+    } catch (error) {
+      const isUpdate = error instanceof Error && error.message === 'needUpdate';
+      shell.writeShortcutLink(shortcutPath, isUpdate ? 'update' : 'create', {
+        target: appLocation,
+        cwd: path.dirname(appLocation),
+        description: `${APPLICATION_NAME} Desktop App - including custom plugins`,
+        appUserModelId: appID,
+      });
     }
   }
+}
 
+function setupRendererScriptIpc() {
   ipcMain.on('get-renderer-script', (event) => {
-    // Inject index.html file as string using insertAdjacentHTML
-    // In dev mode, get string from process.env.VITE_DEV_SERVER_URL, else use fs.readFileSync
     if (is.dev() && process.env.ELECTRON_RENDERER_URL) {
-      // HACK: to make vite work with electron renderer (supports hot reload)
       event.returnValue = [
         null,
         `
@@ -821,14 +804,9 @@ app.whenReady().then(async () => {
       ];
     }
   });
+}
 
-  mainWindow = await createMainWindow();
-  await setApplicationMenu(mainWindow);
-  await refreshMenu(mainWindow);
-  setUpTray(app, mainWindow);
-
-  setupProtocolHandler(mainWindow);
-
+function setupSecondInstance() {
   app.on('second-instance', (_, commandLine) => {
     const uri = `${APP_PROTOCOL}://`;
     const protocolArgv = commandLine.find((arg) => arg.startsWith(uri));
@@ -843,85 +821,114 @@ app.whenReady().then(async () => {
       }
 
       const splited = decodeURIComponent(command).split(' ');
-
       handleProtocol(splited.shift()!, ...splited);
       return;
     }
 
-    if (!mainWindow) {
-      return;
-    }
+    if (!mainWindow) return;
 
     if (mainWindow.isMinimized()) {
       mainWindow.restore();
     }
-
     if (!mainWindow.isVisible()) {
       mainWindow.show();
     }
-
     mainWindow.focus();
   });
+}
 
-  // Autostart at login
+function setupAutoUpdates(win: BrowserWindow | null) {
+  if (is.dev() || !config.get('options.autoUpdates')) return;
+
+  try {
+    const updateTimeout = setTimeout(() => {
+      electronUpdater.autoUpdater.checkForUpdatesAndNotify();
+      clearTimeout(updateTimeout);
+    }, 2000);
+
+    electronUpdater.autoUpdater.on('update-available', () => {
+      const downloadLink =
+        'https://github.com/pear-devs/pear-desktop/releases/latest';
+      const dialogOptions: Electron.MessageBoxOptions = {
+        type: 'info',
+        buttons: [
+          t('main.dialog.update-available.buttons.ok'),
+          t('main.dialog.update-available.buttons.download'),
+          t('main.dialog.update-available.buttons.disable'),
+        ],
+        title: t('main.dialog.update-available.title'),
+        message: t('main.dialog.update-available.message'),
+        detail: t('main.dialog.update-available.detail', { downloadLink }),
+        defaultId: 1,
+        cancelId: 0,
+      };
+
+      const dialogPromise = win
+        ? dialog.showMessageBox(win, dialogOptions)
+        : dialog.showMessageBox(dialogOptions);
+
+      dialogPromise.then((dialogOutput) => {
+        if (dialogOutput.response === 1) {
+          shell.openExternal(downloadLink);
+        } else if (dialogOutput.response === 2) {
+          config.set('options.autoUpdates', false);
+        }
+      });
+    });
+  } catch (err) {
+    console.warn('Auto updater check failed:', err);
+  }
+}
+
+function setupWindowCloseHandler(win: BrowserWindow) {
+  let forceQuit = false;
+  app.on('before-quit', () => {
+    forceQuit = true;
+  });
+
+  if (is.macOS() || config.get('options.tray')) {
+    win.on('close', (event) => {
+      if (!forceQuit) {
+        event.preventDefault();
+        mainWindow?.hide();
+      }
+    });
+  }
+}
+
+async function onAppReady() {
+  setupAboutPanel();
+  await setupLanguage();
+
+  if (config.get('options.autoResetAppCache')) {
+    const clearCacheTimeout = setTimeout(() => {
+      if (is.dev()) {
+        console.log(
+          LoggerPrefix,
+          t('main.console.when-ready.clearing-cache-after-20s'),
+        );
+      }
+      session.defaultSession.clearCache();
+      clearTimeout(clearCacheTimeout);
+    }, 20_000);
+  }
+
+  setupWindowsShortcuts();
+  setupRendererScriptIpc();
+
+  mainWindow = await createMainWindow();
+  await setApplicationMenu(mainWindow);
+  await refreshMenu(mainWindow);
+  setUpTray(app, mainWindow);
+
+  setupProtocolHandler(mainWindow);
+  setupSecondInstance();
+
   app.setLoginItemSettings({
     openAtLogin: config.get('options.startAtLogin'),
   });
 
-  if (!is.dev() && config.get('options.autoUpdates')) {
-    try {
-      const updateTimeout = setTimeout(() => {
-        electronUpdater.autoUpdater.checkForUpdatesAndNotify();
-        clearTimeout(updateTimeout);
-      }, 2000);
-      electronUpdater.autoUpdater.on('update-available', () => {
-        const downloadLink =
-          'https://github.com/pear-devs/pear-desktop/releases/latest';
-        const dialogOptions: Electron.MessageBoxOptions = {
-          type: 'info',
-          buttons: [
-            t('main.dialog.update-available.buttons.ok'),
-            t('main.dialog.update-available.buttons.download'),
-            t('main.dialog.update-available.buttons.disable'),
-          ],
-          title: t('main.dialog.update-available.title'),
-          message: t('main.dialog.update-available.message'),
-          detail: t('main.dialog.update-available.detail', { downloadLink }),
-          defaultId: 1,
-          cancelId: 0,
-        };
-
-        let dialogPromise: Promise<Electron.MessageBoxReturnValue>;
-        if (mainWindow) {
-          dialogPromise = dialog.showMessageBox(mainWindow, dialogOptions);
-        } else {
-          dialogPromise = dialog.showMessageBox(dialogOptions);
-        }
-
-        dialogPromise.then((dialogOutput) => {
-          switch (dialogOutput.response) {
-            // Download
-            case 1: {
-              shell.openExternal(downloadLink);
-              break;
-            }
-
-            // Disable updates
-            case 2: {
-              config.set('options.autoUpdates', false);
-              break;
-            }
-
-            case 0: {
-              break;
-            }
-          }
-        });
-      });
-    } catch (err) {
-      console.warn('Auto updater check failed:', err);
-    }
-  }
+  setupAutoUpdates(mainWindow);
 
   if (config.get('options.hideMenu') && !config.get('options.hideMenuWarned')) {
     dialog.showMessageBox(mainWindow, {
@@ -932,26 +939,15 @@ app.whenReady().then(async () => {
     config.set('options.hideMenuWarned', true);
   }
 
-  // Optimized for Mac OS X
   if (is.macOS() && !config.get('options.appVisible')) {
     app.dock?.hide();
   }
 
-  let forceQuit = false;
-  app.on('before-quit', () => {
-    forceQuit = true;
-  });
+  setupWindowCloseHandler(mainWindow);
+}
 
-  if (is.macOS() || config.get('options.tray')) {
-    mainWindow.on('close', (event) => {
-      // Hide the window instead of quitting (quit is available in tray options)
-      if (!forceQuit) {
-        event.preventDefault();
-        mainWindow!.hide();
-      }
-    });
-  }
-});
+await app.whenReady();
+await onAppReady();
 
 function showUnresponsiveDialog(
   win: BrowserWindow,
@@ -1007,7 +1003,7 @@ function removeContentSecurityPolicy(
     details.responseHeaders ??= {};
 
     // prettier-ignore
-    if (URL.parse(details.url)?.protocol === 'https:') {
+    if (URL.canParse(details.url) && new URL(details.url).protocol === 'https:') {
       // Remove the content security policy
       delete details.responseHeaders['content-security-policy-report-only'];
       delete details.responseHeaders['Content-Security-Policy-Report-Only'];
