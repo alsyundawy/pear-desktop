@@ -1,8 +1,8 @@
-# Release DocNote: v3.12.0-4 (3.12.0-04)
+# Release DocNote: 3.12.0-04
 
 **Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  
-**Release Version**: `v3.12.0-4` (`3.12.0-04`)  
-**Base Version**: `v3.12.0-3` (`3.12.0-03`)  
+**Release Version**: `3.12.0-04` (`v3.12.0-04`)  
+**Base Version**: `3.12.0-03` (`v3.12.0-03`)  
 **Date**: 28 September 2026  
 **Status**: Production-Grade Verified & Zero-Error  
 
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-Release **v3.12.0-4** (`3.12.0-04`) delivers critical upstream feature integrations, GPU/CPU rendering optimizations, and reliability enhancements derived from deep research across upstream pull requests at `https://github.com/pear-devs/pear-desktop/pulls`:
+Release **3.12.0-04** (`v3.12.0-04`) delivers critical upstream feature integrations, GPU/CPU rendering optimizations, and reliability enhancements derived from deep research across upstream pull requests at `https://github.com/pear-devs/pear-desktop/pulls`:
 
 1. **Selective High-Value Upstream PR Integrations**:
    - **PR #4661 (Core Plugin Error Isolation in `src/renderer.ts`)**:
@@ -233,9 +233,9 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 
 ## 6. Adblocker, SponsorBlock & Video Toggle — Modernization & Enhancements
 
-### Functional Comparison: v3.11.0 vs v3.12.0-3 (`3.12.0-03`)
+### Functional Comparison: v3.11.0 vs 3.12.0-03 (`v3.12.0-03`)
 
-| Feature | v3.11.0 | v3.12.0-3 (`3.12.0-03`) | Status |
+| Feature | v3.11.0 | 3.12.0-03 (`v3.12.0-03`) | Status |
 | :--- | :--- | :--- | :--- |
 | **Plugin UI Name** | `Ad Blocker` | `Ad Blocker` / `Pemblokir Iklan` | ✅ Restored v3.11.0 naming |
 | **Menu Blocker Label** | `Blocker` | `Blocker` / `Pemblokir` | ✅ Restored v3.11.0 label |

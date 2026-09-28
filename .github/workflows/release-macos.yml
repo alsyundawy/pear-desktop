@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*"
-      - "*"
   workflow_dispatch: {}
 
 permissions:
@@ -111,7 +110,7 @@ jobs:
         run: |
           gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
           gh release create "$RELEASE_TAG" \
-            --title "Pear Desktop $RELEASE_TAG" \
+            --title "${RELEASE_TAG#v}" \
             --generate-notes
 
       - name: Download all artifacts

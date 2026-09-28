@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v3.12.0-4](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-3...v3.12.0-4)
+#### [v3.12.0-04](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-03...v3.12.0-04)
 
 > 28 September 2026 (Release 3.12.0-04)
 
@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file. Dates are d
   - Bump project version to `3.12.0-4` (SemVer 2.0.0 compliance for Release `3.12.0-04`)
   - Verified 100% clean quality gates: 0 warnings, 0 errors in OxLint & TypeScript, 11/11 tests passing on Playwright
 
-#### [v3.12.0-3](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-2...v3.12.0-3)
+#### [v3.12.0-03](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-02...v3.12.0-03)
 
 > 28 September 2026 (Release 3.12.0-03)
 
@@ -96,9 +96,9 @@ All notable changes to this project will be documented in this file. Dates are d
   - Update `DOCNOTE.md` and `changelog.md` to `v3.12.0-3` (`3.12.0-03`)
   - Bump package version to `3.12.0-3` (strictly compliant with SemVer 2.0.0 for electron-updater compatibility)
 
-#### [v3.12.0-2](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-01...v3.12.0-2)
+#### [v3.12.0-02](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-01...v3.12.0-02)
 
-> 28 September 2026
+> 28 September 2026 (Release 3.12.0-02)
 
 - **Adblocker / Do-Not-Track Parity Fix**:
   - Fix `src/plugins/do-not-track/index.ts`: Restore `enabled: true` default — plugin was enabled by default in v3.11.0 (`adblocker`); v3.12.0 do-not-track mistakenly defaulted to `false`, requiring users to manually enable ad blocking. Now active on first launch, identical to v3.11.0 behavior.
