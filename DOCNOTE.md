@@ -92,7 +92,7 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers a complete architectural overhaul 
 New `overrides` added to `pnpm-workspace.yaml`:
 
 | Package | Override | CVEs Addressed |
-|---|---|---|
+| --- | --- | --- |
 | `brace-expansion@<5.0.9` | `5.0.12` | CVE-2026-13149, CVE-2026-14257, CVE-2026-69152 |
 | `postcss` | `>=8.5.23` | ReDoS vulnerability in PostCSS parser |
 | `tmp` | `>=0.2.6` | Insecure temp file creation (symlink attack) |
@@ -146,7 +146,7 @@ New `overrides` added to `pnpm-workspace.yaml`:
 ## 3. Linter & Type Validation
 
 | Check | Result |
-|---|---|
+| --- | --- |
 | `pnpm tsc -p tsconfig.json --noEmit` | ✅ Zero errors |
 | `pnpm oxlint --type-aware src` | ✅ 0 warnings, 0 errors (261 files, 146 rules) |
 | `pnpm oxfmt --check src` | ✅ 332 files formatted |
@@ -158,9 +158,9 @@ New `overrides` added to `pnpm-workspace.yaml`:
 ## 4. Files Changed Summary
 
 | File | Change Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `src/plugins/video-toggle/index.tsx` | Major rewrite | Custom mode default, ATV button retention, customDomObserver SPA resilience, lifecycle symmetry |
-| `src/plugins/video-toggle/templates/video-switch-button.tsx` | Accessibility & Semantics | `<div role="group">` replacing nested interactive button, keyboard navigation, click detection |
+| `src/plugins/video-toggle/templates/video-switch-button.tsx` | Accessibility & Semantics | `<div role="switch">` with `aria-checked`, keyboard navigation, click detection, ARIA compliance |
 | `src/plugins/video-toggle/button-switcher.css` | Fix | Container flex display under custom mode, scoped force-hide rules, `!important` native pill suppressor |
 | `src/plugins/quality-changer/index.tsx` | Fix | Multi-target selector fallback, inline-flex container styling, video src-changed event listener |
 | `src/plugins/quality-changer/templates/quality-setting-button.tsx` | Fix | Explicit inline dimensions to prevent 0x0 collapse in Polymer layout |
@@ -176,7 +176,7 @@ New `overrides` added to `pnpm-workspace.yaml`:
 | `.github/workflows/MegaLinter.yml` | New CI | MegaLinter v10 full-repo scan |
 | `.mega-linter.yml` | New CI | MegaLinter configuration |
 | `.devskim.json` | New CI | DevSkim false-positive suppressions |
-| `.github/workflows/issue-triage.yml` | Fix | Pinned action versions |
+| `.github/workflows/issue-triage.yml` | Fix | Pinned action versions, dictionary index syntax for DEEPSEEK_API_KEY |
 | `.github/workflows/reviewdog.yml` | Fix | Pinned action versions |
 | `.vscode/css.custom-data.json` | IDE | Extended browser identifiers for custom CSS properties |
 | `README-PERF.md` | Docs | Memory & CPU profiling guide |
@@ -189,9 +189,8 @@ New `overrides` added to `pnpm-workspace.yaml`:
 ## 5. Regression Risk Assessment
 
 | Area | Risk | Rationale |
-|---|---|---|
-| Video Toggle — native mode | Low | `enforce()` is idempotent; observers use `attributeFilter` to minimize DOM thrash |
-| Video Toggle — custom mode | Low | Solid.js render called only once per container; `isConnected` check prevents double-mount |
+| --- | --- | --- |
+| `video-toggle` — custom mode | Low | Solid.js render called only once per container; `isConnected` check prevents double-mount |
 | Video Toggle — stop/lifecycle | Low | All refs nulled; observers disconnected; body classes cleaned |
 | Circular import fix | None | `setMenuRefresher` is a simple DI pattern; no behavior change |
 | CVE overrides | Low | Patch-level bumps only; tested via lockfile generation |

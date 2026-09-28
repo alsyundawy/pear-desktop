@@ -223,7 +223,7 @@ export default createPlugin<
           }
 
           const avToggle = document.querySelector('ytmusic-av-toggle');
-          if (avToggle && avToggle.hasAttribute('toggle-disabled')) {
+          if (avToggle?.hasAttribute('toggle-disabled')) {
             avToggle.removeAttribute('toggle-disabled');
           }
 
@@ -247,46 +247,44 @@ export default createPlugin<
       // 2. Disconnect previous observers before re-binding to prevent duplicate observers
       this.cleanupNativeMode(false);
 
+      const shouldReenforceNative = (mutation: MutationRecord): boolean => {
+        if (mutation.type !== 'attributes') return false;
+        const target = mutation.target as HTMLElement;
+        const tag = target.tagName.toLowerCase();
+        const attr = mutation.attributeName;
+
+        if (tag === 'ytmusic-player-page') {
+          return (
+            (attr === 'has-av-switcher' &&
+              !target.hasAttribute('has-av-switcher')) ||
+            (attr === 'hidden' && !target.hasAttribute('hidden'))
+          );
+        }
+        if (tag === 'ytmusic-player' && attr === 'has-av-switcher') {
+          return !target.hasAttribute('has-av-switcher');
+        }
+        if (tag === 'ytmusic-av-toggle' && attr === 'toggle-disabled') {
+          return target.hasAttribute('toggle-disabled');
+        }
+        return false;
+      };
+
       // 3. Attribute Observer to prevent YTM from stripping attributes AND
       //    to detect when ytmusic-player-page becomes visible (hidden removed)
       const attrObserver = new MutationObserver((mutations) => {
         if (this.isApplyingNativeAttributes) return;
         for (const mutation of mutations) {
-          if (mutation.type === 'attributes') {
-            const target = mutation.target as HTMLElement;
-            const tag = target.tagName.toLowerCase();
-            if (tag === 'ytmusic-player-page') {
-              if (
-                mutation.attributeName === 'has-av-switcher' &&
-                !target.hasAttribute('has-av-switcher')
-              ) {
-                // YTM stripped our attribute — restore it
-                enforce();
-                break;
-              } else if (
-                mutation.attributeName === 'hidden' &&
-                !target.hasAttribute('hidden')
-              ) {
-                // Player page became visible — apply attributes so the pill renders
-                enforce();
-                observeTargetElements();
-                break;
-              }
-            } else if (
-              tag === 'ytmusic-player' &&
-              mutation.attributeName === 'has-av-switcher' &&
-              !target.hasAttribute('has-av-switcher')
+          if (shouldReenforceNative(mutation)) {
+            enforce();
+            if (
+              (mutation.target as HTMLElement).tagName.toLowerCase() ===
+                'ytmusic-player-page' &&
+              mutation.attributeName === 'hidden'
             ) {
-              enforce();
-              break;
-            } else if (
-              tag === 'ytmusic-av-toggle' &&
-              mutation.attributeName === 'toggle-disabled' &&
-              target.hasAttribute('toggle-disabled')
-            ) {
-              enforce();
-              break;
+              // Player page became visible — apply attributes so the pill renders
+              observeTargetElements();
             }
+            break;
           }
         }
       });
@@ -324,8 +322,7 @@ export default createPlugin<
       const domObserver = new MutationObserver((mutations) => {
         let needsReapply = false;
         for (const mutation of mutations) {
-          for (let i = 0; i < mutation.addedNodes.length; i++) {
-            const node = mutation.addedNodes[i];
+          for (const node of mutation.addedNodes) {
             if (node instanceof HTMLElement) {
               const tag = node.tagName.toLowerCase();
               if (

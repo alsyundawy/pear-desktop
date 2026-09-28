@@ -9,10 +9,16 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Video Toggle Plugin — Song / Video Switcher Resolution (`src/plugins/video-toggle/`)**:
   - Restored default mode to `'custom'` (parity with official v3.11.0), guaranteeing that the Song / Video switch pill is rendered and active out of the box
   - Fixed critical bug where the toggle button disappeared on ATV (`MUSIC_VIDEO_TYPE_ATV`) songs: `setShowButtonFn(true)` is now maintained across all tracks so the pill remains visible
-  - Fixed HTML semantics in `VideoSwitchButton`: eliminated illegal interactive nesting of `<input>` and `<label>` inside `<button type="button">`, migrating to accessible `<div role="group" aria-label="Toggle song or video mode" tabindex={0}>` with full keyboard and click event support
+  - Fixed HTML semantics in `VideoSwitchButton`: migrated to accessible `<div role="switch" aria-checked="..." tabIndex={0}>` with full keyboard and click event support, ARIA compliance, and `aria-hidden={true}` on internal checkbox
   - Hardened CSS in `button-switcher.css`: container displays via `display: flex` under `.video-toggle-custom-mode:not(.video-toggle-force-hide)` while `.video-toggle-force-hide` enforces `display: none !important`
   - Added `customDomObserver` MutationObserver to ensure the switcher container automatically re-prepends if detached or replaced during YouTube Music SPA page transitions
   - Trigger `videoStarted()` immediately on `onPlayerApiReady` to evaluate initial state on startup
+  - Refactored `attrObserver` and `domObserver` in `video-toggle` to reduce cognitive complexity, deduplicate branch logic, and adopt idiomatic `for-of` iterations
+
+- **IDE Code Problems & Static Analysis Resolution**:
+  - Fixed GitHub Actions extension warning for `DEEPSEEK_API_KEY` via dictionary index syntax in `issue-triage.yml`
+  - Resolved Markdownlint `MD060/table-column-style` across `DOCNOTE.md` and `scripts/soak-test.md`
+  - Isolated vendored third-party CPU tamer and RM3 scripts from SonarLint analysis
 
 - **Video Quality Changer Plugin — Injection & Layout Hardening (`src/plugins/quality-changer/`)**:
   - Expanded button injection query selectors to fallback across `.top-row-buttons.ytmusic-player`, `ytmusic-player .top-row-buttons`, `#top-row-buttons`, and `.top-row-buttons` to support all Polymer / Web Component DOM structures

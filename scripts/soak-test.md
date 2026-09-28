@@ -54,7 +54,7 @@ This protocol defines the formal soak test execution and verification criteria f
 ## 3. Pass / Fail Acceptance Criteria
 
 | Metric | Threshold / Condition | Result |
-|---|---|---|
+| --- | --- | --- |
 | **Process Count** | No residual or zombie renderers (`windowCount == 1`) after cycles | **PASS** |
 | **RSS Stability** | `rss_end <= rss_start * 1.25` (RSS growth $\le$ 25% after GC settling) | **PASS** |
 | **Native Leaks** | No `[MemoryWatch] WARN: Native/Handle leak signature` emitted | **PASS** |

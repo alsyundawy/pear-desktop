@@ -24,6 +24,7 @@ SOFTWARE.
 
 */
 
+/* eslint-disable */
 /* oxlint-disable */
 
 export const injectCpuTamerByDomMutation = ((__CONTEXT__) => {

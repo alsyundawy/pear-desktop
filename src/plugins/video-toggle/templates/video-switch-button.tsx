@@ -42,22 +42,25 @@ export const VideoSwitchButton = (props: VideoSwitchButtonProps) => {
 
   return (
     <div
+      aria-checked={props.checked ?? true}
       aria-label="Toggle song or video mode"
       class="video-switch-button"
       data-video-button-text={props.videoButtonText}
       onChange={(e) => props.onChange?.(e)}
       onClick={handleContainerClick}
       onKeyDown={handleKeyDown}
-      role="group"
-      tabindex={0}
+      role="switch"
+      tabIndex={0}
     >
       <input
+        aria-hidden="true"
         checked={props.checked ?? true}
         class="video-switch-button-checkbox"
         id="video-toggle-video-switch-button-checkbox"
         ref={(el) => {
           checkboxRef = el;
         }}
+        tabIndex={-1}
         type="checkbox"
       />
       <label

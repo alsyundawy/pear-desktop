@@ -47,13 +47,13 @@ jobs:
         env:
           # Point Claude Code at DeepSeek's Anthropic-compatible endpoint.
           ANTHROPIC_BASE_URL: https://api.deepseek.com/anthropic
-          ANTHROPIC_AUTH_TOKEN: ${{ secrets.DEEPSEEK_API_KEY }}
+          ANTHROPIC_AUTH_TOKEN: ${{ secrets['DEEPSEEK_API_KEY'] }}
           ANTHROPIC_MODEL: deepseek-v4-flash
           ANTHROPIC_SMALL_FAST_MODEL: deepseek-v4-flash
           # Authenticates the `gh` CLI the agent uses for GitHub operations.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          anthropic_api_key: ${{ secrets.DEEPSEEK_API_KEY }}
+          anthropic_api_key: ${{ secrets['DEEPSEEK_API_KEY'] }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Minimal, auditable toolset. No close/lock/delete is possible.
           claude_args: |
