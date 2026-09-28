@@ -56,6 +56,10 @@ Release **3.12.0-06** (`v3.12.0-06`) delivers comprehensive full-stack code hard
    - Updated `.vscode/settings.json` with comprehensive IDE suppressions: excluded `dist/` and `assets/mdui.css` from all language services (`files.exclude`, `files.watcherExclude`), added `css.lint.validProperties` and `css.lint.compatibleVendorPrefixes: ignore` for Electron vendor prefixes, and added SonarLint `javascript:S6326` and CSS rules suppression.
    - Created `dist/tsconfig.json` and `dist/renderer/jsconfig.json` empty stubs (`"files": [], "exclude": ["**"]`) to prevent TypeScript/JavaScript language servers from treating minified IIFE build artifacts as analyzable source.
    - Validated full codebase with `pnpm check` (`oxlint`, `oxfmt`, `tsc`) achieving **0 errors and 0 warnings**.
+8. **Electron Lifecycle Deadlock Fix (Main Window Initialization)**:
+   - **Root Cause Analysis**: In `src/index.ts`, `app.whenReady()` had been refactored into top-level `await app.whenReady(); await onAppReady();`. Under Electron ESM packaging (`"type": "module"`), Node's ESM loader suspends module evaluation awaiting the top-level promise before yielding execution to the Chromium C++ message loop. Because Electron's `'ready'` event is dispatched by Chromium's message loop, `app.whenReady()` never settled, deadlocking the app startup before `createMainWindow()` could be called. The app hung silently in memory with no window, no renderer, and no GPU helper process.
+   - **Remediation**: Restored the asynchronous callback pattern `app.whenReady().then(async () => { await onAppReady(); });`, ensuring synchronous module evaluation completes and hands control to Chromium's message loop.
+   - **Verification**: Playwright E2E launch test `tests/index.test.js` passed in 3.7s (all 11 tests green in 7.4s). The production packaged binary `pack/mac/YouTube Music.app` was launched and verified with `ps aux`, proving all child processes (`YouTube Music Helper (Renderer)`, `YouTube Music Helper` GPU/Audio) spawn and render successfully.
 
 ---
 

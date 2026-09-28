@@ -35,8 +35,7 @@ All notable changes to this project will be documented in this file. Dates are d
     - Ensure all thrown values instantiate standard `Error` objects (`new Error(...)`) rather than strings or re-casts
     - Replace single-case `switch` statement in `showNeedToRestartDialog` with straightforward `if` condition
     - Refactor `createMainWindow()` by extracting window position restoration and decoration resolution helpers, reducing cognitive complexity <= 15
-    - Hoist `defaultTitleBarOverlayOptions` to module scope
-    - Refactor `app.whenReady()` to clean top-level await flow with modular setup functions (`setupAboutPanel`, `setupLanguage`, `setupWindowsShortcuts`, `setupRendererScriptIpc`, `setupSecondInstance`, `setupAutoUpdates`, `setupWindowCloseHandler`)
+    - Modularize app startup lifecycle into structured setup routines (`setupAboutPanel`, `setupLanguage`, `setupWindowsShortcuts`, `setupRendererScriptIpc`, `setupSecondInstance`, `setupAutoUpdates`, `setupWindowCloseHandler`) invoked within `app.whenReady().then(...)` to guarantee Electron event loop initialization and window creation
   - **Renderer & Preload Architecture Optimization (`src/renderer.ts`, `src/preload.ts`)**:
     - Remove unnecessary `.call()` invocations
     - Replace `setAttribute('data-os')` with modern `dataset.os`

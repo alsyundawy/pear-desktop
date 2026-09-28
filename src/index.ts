@@ -946,8 +946,9 @@ async function onAppReady() {
   setupWindowCloseHandler(mainWindow);
 }
 
-await app.whenReady();
-await onAppReady();
+app.whenReady().then(async () => {
+  await onAppReady();
+});
 
 function showUnresponsiveDialog(
   win: BrowserWindow,
