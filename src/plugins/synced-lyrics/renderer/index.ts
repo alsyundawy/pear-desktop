@@ -34,13 +34,8 @@ export const renderer = createRenderer<
     for (const mutation of mutations) {
       const header = mutation.target as HTMLElement;
 
-      switch (mutation.attributeName) {
-        case 'disabled':
-          header.removeAttribute('disabled');
-          break;
-        case 'aria-selected':
-          tabStates[header.ariaSelected ?? 'false']();
-          break;
+      if (mutation.attributeName === 'aria-selected') {
+        tabStates[header.ariaSelected ?? 'false']();
       }
     }
   },
@@ -64,15 +59,13 @@ export const renderer = createRenderer<
     this.observer ??= new MutationObserver(this.observerCallback);
     this.observer.disconnect();
 
-    // Force the lyrics tab to be enabled at all times.
+    // Observe the lyrics tab header for aria-selected changes
     const header = await waitForElement<HTMLElement>(selectors.head);
     {
-      header.removeAttribute('disabled');
       tabStates[header.ariaSelected ?? 'false']();
     }
 
-    this.observer.observe(header, { attributes: true });
-    header.removeAttribute('disabled');
+    this.observer.observe(header, { attributes: true, attributeFilter: ['aria-selected'] });
   },
 
   async start(ctx: RendererContext<SyncedLyricsPluginConfig>) {

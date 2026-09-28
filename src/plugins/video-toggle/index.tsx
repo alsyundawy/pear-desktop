@@ -504,7 +504,7 @@ export default createPlugin<
 
       const playerElement = await waitForElement<HTMLElement>(
         '#player, ytmusic-player',
-        { maxRetry: 50, retryInterval: 100 },
+        { maxRetry: -1, retryInterval: 200 },
       );
       if (!playerElement) return;
 

@@ -26,7 +26,7 @@ export default createPlugin<
   description: () => t('plugins.quality-changer.description'),
   restartNeeded: false,
   config: {
-    enabled: false,
+    enabled: true,
   },
 
   backend({ ipc, window }) {
@@ -156,8 +156,8 @@ export default createPlugin<
         waitForElement<HTMLElement>(
           '.right-controls-buttons, .top-row-buttons.ytmusic-player, #top-row-buttons',
           {
-            maxRetry: 50,
-            retryInterval: 100,
+            maxRetry: -1,
+            retryInterval: 200,
           },
         )
           .then((target) => {
