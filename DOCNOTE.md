@@ -10,11 +10,12 @@
 
 ## 1. Executive Summary
 
-Release **v3.12.0-2** is a targeted bug-fix patch on top of the v3.12.0-01 hardening milestone. This release resolves three production-confirmed bugs in the About dialog implementation:
+Release **v3.12.0-2** is a targeted bug-fix patch on top of the v3.12.0-01 hardening milestone. This release resolves four production-confirmed bugs — three in the About dialog and one critical adblocker regression:
 
 1. **TDZ Forward-Reference Fix**: `showAbout` was declared as a `const` arrow function after its first use inside `mainMenuTemplate`. While closures deferred the crash, this violated code ordering best practices and introduced a temporal dead zone risk. The declaration is now hoisted above `mainMenuTemplate`.
 2. **Electron Role/Click Conflict**: Menu items simultaneously carrying `role: 'about'` and `click: showAbout` caused Electron to silently ignore the `click` handler (per Electron docs: *"If role is defined for a menu item, the click property will be ignored"*). The custom About panel with `hardening` copyright notices never appeared. Fixed by removing `role: 'about'` from all items with custom click handlers.
 3. **Dynamic Copyright Year**: Copyright strings in `src/menu.ts`, `src/index.ts` had `2026` hardcoded — replaced with `new Date().getFullYear()` so the notice auto-updates on each application launch.
+4. **Adblocker Default Enabled Regression**: The `do-not-track` plugin (successor to v3.11.0's `adblocker`) defaulted to `enabled: false`, silently disabling ad blocking for all users on first launch. Restored to `enabled: true` for full v3.11.0 behavioral parity.
 
 ---
 
@@ -187,7 +188,41 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 
 ---
 
-## 6. Verification Report
+## 6. Adblocker / Do-Not-Track — Full Parity Verification
+
+### Functional Comparison: v3.11.0 (`adblocker`) vs v3.12.0-2 (`do-not-track`)
+
+| Feature | v3.11.0 | v3.12.0-2 | Status |
+|---|---|---|---|
+| Package `@ghostery/adblocker-electron` | `2.11.6` | `2.18.2` | ✅ Upgraded |
+| Package `@ghostery/adblocker-electron-preload` | `2.11.6` | `2.18.2` | ✅ Upgraded |
+| **Plugin enabled by default** | `true` | `true` (restored) | ✅ Fixed |
+| Mode `InPlayer` (JSON/Response proxy pruner) | ✅ | ✅ Intact | ✅ Verified |
+| Mode `WithBlocklists` (Ghostery ElectronBlocker) | ✅ | ✅ Intact | ✅ Verified |
+| Mode `AdSpeedup` | ✅ | Removed | ✅ Intentional (upstream) |
+| `injectCliqzPreload` in `WithBlocklists` preload | ❌ | ✅ New feature | ✅ Enhancement |
+| Blocklist source `organization/tb-list/tb.json` | — | HTTP 200 confirmed | ✅ Reachable |
+| `electron-builder.yml` ghostery preload packaging | ✅ | ✅ | ✅ Correct |
+| i18n keys `plugins.do-not-track.*` in `en.json` | — | ✅ Present | ✅ Verified |
+| Preload `dist/index.cjs` self-contained | — | ✅ (250 lines, no ext deps) | ✅ Confirmed |
+
+### Blocklist Source Validation (`organization/tb-list`)
+
+The URL `https://raw.githubusercontent.com/organization/tb-list/refs/heads/main/tb.json` is a valid, publicly accessible GitHub repository (the GitHub organization is literally named `organization`). HTTP 200 response confirmed with 12 active filter lists:
+
+- `kbinani/adblock-youtube-ads` — signed.txt
+- uBlock Origin filters (2020–2025 annual lists)
+- uBlock Origin quick-fixes and unbreak lists
+- Fanboy Annoyance List (uBO format)
+- AdTidy Optimized Filter List (filter #122)
+
+### Preload Bundle Architecture
+
+`@ghostery/adblocker-electron-preload` v2.18.2 ships as a **self-contained CJS bundle** (`dist/index.cjs`, 250 lines). It only declares one external dependency: `electron`. All ghostery internals (`@ghostery/adblocker-content` etc.) are already bundled inside. No missing transitive dependencies at runtime.
+
+---
+
+## 7. Verification Report
 
 - **Type Checking (`tsc`)**: Passed with 0 errors across main, renderer, and test tsconfigs.
 - **OxLint (`oxlint --type-aware src`)**: Passed with 0 warnings and 0 errors across 254+ source files. All `prefer-nullish-coalescing`, `no-promise-reject`, cognitive-complexity, vendor-prefix, and naming convention warnings eliminated.

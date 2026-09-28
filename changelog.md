@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file. Dates are d
 
 > 28 September 2026
 
+- **Adblocker / Do-Not-Track Parity Fix**:
+  - Fix `src/plugins/do-not-track/index.ts`: Restore `enabled: true` default — plugin was enabled by default in v3.11.0 (`adblocker`); v3.12.0 do-not-track mistakenly defaulted to `false`, requiring users to manually enable ad blocking. Now active on first launch, identical to v3.11.0 behavior.
+  - Verified full adblocker functional parity with v3.11.0:
+    - **InPlayer mode**: `inject.ts` JSON/Response proxy pruner — intact and functional
+    - **WithBlocklists mode**: Ghostery `ElectronBlocker` + `injectCliqzPreload` (enhancement over v3.11.0) — functional
+    - `@ghostery/adblocker-electron-preload` v2.18.2: self-contained CJS bundle (no missing transitive deps)
+    - `organization/tb-list` blocklist URL confirmed reachable (HTTP 200) with 12 real filter lists (uBlock Origin, Ghostery, AdTidy, Fanboy Annoyance)
+    - i18n keys `plugins.do-not-track.*` verified present in `en.json`
+    - `electron-builder.yml` correctly packages `@ghostery/adblocker-electron-preload`
 - **Bug Fixes (Production-Grade Code Review)**:
   - Fix `src/menu.ts`: Move `showAbout` declaration before `mainMenuTemplate` to resolve forward-reference ordering and temporal dead zone risk
   - Fix `src/menu.ts`: Remove conflicting `role: 'about'` from menu items with custom `click: showAbout` handler — Electron ignores `click` when `role` is set, causing custom About dialog to never appear
