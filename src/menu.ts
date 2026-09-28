@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import prompt from 'custom-electron-prompt';
 import {
   app,
@@ -35,6 +37,7 @@ const inAppMenuActive = await config.plugins.isEnabled('in-app-menu');
 // Must be declared before mainMenuTemplate to avoid TDZ (temporal dead zone)
 // when referenced inside the async function closure.
 const showAbout = () => {
+  const iconPath = path.join(app.getAppPath(), 'assets', 'icon.png');
   app.setAboutPanelOptions({
     applicationName: APPLICATION_NAME,
     applicationVersion: packageJson.version,
@@ -43,6 +46,7 @@ const showAbout = () => {
     credits: 'Hardening & Optimize by alsyundawy',
     authors: ['th-ch', 'alsyundawy'],
     website: 'https://github.com/alsyundawy/pear-desktop-mac',
+    iconPath,
   });
   app.showAboutPanel();
 };
