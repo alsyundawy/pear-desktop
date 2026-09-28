@@ -16,19 +16,17 @@
 
 # :pear: Pear Desktop
 
-[![GitHub release](https://img.shields.io/github/release/pear-devs/pear-desktop.svg?style=for-the-badge)](https://github.com/pear-devs/pear-desktop/releases/)
-[![GitHub license](https://img.shields.io/github/license/pear-devs/pear-desktop.svg?style=for-the-badge)](https://github.com/pear-devs/pear-desktop/blob/master/license)
-[![eslint code style](https://img.shields.io/badge/code_style-eslint-5ed9c7.svg?style=for-the-badge)](https://github.com/pear-devs/pear-desktop/blob/master/eslint.config.mjs)
-[![Build status](https://img.shields.io/github/actions/workflow/status/pear-devs/pear-desktop/build.yml?branch=master&style=for-the-badge)](https://GitHub.com/pear-devs/pear-desktop/releases/)
-[![GitHub All Releases](https://img.shields.io/github/downloads/pear-devs/pear-desktop/total?style=for-the-badge)](https://GitHub.com/pear-devs/pear-desktop/releases/)
-<!--[![AUR](https://img.shields.io/aur/version/pear-desktop-bin?color=blueviolet&style=for-the-badge)](https://aur.archlinux.org/packages/pear-desktop-bin)-->
-[![Known Vulnerabilities](https://snyk.io/test/github/pear-devs/pear-desktop/badge.svg)](https://snyk.io/test/github/pear-devs/pear-desktop)
+[![GitHub release](https://img.shields.io/github/v/release/alsyundawy/pear-desktop?style=for-the-badge&color=2ea44f)](https://github.com/alsyundawy/pear-desktop/releases/latest)
+[![GitHub license](https://img.shields.io/github/license/alsyundawy/pear-desktop?style=for-the-badge)](https://github.com/alsyundawy/pear-desktop/blob/master/license)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Code style: oxlint](https://img.shields.io/badge/code_style-oxlint-5ed9c7.svg?style=for-the-badge)](https://github.com/oxc-project/oxc)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey?style=for-the-badge)](https://github.com/alsyundawy/pear-desktop/releases/latest)
+
+<p align="center">
+  <b>Feature-packed, high-performance desktop app for YouTube Music with built-in ad blocker (27+ vendor filters), SponsorBlock, synced lyrics, audio equalizer, and cross-platform native plugins.</b>
+</p>
 
 </div>
-
-<!--![Screenshot](web/screenshot.png "Screenshot")-->
-
-- Native look & feel extension
 
 > [!IMPORTANT]
 > ⚠️ Disclaimer
@@ -44,6 +42,19 @@
 > **Limitation of Liability**
 >
 > This application (extension) is provided "AS IS", and you use it at your own risk. In no event shall the developers or contributors be liable for any claim, damages, or other liability, including any legal consequences, arising from, out of, or in connection with the software or the use or other dealings in the software. The responsibility for any and all outcomes of using this software rests entirely with the user.
+
+## Features
+
+- 🛡️ **Enterprise Ad Blocker & Do-Not-Track Engine**: Built with `@ghostery/adblocker-electron` and 27 canonical vendor filter lists (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile, URL Tracking Protection, Fanboy, 12 Regional Lists, and HaGeZi Multi PRO / Pop-up Ads / Threat Intelligence). Includes an **`AdSpeedup`** fast-forward mode (16x auto-skip + muted playback) and offline prebuilt fallback.
+- ⏭️ **SponsorBlock Integration**: Automatically skips non-music segments, intros, outros, sponsor messages, previews, and filler jokes with real-time in-app category toggle checkboxes and RFC 3986 parameter sanitization.
+- 🎬 **Modern Video Toggle Switcher**: Redesigned glassmorphism pill switcher (`Song` / `Video`) with real-time dynamic alignment (`left`, `center`, `right`) and smooth segmented animations matching native YouTube Music styling.
+- 🎤 **Synchronized Lyrics**: Live synced LRC lyrics powered by multiple providers (YouTube Music, Genius, LRCLib, Megalobiz, MusixMatch).
+- 🎚️ **Equalizer & Audio Controls**: Integrated multi-band parametric equalizer and custom audio presets.
+- 📊 **Scrobbler Integration**: Automatic background scrobbling to Last.fm, ListenBrainz, and Libre.fm.
+- 💬 **Discord Rich Presence & MPRIS**: Shows your currently playing track, artist, album, and duration on Discord and native Linux desktop environments.
+- 🎨 **Theme Engine & Glassmorphism**: Supports custom CSS styling, ambient lighting, dynamic accent colors, and custom window frames.
+- 🌐 **Full Bilingual Localization**: Native English (`en`) and Indonesian (`id`) interface with extensive internationalization support.
+- 💻 **Cross-Platform & Multi-Architecture**: Native builds for Apple Silicon (ARM64), Intel macOS (x64), Windows (x64, ia32, ARM64), and Linux (AppImage, deb, rpm).
 
 ## Content
 
@@ -77,7 +88,7 @@ You can help with translation on [Hosted Weblate](https://bit.ly/48n5YF7).
 
 ## Download
 
-You can check out the [latest release](https://github.com/pear-devs/pear-desktop/releases/latest) to quickly find the
+You can check out the [latest release](https://github.com/alsyundawy/pear-desktop/releases/latest) to quickly find the
 latest version.
 
 ### Arch Linux
@@ -128,7 +139,7 @@ winget install pear-devs.pear-desktop
 
 #### How to install without a network connection? (in Windows)
 
-- Download the `*.nsis.7z` file for _your device architecture_ in [release page](https://github.com/pear-devs/pear-desktop/releases/latest).
+- Download the `*.nsis.7z` file for _your device architecture_ in [release page](https://github.com/alsyundawy/pear-desktop/releases/latest).
   - `x64` for 64-bit Windows
   - `ia32` for 32-bit Windows
   - `arm64` for ARM64 Windows
@@ -145,7 +156,7 @@ Some predefined themes are available in https://github.com/kerichdev/themes-for-
 ## Dev
 
 ```bash
-git clone https://github.com/pear-devs/pear-desktop
+git clone https://github.com/alsyundawy/pear-desktop.git
 cd pear-desktop
 pnpm install --frozen-lockfile
 pnpm dev
@@ -315,8 +326,8 @@ pnpm test
 Uses [Playwright](https://playwright.dev/) to test the app.
 
 ## License
-
-MIT © [pear-devs](https://github.com/pear-devs/pear-desktop)
+ 
+MIT © [th-ch](https://github.com/th-ch/youtube-music) & [alsyundawy](https://github.com/alsyundawy/pear-desktop)
 
 ## FAQ
 

@@ -42,6 +42,8 @@ All notable changes to this project will be documented in this file. Dates are d
   - Add `-webkit-user-select` vendor prefix in `button-switcher.css` for Safari/WebKit compatibility
   - Refactor `isBlockerEnabled` to use optional chaining in `blocker.ts`
   - Reorder switch statement clauses in `video-toggle/index.tsx` to place default clause at the end
+  - Synchronize GitHub repository About description, homepage, and 13 discovery topics
+  - Enrich `package.json` metadata (homepage, keywords, repository) and enhance `README.md` with features showcase and live release badges
   - Update `DOCNOTE.md` and `changelog.md` to `v3.12.0-3` (`3.12.0-03`)
   - Bump package version to `3.12.0-3` (strictly compliant with SemVer 2.0.0 for electron-updater compatibility)
 
