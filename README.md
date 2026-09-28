@@ -345,7 +345,7 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
   - Replaced anchored regex in `tools/eslint-core-plugin.mjs` with index-based while-loop trim, eliminating SonarQube S6326 false positives.
 - **Build Pipeline & Main/Renderer Architecture Optimization**:
   - Decomposed `pluginLoader` Vite plugin into modular helpers, slashing cognitive complexity from 50 to 1.
-  - Ensured standard `Error` objects on throws and refactored `app.whenReady()` to clean top-level await with modular lifecycle initializers.
+  - Ensured standard `Error` objects on throws, modularized app startup into structured lifecycle initializers, and fixed macOS window launch hang via non-blocking `app.whenReady().then(...)` callback.
   - Added Vite `html-doctype-uppercase` plugin in `electron.vite.config.mts` ensuring permanent uppercase `<!DOCTYPE html>`.
   - Encapsulated renderer and preload initialization with proper promise error handling.
 - **IDE Workspace Hardening**:

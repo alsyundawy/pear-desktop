@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file. Dates are d
     - Replace single-case `switch` statement in `showNeedToRestartDialog` with straightforward `if` condition
     - Refactor `createMainWindow()` by extracting window position restoration and decoration resolution helpers, reducing cognitive complexity <= 15
     - Modularize app startup lifecycle into structured setup routines (`setupAboutPanel`, `setupLanguage`, `setupWindowsShortcuts`, `setupRendererScriptIpc`, `setupSecondInstance`, `setupAutoUpdates`, `setupWindowCloseHandler`) invoked within `app.whenReady().then(...)` to guarantee Electron event loop initialization and window creation
+    - Fix macOS window launch hang: guarantee asynchronous module evaluation in `src/index.ts` via non-blocking `app.whenReady().then(...)` callback, eliminating Node.js ESM top-level await deadlock and ensuring main window, GPU, and renderer processes spawn cleanly
   - **Renderer & Preload Architecture Optimization (`src/renderer.ts`, `src/preload.ts`)**:
     - Remove unnecessary `.call()` invocations
     - Replace `setAttribute('data-os')` with modern `dataset.os`
