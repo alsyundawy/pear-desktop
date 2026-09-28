@@ -337,9 +337,10 @@ export default createPlugin({
               return;
             }
 
-            default:
-            case 'left': {
+            case 'left':
+            default: {
               switchButtonContainer.style.justifyContent = 'flex-start';
+              return;
             }
           }
         }, 0);

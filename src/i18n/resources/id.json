@@ -832,7 +832,20 @@
       "name": "Lewati Keheningan"
     },
     "sponsorblock": {
-      "description": "Otomatis Melewati bagian yang bukan musik seperti intro/outro atau bagian dari video musik di mana lagu tidak dimainkan",
+      "description": "Lewati bagian non-musik secara otomatis seperti intro/outro atau bagian video musik yang tidak memutar lagu",
+      "menu": {
+        "categories": {
+          "filler": "Pengisi / Tangen",
+          "interaction": "Pengingat Interaksi",
+          "intro": "Intro",
+          "label": "Kategori",
+          "music_offtopic": "Bagian Non-Musik",
+          "outro": "Outro",
+          "preview": "Pratinjau / Rekap",
+          "selfpromo": "Promosi Diri",
+          "sponsor": "Sponsor"
+        }
+      },
       "name": "SponsorBlock"
     },
     "synced-lyrics": {

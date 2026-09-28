@@ -6,19 +6,42 @@ All notable changes to this project will be documented in this file. Dates are d
 
 > 28 September 2026 (Release 3.12.0-03)
 
-- **Ad Blocker Menu & Full v3.11.0 Parity**:
+- **Comprehensive Adblock Filter Lists & Vendor Expansion**:
+  - Add standard global filter lists: EasyList, EasyPrivacy, Peter Lowe’s Ad/tracking server list, and uBlock Origin filters (Ads, Privacy, Badware)
+  - Add privacy and tracking protections: AdGuard/uBO Mobile Ads (filter #11) and AdGuard/uBO URL Tracking Protection (removeparam)
+  - Add annoyance filters: EasyList Other Annoyances, Fanboy Annoyances (uBO format), and AdGuard Annoyances (filter #122)
+  - Add 12 regional filter lists:
+    - 🇦🇱al 🇽🇰xk: Adblock List for Albania
+    - 🇪🇬eg 🇸🇦sa 🇲🇦ma 🇩🇿dz: Liste AR
+    - 🇧🇬bg: Bulgarian Adblock list
+    - 🇨🇳cn 🇹🇼tw: AdGuard Chinese (中文)
+    - 🇮🇩id 🇲🇾my: ABPindo
+    - 🇮🇳in 🇱🇰lk 🇳🇵np: IndianList
+    - 🇮🇷ir: PersianBlocker
+    - 🇮🇸is: Icelandic ABP List
+    - 🇮🇱il: EasyList Hebrew
+    - 🇮🇹it: EasyList Italy
+    - 🇯🇵jp: AdGuard Japanese
+    - 🇰🇷kr: 한국어 (Korean)
   - Restore plugin name to **"Ad Blocker"** (`Pemblokir Iklan`) and menu category label to **"Pemblokir"** in `en.json` and `id.json`
   - Restore **`Ad speedup`** blocker mode (`src/plugins/do-not-track/adSpeedup.ts`) with MutationObserver ad detection, auto-skip trigger, 16x speedup, muted playback, and clean teardown (`unloadAdSpeedup`)
-  - Restore YouTube-optimized filter `SOURCES` list in `blocker.ts` with graceful fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`
   - Support seamless dynamic switching in `renderer.onConfigChange` and `preload.onConfigChange`
+- **SponsorBlock Plugin Upgrade**:
+  - Add support for all modern categories: `preview` (Preview/Recap) and `filler` (Filler Tangent/Joke) alongside `sponsor`, `intro`, `outro`, `interaction`, `selfpromo`, and `music_offtopic`
+  - Add interactive Categories menu allowing users to toggle individual category skips
+  - Ensure robust URL parameter encoding via `encodeURIComponent` for video IDs and JSON categories
+  - Safely guard runtime dev-logging via `window.electronIs?.dev?.()`
+  - Add bilingual i18n translations for all SponsorBlock category options in `en.json` and `id.json`
 - **Video Toggle Modernization & Layout Alignment Fix**:
   - Redesign `.video-switch-button` with sleek YouTube Music pill aesthetic (`160px × 36px`, `border-radius: 18px`, `backdrop-filter: blur(12px)`, active white pill indicator)
   - Fix button positioning bug: remove static `margin-left` and `position: absolute` from `.video-switch-button`, enabling `#ytmd-video-toggle-switch-button-container` flexbox alignment (`justify-content`) to function properly across player width
   - Add real-time alignment response in `onConfigChange` for `left`, `middle`, and `right` positions without reloading
   - Convert toggle behavior to true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode
-- **Documentation & Standards Compliance**:
+- **Code Standards & Linter Cleanups**:
+  - Add `-webkit-user-select` vendor prefix in `button-switcher.css` for Safari/WebKit compatibility
+  - Refactor `isBlockerEnabled` to use optional chaining in `blocker.ts`
+  - Reorder switch statement clauses in `video-toggle/index.tsx` to place default clause at the end
   - Update `DOCNOTE.md` and `changelog.md` to `v3.12.0-3` (`3.12.0-03`)
-  - Fix markdown code block language tag and table column formatting in `DOCNOTE.md`
   - Bump package version to `3.12.0-3` (strictly compliant with SemVer 2.0.0 for electron-updater compatibility)
 
 #### [v3.12.0-2](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0-01...v3.12.0-2)

@@ -1,6 +1,7 @@
 import is from 'electron-is';
 
 import { t } from '@/i18n';
+import { type MenuTemplate } from '@/menu';
 import { createPlugin } from '@/utils';
 
 import { sortSegments } from './segments';
@@ -8,17 +9,20 @@ import { sortSegments } from './segments';
 import type { Segment, SkipSegment } from './types';
 import type { GetPlayerResponse } from '@/types/get-player-response';
 
+export type SponsorBlockCategory =
+  | 'sponsor'
+  | 'intro'
+  | 'outro'
+  | 'interaction'
+  | 'selfpromo'
+  | 'music_offtopic'
+  | 'preview'
+  | 'filler';
+
 export type SponsorBlockPluginConfig = {
   enabled: boolean;
   apiURL: string;
-  categories: (
-    | 'sponsor'
-    | 'intro'
-    | 'outro'
-    | 'interaction'
-    | 'selfpromo'
-    | 'music_offtopic'
-  )[];
+  categories: SponsorBlockCategory[];
 };
 
 let currentSegments: Segment[] = [];
@@ -37,17 +41,59 @@ export default createPlugin({
       'interaction',
       'selfpromo',
       'music_offtopic',
+      'preview',
+      'filler',
     ],
   } as SponsorBlockPluginConfig,
+  menu: async ({ getConfig, setConfig }): Promise<MenuTemplate> => {
+    const config = await getConfig();
+
+    const categoryList: SponsorBlockCategory[] = [
+      'sponsor',
+      'intro',
+      'outro',
+      'interaction',
+      'selfpromo',
+      'music_offtopic',
+      'preview',
+      'filler',
+    ];
+
+    return [
+      {
+        label: t('plugins.sponsorblock.menu.categories.label'),
+        submenu: categoryList.map((category) => ({
+          label: t(`plugins.sponsorblock.menu.categories.${category}`),
+          type: 'checkbox',
+          checked: config.categories.includes(category),
+          click(item) {
+            const current = new Set(config.categories);
+            if (item.checked) {
+              current.add(category);
+            } else {
+              current.delete(category);
+            }
+            setConfig({ categories: Array.from(current) });
+          },
+        })),
+      },
+    ];
+  },
   async backend({ getConfig, ipc }) {
+    let activeConfig = await getConfig();
+
     const fetchSegments = async (
       apiURL: string,
       categories: string[],
       videoId: string,
     ) => {
-      const sponsorBlockURL = `${apiURL}/api/skipSegments?videoID=${videoId}&categories=${JSON.stringify(
-        categories,
-      )}`;
+      if (!videoId || categories.length === 0) {
+        return [];
+      }
+
+      const sponsorBlockURL = `${apiURL}/api/skipSegments?videoID=${encodeURIComponent(
+        videoId,
+      )}&categories=${encodeURIComponent(JSON.stringify(categories))}`;
       try {
         const resp = await fetch(sponsorBlockURL, {
           method: 'GET',
@@ -71,15 +117,16 @@ export default createPlugin({
       }
     };
 
-    const config = await getConfig();
-
-    const { apiURL, categories } = config;
-
     ipc.on('peard:video-src-changed', async (data: GetPlayerResponse) => {
+      const videoId = data?.videoDetails?.videoId;
+      if (!videoId) {
+        ipc.send('sponsorblock-skip', []);
+        return;
+      }
       const segments = await fetchSegments(
-        apiURL,
-        categories,
-        data?.videoDetails?.videoId,
+        activeConfig.apiURL,
+        activeConfig.categories,
+        videoId,
       );
       ipc.send('sponsorblock-skip', segments);
     });
@@ -95,7 +142,7 @@ export default createPlugin({
             target.currentTime < segment[1]
           ) {
             target.currentTime = segment[1];
-            if (window.electronIs.dev()) {
+            if (window.electronIs?.dev?.() ?? false) {
               console.log('SponsorBlock: skipping segment', segment);
             }
           }

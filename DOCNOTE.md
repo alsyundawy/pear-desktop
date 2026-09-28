@@ -12,18 +12,26 @@
 
 Release **v3.12.0-3** (`3.12.0-03`) delivers targeted UI/UX and feature restorations based on user requirements and comprehensive code audits:
 
-1. **Ad Blocker Menu & Full v3.11.0 Parity**:
+1. **Ad Blocker Menu, Full v3.11.0 Parity & Vendor Lists Expansion**:
    - Restored plugin title and localized i18n names to **"Ad Blocker"** / **"Pemblokir Iklan"** and menu label **"Pemblokir"**.
    - Restored **`Ad speedup` (`AdSpeedup`)** blocker mode with clean MutationObserver lifecycle, automatic ad detection, 16x fast-forward, muted audio, and leak-free unloading.
-   - Restored v3.11.0 YouTube ad filter sources list in `blocker.ts` with graceful fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
+   - Restored and expanded filter sources list in `blocker.ts` with **24 canonical global, privacy, annoyance, and regional vendor filter lists** (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile Ads, URL Tracking Protection, EasyList Other Annoyances, plus 12 regional lists) with resilient fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.
    - Added dynamic runtime support in `renderer.onConfigChange` and `preload.onConfigChange`.
-2. **Video Toggle Redesign & Alignment Fix**:
+2. **SponsorBlock Plugin Modernization**:
+   - Expanded supported categories to include `preview` (Preview/Recap) and `filler` (Filler Tangent/Joke) alongside standard sponsor and music categories.
+   - Added interactive in-app category selection submenu in `MenuTemplate`, allowing users to toggle individual category skips with persisted preferences.
+   - Enforced strict RFC 3986 parameter sanitization via `encodeURIComponent` for video IDs and JSON categories, eliminating HTTP 400 Bad Request errors.
+   - Safely guarded dev runtime logging via `window.electronIs?.dev?.()`.
+   - Added complete bilingual translations in `en.json` and `id.json` for all 8 SponsorBlock categories.
+3. **Video Toggle Redesign & Alignment Fix**:
    - Modernized `.video-switch-button` from outdated bulky styling to a sleek YouTube Music glassmorphism pill switcher (`160px × 36px`, `backdrop-filter: blur(12px)`, sliding indicator pill).
    - Fixed broken alignment where `.video-switch-button` was absolutely positioned with static margins, completely bypassing `#ytmd-video-toggle-switch-button-container` flex positioning.
    - Added real-time alignment updates in `onConfigChange` for `left`, `middle`, and `right` positions.
    - Enhanced click interactions into a true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode.
-3. **Standards & Markdown Formatting Fixes**:
-   - Fixed fenced code block language tags and table formatting in `DOCNOTE.md`.
+4. **Standards, Linter & IDE Problem Remediation**:
+   - Added `-webkit-user-select: none;` prefix across `button-switcher.css` for Safari/WebKit compatibility.
+   - Refactored `isBlockerEnabled` with optional chaining in `blocker.ts` (`blocker?.isBlockingEnabled(session) ?? false`).
+   - Reordered switch statement clauses in `video-toggle/index.tsx` placing `default:` at the end.
    - Maintained zero lint errors, zero warnings across `oxlint`, `oxfmt`, and TypeScript.
 
 ## 2. Infrastructure & Multi-Architecture macOS Runners
@@ -195,7 +203,7 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 
 ---
 
-## 6. Adblocker & Video Toggle — Full v3.11.0 Parity & Modernization
+## 6. Adblocker, SponsorBlock & Video Toggle — Modernization & Enhancements
 
 ### Functional Comparison: v3.11.0 vs v3.12.0-3 (`3.12.0-03`)
 
@@ -204,23 +212,63 @@ All updated dependencies have been tested for zero regressions against `pnpm che
 | **Plugin UI Name** | `Ad Blocker` | `Ad Blocker` / `Pemblokir Iklan` | ✅ Restored v3.11.0 naming |
 | **Menu Blocker Label** | `Blocker` | `Blocker` / `Pemblokir` | ✅ Restored v3.11.0 label |
 | **Plugin enabled by default** | `true` | `true` | ✅ Restored |
-| **Mode `WithBlocklists`** | Ghostery `ElectronBlocker` | `SOURCES` list + Prebuilt fallback | ✅ Enhanced resilience |
+| **Mode `WithBlocklists`** | Ghostery default | **24 Canonical Vendor Lists** + Prebuilt fallback | ✅ Massively Expanded |
 | **Mode `InPlayer`** | JSON/Response pruner | JSON/Response pruner | ✅ Intact & functional |
 | **Mode `AdSpeedup`** | Auto-fast-forward 16x | MutationObserver + auto-skip + mute | ✅ Fully Restored & Leak-free |
 | **Preload Injector** | Basic preload | `@ghostery/adblocker-electron-preload` | ✅ Upgraded & Verified |
+| **SponsorBlock Categories** | 6 basic categories | 8 categories (+ `preview`, `filler`) | ✅ Modernized |
+| **SponsorBlock Menu** | None (static defaults) | Interactive in-app category toggle submenu | ✅ Added |
+| **SponsorBlock Encoding** | Unescaped stringify | RFC 3986 `encodeURIComponent` sanitization | ✅ Hardened |
 | **Video Toggle UI Design** | Outdated bulky container | Modern glassmorphism pill switcher | ✅ Redesigned |
 | **Video Toggle Alignment** | Static margins (broken flex) | Dynamic flex alignment (`left`/`center`/`right`) | ✅ Fixed & Real-time |
 | **Video Toggle Interaction** | Ambiguous checkbox click | Segmented control (click Song / Video) | ✅ Improved UX |
 
-### Adblocker Filter Resilience
-- Restored YouTube-tailored ad filters from `kbinani/adblock-youtube-ads` and uBlock Origin / Fanboy / AdTidy.
-- Added automatic fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking` if external filter network fetch is unavailable, ensuring ads are always blocked even in offline or restricted environments.
-- Implemented singleton lifecycle and proper cleanup (`unloadAdSpeedup`) to eliminate memory leaks upon dynamic mode switching.
+### Comprehensive Vendor Adblock Filter Lists
+The `WithBlocklists` engine in [`src/plugins/do-not-track/blocker.ts`](src/plugins/do-not-track/blocker.ts) now sources 24 canonical filter lists directly from official mirrors (uBlock Origin, AdGuard, EasyList, ABPindo):
+1. **Core Global Ads & Privacy**:
+   - EasyList (`easylist-downloads.adblockplus.org/easylist.txt`)
+   - EasyPrivacy (`easylist-downloads.adblockplus.org/easyprivacy.txt`)
+   - Peter Lowe’s Ad and Tracking Server List (`pgl.yoyo.org/adservers/serverlist`)
+   - uBlock Origin Filters (`ublockorigin.github.io/uAssets/filters/filters.txt`)
+   - uBlock Origin Privacy (`ublockorigin.github.io/uAssets/filters/privacy.txt`)
+   - uBlock Origin Badware (`ublockorigin.github.io/uAssets/filters/badware.txt`)
+2. **Mobile & Tracking Protection**:
+   - AdGuard/uBO Mobile Ads (`filters.adtidy.org/.../filter_11_Mobile.txt`)
+   - AdGuard/uBO URL Tracking Protection (`filters.adtidy.org/.../filter_17_TrackParam_uBO.txt`)
+3. **Annoyances & Cookie Notices**:
+   - EasyList Other Annoyances (`easylist-downloads.adblockplus.org/fanboy-annoyance.txt`)
+   - Fanboy Annoyance List (`ublockorigin.github.io/uAssets/filters/annoyances.txt`)
+   - AdGuard Annoyances Filter (`filters.adtidy.org/.../filter_122_Annoyances_uBO.txt`)
+4. **12 Regional Lists**:
+   - 🇦🇱 Albania (`al`, `xk`): Adblock List for Albania
+   - 🇪🇬 Arab (`eg`, `sa`, `ma`, `dz`): Liste AR
+   - 🇧🇬 Bulgaria (`bg`): Bulgarian Adblock list
+   - 🇨🇳 Chinese (`cn`, `tw`): AdGuard Chinese (中文)
+   - 🇮🇩 Indonesia / Malaysia (`id`, `my`): ABPindo
+   - 🇮🇳 IndianList (`in`, `lk`, `np`): IndianList
+   - 🇮🇷 Iran (`ir`): PersianBlocker
+   - 🇮🇸 Iceland (`is`): Icelandic ABP List
+   - 🇮🇱 Israel (`il`): EasyList Hebrew
+   - 🇮🇹 Italy (`it`): EasyList Italy
+   - 🇯🇵 Japan (`jp`): AdGuard Japanese
+   - 🇰🇷 Korea (`kr`): 한국어 (Korean)
+5. **Resilient Offline Fallback**:
+   - If network retrieval fails, `ElectronBlocker.fromPrebuiltAdsAndTracking` is seamlessly invoked, ensuring blocking functionality is never interrupted.
 
-### Video Toggle Switcher Enhancements
-- Transformed `.video-switch-button` to a modern compact pill matching native YouTube Music styling (`width: 160px; height: 36px; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-radius: 18px;`).
-- Resolved positioning conflicts on `#ytmd-video-toggle-switch-button-container`, allowing `align: 'left' | 'middle' | 'right'` to position correctly across the entire player width.
-- Hooked `onConfigChange` to update container alignment immediately without needing an app restart or page refresh.
+### SponsorBlock Modernization & Architecture
+- **Expanded Segments**: Integrated `preview` (recap/preview segments) and `filler` (filler tangents/jokes) with granular configuration.
+- **Interactive Configuration Submenu**: Generated via `menu({ getConfig, setConfig })` in [`src/plugins/sponsorblock/index.ts`](src/plugins/sponsorblock/index.ts), rendering reactive checkable menu items for each category with real-time state persistence.
+- **RFC 3986 URI Sanitization**: Sanitized all outgoing API queries (`encodeURIComponent(videoId)` and `encodeURIComponent(JSON.stringify(categories))`), preventing HTTP 400 Bad Request issues on strict proxies and web filters.
+- **Safe Dev Logging**: Enforced null-safe chaining `window.electronIs?.dev?.()` to prevent runtime ReferenceErrors across preload and renderer processes.
+- **Bilingual Localization**: Added full localized category descriptions in both English (`en.json`) and Indonesian (`id.json`).
+
+### Current Problems Remediated
+- **Safari / WebKit Compatibility** ([`src/plugins/video-toggle/button-switcher.css`](src/plugins/video-toggle/button-switcher.css)):
+  - Added `-webkit-user-select: none;` prefix alongside `user-select: none;` on `.video-switch-button` and its child text nodes, eliminating Safari styling warnings.
+- **Optional Chaining** ([`src/plugins/do-not-track/blocker.ts`](src/plugins/do-not-track/blocker.ts)):
+  - Replaced `blocker !== undefined && blocker.isBlockingEnabled(session)` with `blocker?.isBlockingEnabled(session) ?? false`, satisfying modern TypeScript and SonarQube best practices.
+- **Switch Clause Ordering** ([`src/plugins/video-toggle/index.tsx`](src/plugins/video-toggle/index.tsx)):
+  - Moved the `default:` clause to the end of the `switch (alignment)` statement in `onPlayerApiReady`, adhering to SonarQube/oxlint rules.
 
 ---
 

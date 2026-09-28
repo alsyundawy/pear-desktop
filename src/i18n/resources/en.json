@@ -832,7 +832,20 @@
       "name": "Skip Silences"
     },
     "sponsorblock": {
-      "description": "Automatically Skips non-music parts like intro/outro or parts of music videos where the song isn't playing",
+      "description": "Automatically skips non-music parts like intro/outro or parts of music videos where the song isn't playing",
+      "menu": {
+        "categories": {
+          "filler": "Filler / Tangent",
+          "interaction": "Interaction Reminders",
+          "intro": "Intro",
+          "label": "Categories",
+          "music_offtopic": "Non-Music Section",
+          "outro": "Outro",
+          "preview": "Preview / Recap",
+          "selfpromo": "Self Promotion",
+          "sponsor": "Sponsor"
+        }
+      },
       "name": "SponsorBlock"
     },
     "synced-lyrics": {

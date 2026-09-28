@@ -33,6 +33,7 @@
   overflow: hidden;
   display: flex;
   align-items: center;
+  -webkit-user-select: none;
   user-select: none;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
@@ -94,6 +95,7 @@
   justify-content: center;
   margin: 0;
   padding: 0;
+  -webkit-user-select: none;
   user-select: none;
   pointer-events: none;
   z-index: 2;
