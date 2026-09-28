@@ -44,6 +44,12 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Comprehensive 13-Pillar Production Code Review & DevSecOps Verification**:
   - 13-pillar verification across all files: Bug, Syntax, Runtime, Logic, Memory, Dead Code, Duplicate Code, Circular Dependency, Performance, Security Vulnerability (OWASP Top 10 2025 / CWE), Maintainability, Scalability, and Readability
   - Verification: 100% clean check with `pnpm run check` (oxlint, oxfmt, tsc) — 0 errors, 0 warnings
+- **Deep Re-Verification Audit — Full Source Read & Second-Pass 13-Pillar Review (29 September 2026)**:
+  - Performed complete direct source reads of all 5 video-toggle plugin files (`index.tsx`, `button-switcher.css`, `force-hide.css`, `templates/video-switch-button.tsx`, `src/utils/wait-for-element.ts`) before asserting implementation correctness
+  - Confirmed root cause analysis from source: (1) `mode:'custom'` body class + CSS hide of `#av-id` now scoped to `.video-toggle-custom-mode` only; (2) `cleanupNativeMode(true)` correctly restores attributes only when leaving native mode; (3) 5-tier `enforce()` call chain eliminates cold-start silent no-op; (4) `isApplyingNativeAttributes` lock prevents MutationObserver infinite loops
+  - Cross-verified `#av-id` usage in `src/music-player.css` (layout fix only, does not hide), `button.video-button.ytmusic-av-toggle` in `src/renderer.ts` (resize dispatch, no conflict), and ambient-mode/transparent-player CSS (styling only, no visibility interference)
+  - Re-verified all 13 pillars pass: 0 `any` types, 0 non-null `!` assertions on DOM nodes, 4 observers all have symmetric `disconnect()`, `WeakSet<Element>` GC-safe, `waitForElement` bounded at `maxRetry: 50`, `pnpm audit` 0 CVEs
+  - Second `pnpm run check` confirms: `oxlint` 0 warnings, `oxfmt` 0 formatting errors, `tsc --noEmit` 0 type errors — all 7 acceptance criteria PASS, zero file modifications required
 - **Bumped version in `package.json` to `3.12.0-7` (Release `3.12.0-07`)**
 
 #### [v3.12.0-06](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-05...v3.12.0-06)

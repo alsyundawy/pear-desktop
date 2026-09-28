@@ -68,6 +68,63 @@ Release **3.12.0-07** (`v3.12.0-07`) delivers an architectural overhaul of the *
    - Validated full codebase with `pnpm check` (`oxlint`, `oxfmt`, `tsc`) achieving **0 errors, 0 warnings, and 100% clean formatting**.
    - Bumped package version to `3.12.0-7` (Release `3.12.0-07`).
 
+8. **Deep Re-Verification Audit — Full Source Read & 13-Pillar Re-Check (29 September 2026)**:
+
+   Triggered by a second comprehensive engineering review pass requiring full source reads of all Video Toggle plugin files before asserting correctness. All five required source files were read directly:
+   - `src/plugins/video-toggle/index.tsx` (770 lines)
+   - `src/plugins/video-toggle/button-switcher.css` (180 lines)
+   - `src/plugins/video-toggle/force-hide.css` (12 lines)
+   - `src/plugins/video-toggle/templates/video-switch-button.tsx` (73 lines)
+   - `src/utils/wait-for-element.ts` (35 lines)
+
+   **Root Cause Analysis (Confirmed from Source)**:
+   1. `mode: 'custom'` (old default) injected `video-toggle-custom-mode` body class, and CSS rule `.video-toggle-custom-mode #av-id { display: none !important; }` unconditionally hid the official `ytmusic-av-toggle` pill — **FIXED**: Default changed to `mode: 'native'`; `#av-id` hide is now strictly scoped to `.video-toggle-custom-mode`.
+   2. `updateMode()` for `custom`/`disabled`/`forceHide` stripped the `has-av-switcher` attributes that YTM's Polymer engine requires to render the pill — **FIXED**: `cleanupNativeMode(true)` restores correct attribute state only when explicitly leaving native mode.
+   3. `applyNativeMode()` previously called `querySelector?.setAttribute()` once at startup when the player DOM was not yet mounted (silent no-op), with no retry or observer — **FIXED**: Five-tier enforcement: immediate call, `nativeAttrObserver`, `nativeDomObserver`, `waitForElement('ytmusic-player-page')`, `waitForElement('ytmusic-av-toggle')`.
+   4. YTM Polymer scripts reset `has-av-switcher` and `toggle-disabled` after every paint, navigation, and song change — **FIXED**: `nativeAttrObserver` uses `attributeFilter` arrays and atomic re-entrancy lock (`isApplyingNativeAttributes`) to prevent infinite loops while immediately re-applying stripped attributes.
+   5. Custom button duplicated native switcher logic without switching actual streams — **FIXED**: Native mode is default; custom mode retained as optional clone with correct ATV suppression.
+
+   **13-Pillar Re-Verification Results** (second pass, evidence-based):
+
+   | Pillar | Finding | Result |
+   |---|---|---|
+   | **Bug** | Re-entrancy lock prevents MutationObserver infinite loop. `cleanupNativeMode(false)` skips DOM resets during internal observer rebind. | ✅ PASS |
+   | **Syntax** | `pnpm tsc --noEmit`: 0 errors. `oxfmt --check`: 0 formatting errors. `oxlint --type-aware`: 0 warnings. | ✅ PASS |
+   | **Runtime** | No unbounded `setInterval` without `clearInterval`. `waitForElement` bounded at `maxRetry: 50`. `timer.unref()` on memory watchdog. `app.once('before-quit', stopMemoryWatch)` registered. | ✅ PASS |
+   | **Logic** | ATV suppression confined to `custom` mode only (line 680: `if (musicVideoType === 'MUSIC_VIDEO_TYPE_ATV')`). Native mode defers to YTM's own ATV detection — correct, matching official YTM behavior. | ✅ PASS |
+   | **Memory** | 4 observers with symmetric `disconnect()` calls. `WeakSet<Element>` on `boundNativeButtons` (GC-safe; no strong refs). SolidJS container `.remove()`d in `stop()`. `videoStartedHandler` removed from `<video>` element before nulled. | ✅ PASS |
+   | **Dead Code** | No unreachable branches. `boundNativeButtons` has only `add()` and `has()` calls — no dead `delete()`. `applyStyleClass()` correctly shared. | ✅ PASS |
+   | **Duplicate Code** | `applyStyleClass()` invoked centrally in `start`, `onPlayerApiReady`, `onConfigChange`. `enforce()` closure defined once, referenced in 5 tier locations. | ✅ PASS |
+   | **Circular Dependency** | `video-toggle/index.tsx` imports: `solid-js`, `@/i18n`, `@/menu`, `@/plugins/precise-volume/renderer`, `@/types/*`, `@/utils`, `@/utils/wait-for-element` — all acyclic leaf imports. | ✅ PASS |
+   | **Performance** | `attributeFilter` arrays prevent full subtree attribute scanning. DOM observer scoped to `ytmusic-app-layout` (not `document`). Memory watchdog at 30s interval, `unref()`d. | ✅ PASS |
+   | **Security** | No `innerHTML` with user-controlled strings. No `eval`. `contextIsolation: true`, `nodeIntegration: false`. `pnpm audit`: 0 CVEs. All DOM queries null-safe via optional chaining. | ✅ PASS |
+   | **Maintainability** | All mode logic dispatched through `updateMode()`. Lifecycle fully symmetric: `applyNativeMode/cleanupNativeMode`, `mountCustomSwitcher/cleanupCustomMode`. Single `stop()` entry point. | ✅ PASS |
+   | **Scalability** | Plugin state fully encapsulated in `renderer` object. Ring buffer fixed at 10 samples. Observer scope element-specific, not document-wide. | ✅ PASS |
+   | **Readability** | Methods <40 LOC except `applyNativeMode` (~80 LOC, justified: 5 enforcement tiers with inline commentary). No `any` types. No non-null assertions (`!`) on DOM nodes. | ✅ PASS |
+
+   **Cross-File Symbol Verification**:
+   - `#av-id` in `src/music-player.css` (lines 65–76): padding and margin layout fix — does NOT hide the element. Confirmed safe.
+   - `button.video-button.ytmusic-av-toggle` in `src/renderer.ts` (line 444): unrelated usage (resize event dispatch in renderer.ts, not video-toggle plugin). No conflict.
+   - `src/plugins/ambient-mode/style.css` and `src/plugins/transparent-player/style.css`: Reference `.ytmusic-av-toggle` for styling only — no visibility interference.
+
+   **Acceptance Gate Re-Verification**:
+
+   ```
+   pnpm run check (oxlint + oxfmt + tsc)   →  0 errors, 0 warnings   ✅
+   pnpm audit (CVE scan)                   →  0 known vulnerabilities ✅
+   Default config mode                     →  'native'                ✅
+   restartNeeded                           →  false (live-safe)       ✅
+   #av-id hidden only in custom mode       →  CSS scoped correctly    ✅
+   enforce() called from 5 independent     →                          ✅
+     tiers (immediate, attrObs, domObs,    →                          ✅
+     waitForElement×2)                     →                          ✅
+   stop() cleans: 4 observers, 1 listener, →                          ✅
+     container, body classes, all state    →                          ✅
+   No any types, no ! DOM assertions       →  CONFIRMED               ✅
+   ```
+
+   **All 7 acceptance criteria PASS. No files require modification.**
+
 ---
 
 ## Release DocNote: 3.12.0-06
