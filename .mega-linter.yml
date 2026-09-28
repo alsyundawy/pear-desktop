@@ -11,12 +11,6 @@ DISABLE:
   - COPYPASTE
   - SPELL
 
-# Disable transitive dependency CVE scanners (managed via pnpm audit / Renovate / dependabot)
-DISABLE_LINTERS:
-  - REPOSITORY_GRYPE
-  - REPOSITORY_OSV_SCANNER
-  - REPOSITORY_TRIVY
-
 # Exclude generated output and build artifacts
 EXCLUDED_DIRECTORIES:
   - dist
