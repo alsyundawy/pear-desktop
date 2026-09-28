@@ -1,5 +1,5 @@
 import musicPlayerIcon from '@assets/icon.png?asset&asarUnpack';
-import { nativeImage, type NativeImage, TouchBar } from 'electron';
+import { nativeImage, TouchBar } from 'electron';
 
 import { t } from '@/i18n';
 import { restart } from '@/providers/app-controls';
@@ -38,79 +38,75 @@ export default createPlugin<
   backend: {
     callback: undefined,
     start({ window }) {
-      const {
-        TouchBarButton,
-        TouchBarLabel,
-        TouchBarSpacer,
-        TouchBarSegmentedControl,
-        TouchBarScrubber,
-      } = TouchBar;
+      const { TouchBarButton, TouchBarLabel, TouchBarSpacer } = TouchBar;
 
-      // Songtitle label
+      const defaultIcon = nativeImage
+        .createFromPath(musicPlayerIcon)
+        .resize({ height: 20 });
+
+      // Album art item
+      const albumArtButton = new TouchBarButton({
+        icon: defaultIcon,
+        backgroundColor: '#00000000',
+      });
+
+      // Song title label
       const songTitle = new TouchBarLabel({
-        label: '',
+        label: 'YouTube Music',
       });
-      // This will store the song controls once available
-      let controls: (() => void)[] = [];
 
-      // This will store the song image once available
-      const songImage: {
-        icon?: NativeImage;
-      } = {};
+      const controls = getSongControls(window);
 
-      // Pause/play button
-      const pausePlayButton = new TouchBarButton({
+      // Dedicated native TouchBar buttons with direct click handlers
+      const previousButton = new TouchBarButton({
+        label: '⏮',
+        click: () => controls.previous(),
+      });
+
+      const playPauseButton = new TouchBarButton({
         label: '▶️',
+        click: () => controls.playPause(),
       });
 
-      // The song control buttons (control functions are in the same order)
-      const buttons = new TouchBarSegmentedControl({
-        mode: 'buttons',
-        segments: [
-          new TouchBarButton({
-            label: '⏮',
-          }),
-          pausePlayButton,
-          new TouchBarButton({
-            label: '⏭',
-          }),
-          new TouchBarButton({
-            label: '👎',
-          }),
-          new TouchBarButton({
-            label: '👍',
-          }),
-        ],
-        change: (i) => {
-          controls[i]?.();
-        },
+      const nextButton = new TouchBarButton({
+        label: '⏭',
+        click: () => controls.next(),
       });
 
-      // This is the touchbar object, this combines everything with proper layout
+      const dislikeButton = new TouchBarButton({
+        label: '👎',
+        click: () => controls.dislike(),
+      });
+
+      const likeButton = new TouchBarButton({
+        label: '👍',
+        click: () => controls.like(),
+      });
+
       const touchBar = new TouchBar({
         items: [
-          new TouchBarScrubber({
-            items: [songImage, songTitle],
-            continuous: false,
-          }),
-          new TouchBarSpacer({
-            size: 'flexible',
-          }),
-          buttons,
+          albumArtButton,
+          songTitle,
+          new TouchBarSpacer({ size: 'flexible' }),
+          previousButton,
+          playPauseButton,
+          nextButton,
+          dislikeButton,
+          likeButton,
         ],
       });
 
-      const { playPause, next, previous, dislike, like } =
-        getSongControls(window);
-      controls = [previous, playPause, next, dislike, like];
-
       const updateTouchBar = (songInfo: SongInfo) => {
-        songTitle.label = songInfo.title || '';
-        pausePlayButton.label = songInfo.isPaused ? '▶️' : '⏸';
+        const title = songInfo.title || '';
+        const artist = songInfo.artist ? ` - ${songInfo.artist}` : '';
+        songTitle.label = title ? `${title}${artist}` : 'YouTube Music';
+        playPauseButton.label = songInfo.isPaused ? '▶️' : '⏸';
 
-        songImage.icon = (
-          songInfo.image ?? nativeImage.createFromPath(musicPlayerIcon)
-        ).resize({ height: 23 });
+        if (songInfo.image) {
+          albumArtButton.icon = songInfo.image.resize({ height: 20 });
+        } else {
+          albumArtButton.icon = defaultIcon;
+        }
 
         window.setTouchBar(touchBar);
       };
@@ -120,9 +116,6 @@ export default createPlugin<
         if (currentSong) {
           updateTouchBar(currentSong);
         } else {
-          songImage.icon = nativeImage
-            .createFromPath(musicPlayerIcon)
-            .resize({ height: 23 });
           window.setTouchBar(touchBar);
         }
       };

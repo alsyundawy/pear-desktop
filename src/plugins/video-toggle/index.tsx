@@ -168,7 +168,7 @@ export default createPlugin<
       if (config.forceHide) {
         document.body.classList.add('video-toggle-force-hide');
         document.body.classList.remove('video-toggle-custom-mode');
-      } else if (config.mode === 'custom') {
+      } else if (config.mode !== 'disabled') {
         document.body.classList.add('video-toggle-custom-mode');
         document.body.classList.remove('video-toggle-force-hide');
       } else {
@@ -204,6 +204,13 @@ export default createPlugin<
         return;
       }
 
+      const avToggle = document.querySelector('ytmusic-av-toggle');
+      if (!avToggle) {
+        // Native element absent from DOM in modern YTM — fallback to custom switcher
+        this.mountCustomSwitcher(this.config).catch(console.error);
+        return;
+      }
+
       this.cleanupCustomMode();
 
       const enforce = () => {
@@ -222,9 +229,9 @@ export default createPlugin<
             player.setAttribute('has-av-switcher', '');
           }
 
-          const avToggle = document.querySelector('ytmusic-av-toggle');
-          if (avToggle?.hasAttribute('toggle-disabled')) {
-            avToggle.removeAttribute('toggle-disabled');
+          const toggle = document.querySelector('ytmusic-av-toggle');
+          if (toggle?.hasAttribute('toggle-disabled')) {
+            toggle.removeAttribute('toggle-disabled');
           }
 
           const videoButton = document.querySelector<HTMLButtonElement>(
@@ -244,7 +251,7 @@ export default createPlugin<
       // 1. Immediate application on existing DOM elements
       enforce();
 
-      // 2. Disconnect previous observers before re-binding to prevent duplicate observers
+      // 2. Disconnect previous observers before re-binding
       this.cleanupNativeMode(false);
 
       const shouldReenforceNative = (mutation: MutationRecord): boolean => {
@@ -269,8 +276,6 @@ export default createPlugin<
         return false;
       };
 
-      // 3. Attribute Observer to prevent YTM from stripping attributes AND
-      //    to detect when ytmusic-player-page becomes visible (hidden removed)
       const attrObserver = new MutationObserver((mutations) => {
         if (this.isApplyingNativeAttributes) return;
         for (const mutation of mutations) {
@@ -281,7 +286,6 @@ export default createPlugin<
                 'ytmusic-player-page' &&
               mutation.attributeName === 'hidden'
             ) {
-              // Player page became visible — apply attributes so the pill renders
               observeTargetElements();
             }
             break;
@@ -292,8 +296,6 @@ export default createPlugin<
       const observeTargetElements = () => {
         const playerPage = document.querySelector('ytmusic-player-page');
         if (playerPage) {
-          // Watch has-av-switcher (YTM may strip it) AND hidden (player page
-          // visibility toggle) so enforce() fires when user opens full player
           attrObserver.observe(playerPage, {
             attributes: true,
             attributeFilter: ['has-av-switcher', 'hidden'],
@@ -306,9 +308,9 @@ export default createPlugin<
             attributeFilter: ['has-av-switcher'],
           });
         }
-        const avToggle = document.querySelector('ytmusic-av-toggle');
-        if (avToggle) {
-          attrObserver.observe(avToggle, {
+        const toggle = document.querySelector('ytmusic-av-toggle');
+        if (toggle) {
+          attrObserver.observe(toggle, {
             attributes: true,
             attributeFilter: ['toggle-disabled'],
           });
@@ -318,7 +320,6 @@ export default createPlugin<
       observeTargetElements();
       this.nativeAttrObserver = attrObserver;
 
-      // 4. DOM ChildList Observer to catch player-page/player/av-toggle connect/reconnect
       const domObserver = new MutationObserver((mutations) => {
         let needsReapply = false;
         for (const mutation of mutations) {
@@ -357,43 +358,6 @@ export default createPlugin<
         subtree: true,
       });
       this.nativeDomObserver = domObserver;
-
-      // 5. Use waitForElement to be resilient if player elements are not mounted yet
-      //    Increase retry to 100 (10 s) to handle slow cold starts
-      waitForElement<HTMLElement>('ytmusic-player-page', {
-        maxRetry: 100,
-        retryInterval: 100,
-      })
-        .then((page) => {
-          if (this.config?.mode === 'native' && !this.config.forceHide) {
-            enforce();
-            if (page && this.nativeAttrObserver) {
-              // Watch has-av-switcher and hidden so pill appears when screen opens
-              this.nativeAttrObserver.observe(page, {
-                attributes: true,
-                attributeFilter: ['has-av-switcher', 'hidden'],
-              });
-            }
-          }
-        })
-        .catch(() => {});
-
-      waitForElement<HTMLElement>('ytmusic-av-toggle', {
-        maxRetry: 100,
-        retryInterval: 100,
-      })
-        .then((toggle) => {
-          if (this.config?.mode === 'native' && !this.config.forceHide) {
-            enforce();
-            if (toggle && this.nativeAttrObserver) {
-              this.nativeAttrObserver.observe(toggle, {
-                attributes: true,
-                attributeFilter: ['toggle-disabled'],
-              });
-            }
-          }
-        })
-        .catch(() => {});
     },
 
     cleanupNativeMode(resetDom = true) {
@@ -497,16 +461,35 @@ export default createPlugin<
       );
 
       const songVideoElement = document.querySelector<HTMLElement>(
-        '#song-video.ytmusic-player',
+        '#song-video, #song-video.ytmusic-player',
       );
       if (songVideoElement) {
-        songVideoElement.style.display = showVideo ? 'block' : 'none';
+        songVideoElement.style.setProperty(
+          'display',
+          showVideo ? 'block' : 'none',
+          'important',
+        );
+        if (showVideo) {
+          songVideoElement.classList.remove('video-toggle-hidden');
+        } else {
+          songVideoElement.classList.add('video-toggle-hidden');
+        }
       }
 
-      const songImageElement =
-        document.querySelector<HTMLElement>('#song-image');
+      const songImageElement = document.querySelector<HTMLElement>(
+        '#song-image, #song-image.ytmusic-player',
+      );
       if (songImageElement) {
-        songImageElement.style.display = showVideo ? 'none' : 'block';
+        songImageElement.style.setProperty(
+          'display',
+          showVideo ? 'none' : 'block',
+          'important',
+        );
+        if (showVideo) {
+          songImageElement.classList.remove('video-toggle-visible');
+        } else {
+          songImageElement.classList.add('video-toggle-visible');
+        }
       }
 
       if (showVideo && targetVideo && !targetVideo.style.top) {
@@ -517,7 +500,7 @@ export default createPlugin<
     },
 
     async mountCustomSwitcher(config: VideoTogglePluginConfig) {
-      if (config.mode !== 'custom' || config.forceHide) return;
+      if (config.mode === 'disabled' || config.forceHide) return;
 
       const playerElement = await waitForElement<HTMLElement>(
         '#player, ytmusic-player',
@@ -527,7 +510,9 @@ export default createPlugin<
 
       if (!this.switchButtonContainer) {
         const [showButton, setShowButton] = createSignal(true);
-        const [isVideoActive, setIsVideoActive] = createSignal(true);
+        const [isVideoActive, setIsVideoActive] = createSignal(
+          !config.hideVideo,
+        );
         this.setShowButtonFn = setShowButton;
         this.setIsVideoActiveFn = setIsVideoActive;
 
@@ -557,6 +542,7 @@ export default createPlugin<
       }
 
       this.switchButtonContainer.style.display = 'flex';
+      this.switchButtonContainer.classList.add('is-visible');
       if (!this.switchButtonContainer.isConnected) {
         playerElement.prepend(this.switchButtonContainer);
       }
@@ -569,7 +555,7 @@ export default createPlugin<
       // Ensure container stays prepended across SPA navigation or player re-rendering
       this.customDomObserver?.disconnect();
       const customDomObserver = new MutationObserver(() => {
-        if (this.config?.mode !== 'custom' || this.config.forceHide) return;
+        if (this.config?.mode === 'disabled' || this.config?.forceHide) return;
         const player = document.querySelector<HTMLElement>(
           '#player, ytmusic-player',
         );
@@ -615,6 +601,7 @@ export default createPlugin<
 
       if (this.switchButtonContainer) {
         this.switchButtonContainer.style.display = 'none';
+        this.switchButtonContainer.classList.remove('is-visible');
       }
 
       this.playbackModeObserver?.disconnect();
@@ -625,13 +612,20 @@ export default createPlugin<
       document.body.classList.remove('video-toggle-custom-mode');
 
       const songVideoElement = document.querySelector<HTMLElement>(
-        '#song-video.ytmusic-player',
+        '#song-video, #song-video.ytmusic-player',
       );
-      if (songVideoElement) songVideoElement.style.display = '';
+      if (songVideoElement) {
+        songVideoElement.style.display = '';
+        songVideoElement.classList.remove('video-toggle-hidden');
+      }
 
-      const songImageElement =
-        document.querySelector<HTMLElement>('#song-image');
-      if (songImageElement) songImageElement.style.display = '';
+      const songImageElement = document.querySelector<HTMLElement>(
+        '#song-image, #song-image.ytmusic-player',
+      );
+      if (songImageElement) {
+        songImageElement.style.display = '';
+        songImageElement.classList.remove('video-toggle-visible');
+      }
 
       const player = document.querySelector<HTMLElement>('ytmusic-player');
       if (player) {
@@ -654,14 +648,21 @@ export default createPlugin<
       }
 
       switch (config.mode) {
-        case 'native': {
-          this.applyNativeMode();
-          break;
-        }
-
         case 'disabled': {
           this.cleanupNativeMode(true);
           this.cleanupCustomMode();
+          break;
+        }
+
+        case 'native': {
+          const avToggle = document.querySelector('ytmusic-av-toggle');
+          if (avToggle) {
+            this.applyNativeMode();
+          } else {
+            // Native element absent from DOM in modern YTM — fallback to custom switcher
+            this.cleanupNativeMode(false);
+            this.mountCustomSwitcher(config).catch(console.error);
+          }
           break;
         }
 
@@ -717,16 +718,11 @@ export default createPlugin<
       };
 
       const videoStarted = () => {
-        if (this.config?.mode === 'native' && !this.config.forceHide) {
-          this.applyNativeMode();
+        if (this.config?.mode === 'disabled' || this.config?.forceHide) {
           return;
         }
 
-        if (this.config?.mode !== 'custom' || this.config.forceHide) {
-          return;
-        }
-
-        // Always show toggle button in custom mode when not force-hidden
+        // Always show toggle button when not force-hidden or disabled
         this.setShowButtonFn?.(true);
 
         const playerResponse = this.playerApi?.getPlayerResponse?.();
@@ -743,14 +739,10 @@ export default createPlugin<
             this.forceThumbnail(songImage);
           }
 
-          if (
-            !this.config?.hideVideo &&
-            document.querySelector<HTMLElement>('#song-video.ytmusic-player')
-              ?.style.display === 'none'
-          ) {
-            this.setVideoStateFn?.(true);
+          if (this.config?.hideVideo) {
+            this.setVideoStateFn?.(false);
           } else {
-            this.moveVolumeHud(!this.config?.hideVideo);
+            this.setVideoStateFn?.(true);
           }
         }
       };
@@ -761,6 +753,13 @@ export default createPlugin<
         video.removeEventListener('peard:src-changed', videoStarted);
         video.addEventListener('peard:src-changed', videoStarted);
       }
+
+      // Also listen on playerApi videodatachange so tracks stay in sync
+      api.addEventListener('videodatachange', (name) => {
+        if (name === 'dataloaded' || name === 'dataupdated') {
+          videoStarted();
+        }
+      });
 
       this.updateMode(config);
       videoStarted();
@@ -776,6 +775,10 @@ export default createPlugin<
         oldConfig?.forceHide !== newConfig.forceHide
       ) {
         this.updateMode(newConfig);
+      }
+
+      if (oldConfig?.hideVideo !== newConfig.hideVideo) {
+        this.setVideoStateFn?.(!newConfig.hideVideo);
       }
 
       if (newConfig.mode === 'custom' && !newConfig.forceHide) {
@@ -796,7 +799,10 @@ export default createPlugin<
           ?.remove();
       }
 
-      document.body.classList.remove('video-toggle-force-hide');
+      document.body.classList.remove(
+        'video-toggle-force-hide',
+        'video-toggle-custom-mode',
+      );
 
       const video = document.querySelector<HTMLVideoElement>('video');
       if (video && this.videoStartedHandler) {

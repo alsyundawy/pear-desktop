@@ -36,7 +36,7 @@ export default createPlugin<
         await dialog.showMessageBox(window, {
           type: 'question',
           buttons: qualityLabels,
-          defaultId: currentIndex,
+          defaultId: currentIndex >= 0 ? currentIndex : 0,
           title: t(
             'plugins.quality-changer.backend.dialog.quality-changer.title',
           ),
@@ -46,7 +46,7 @@ export default createPlugin<
           detail: t(
             'plugins.quality-changer.backend.dialog.quality-changer.detail',
             {
-              quality: qualityLabels[currentIndex],
+              quality: qualityLabels[currentIndex] ?? qualityLabels[0] ?? '',
             },
           ),
           cancelId: -1,
@@ -64,13 +64,27 @@ export default createPlugin<
     injectButton() {
       if (!this.qualitySettingsButtonContainer) return;
 
-      const target = document.querySelector<HTMLElement>(
-        '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .top-row-buttons',
-      );
+      const target =
+        document.querySelector<HTMLElement>('.right-controls-buttons') ??
+        document.querySelector<HTMLElement>(
+          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons',
+        );
       if (!target) return;
 
       if (!target.contains(this.qualitySettingsButtonContainer)) {
-        target.prepend(this.qualitySettingsButtonContainer);
+        if (target.classList.contains('right-controls-buttons')) {
+          const captionsBtn = target.querySelector('.player-captions-button');
+          if (captionsBtn) {
+            target.insertBefore(
+              this.qualitySettingsButtonContainer,
+              captionsBtn,
+            );
+          } else {
+            target.prepend(this.qualitySettingsButtonContainer);
+          }
+        } else {
+          target.prepend(this.qualitySettingsButtonContainer);
+        }
       }
       this.injected = true;
     },
@@ -90,12 +104,23 @@ export default createPlugin<
         e.stopPropagation();
 
         const qualityLevels = api.getAvailableQualityLevels();
-        const currentIndex = qualityLevels.indexOf(api.getPlaybackQuality());
+        if (!qualityLevels || qualityLevels.length === 0) {
+          return;
+        }
+
+        const rawLabels = api.getAvailableQualityLabels();
+        const qualityLabels =
+          Array.isArray(rawLabels) && rawLabels.length === qualityLevels.length
+            ? rawLabels
+            : qualityLevels;
+
+        const currentQuality = api.getPlaybackQuality();
+        const currentIndex = qualityLevels.indexOf(currentQuality);
 
         const quality = (await context.ipc.invoke(
           'peard:quality-changer',
-          api.getAvailableQualityLabels(),
-          currentIndex,
+          qualityLabels,
+          currentIndex >= 0 ? currentIndex : 0,
         )) as {
           response: number;
         };
@@ -105,8 +130,10 @@ export default createPlugin<
         }
 
         const newQuality = qualityLevels[quality.response];
-        api.setPlaybackQualityRange(newQuality);
-        api.setPlaybackQuality(newQuality);
+        if (newQuality) {
+          api.setPlaybackQualityRange(newQuality);
+          api.setPlaybackQuality(newQuality);
+        }
       };
 
       render(
@@ -124,18 +151,30 @@ export default createPlugin<
       // Attempt immediate injection in case the player bar is already in DOM
       this.injectButton();
 
-      // Resilient injection: wait up to 5 s for top-row-buttons to appear
+      // Resilient injection: wait up to 5 s for target container to appear
       if (!this.injected) {
         waitForElement<HTMLElement>(
-          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .top-row-buttons',
+          '.right-controls-buttons, .top-row-buttons.ytmusic-player, #top-row-buttons',
           {
             maxRetry: 50,
             retryInterval: 100,
           },
         )
           .then((target) => {
-            if (this.qualitySettingsButtonContainer) {
-              if (!target.contains(this.qualitySettingsButtonContainer)) {
+            if (this.qualitySettingsButtonContainer && !this.injected) {
+              if (target.classList.contains('right-controls-buttons')) {
+                const captionsBtn = target.querySelector(
+                  '.player-captions-button',
+                );
+                if (captionsBtn) {
+                  target.insertBefore(
+                    this.qualitySettingsButtonContainer,
+                    captionsBtn,
+                  );
+                } else {
+                  target.prepend(this.qualitySettingsButtonContainer);
+                }
+              } else {
                 target.prepend(this.qualitySettingsButtonContainer);
               }
               this.injected = true;
@@ -156,7 +195,7 @@ export default createPlugin<
       }
 
       // Re-inject when the player page navigates (YouTube SPA route changes
-      // unmount / remount top-row-buttons between tracks or page transitions)
+      // unmount / remount controls between tracks or page transitions)
       const observer = new MutationObserver(() => {
         this.injectButton();
       });

@@ -7,16 +7,20 @@
 }
 
 .video-toggle-custom-mode #player,
-.video-toggle-custom-mode ytmusic-player {
-  position: relative !important;
+.video-toggle-custom-mode ytmusic-player,
+#player,
+ytmusic-player {
+  position: relative;
 }
 
 #ytmd-video-toggle-switch-button-container {
   display: none;
 }
 
-.video-toggle-custom-mode:not(.video-toggle-force-hide)
-  #ytmd-video-toggle-switch-button-container {
+body.video-toggle-custom-mode:not(.video-toggle-force-hide)
+  #ytmd-video-toggle-switch-button-container,
+body:not(.video-toggle-force-hide)
+  #ytmd-video-toggle-switch-button-container.is-visible {
   position: absolute;
   top: 0;
   left: 0;
@@ -31,6 +35,14 @@
 
 .video-toggle-force-hide #ytmd-video-toggle-switch-button-container {
   display: none !important;
+}
+
+#song-video.video-toggle-hidden {
+  display: none !important;
+}
+
+#song-image.video-toggle-visible {
+  display: block !important;
 }
 
 .video-toggle-custom-mode .video-switch-button,

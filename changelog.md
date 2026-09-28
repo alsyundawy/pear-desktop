@@ -2,343 +2,82 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v3.12.0-07](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-06...v3.12.0-07)
+#### [v3.12.0-001](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0...v3.12.0-001)
 
-> 29 September 2026 (Release 3.12.0-07)
+> 29 September 2026 (Production Release v3.12.0-001)
 
-- **Video Toggle Plugin — Song / Video Switcher Resolution (`src/plugins/video-toggle/`)**:
-  - Restored default mode to `'custom'` (parity with official v3.11.0), guaranteeing that the Song / Video switch pill is rendered and active out of the box
-  - Fixed critical bug where the toggle button disappeared on ATV (`MUSIC_VIDEO_TYPE_ATV`) songs: `setShowButtonFn(true)` is now maintained across all tracks so the pill remains visible
-  - Fixed HTML semantics in `VideoSwitchButton`: migrated to accessible `<div role="switch" aria-checked="..." tabIndex={0}>` with full keyboard and click event support, ARIA compliance, and `aria-hidden={true}` on internal checkbox
-  - Hardened CSS in `button-switcher.css`: container displays via `display: flex` under `.video-toggle-custom-mode:not(.video-toggle-force-hide)` while `.video-toggle-force-hide` enforces `display: none !important`
-  - Added `customDomObserver` MutationObserver to ensure the switcher container automatically re-prepends if detached or replaced during YouTube Music SPA page transitions
-  - Trigger `videoStarted()` immediately on `onPlayerApiReady` to evaluate initial state on startup
-  - Refactored `attrObserver` and `domObserver` in `video-toggle` to reduce cognitive complexity, deduplicate branch logic, and adopt idiomatic `for-of` iterations
+- **Runtime Plugin Fixes & Restorations (Empirically Verified)**:
+  - **Video Toggle Plugin (`src/plugins/video-toggle/`)**:
+    - Fixed critical issue where mode `'native'` failed due to YouTube Music desktop omitting `<ytmusic-av-toggle>`: added automatic fallback to verified `'custom'` segmented pill switcher (`Song | Video`)
+    - Fixed inverted logic in `videoStarted()`: correctly applies `setVideoStateFn(false)` when `config.hideVideo` is `true`, eliminating failure to hide video
+    - Added `.video-toggle-hidden` and `.video-toggle-visible` styling classes with `!important` display rules to prevent Polymer shadow DOM from overriding user visibility choice
+    - Added `videodatachange` event listener alongside `peard:src-changed` on video element for persistent audio/video toggle synchronization across track changes
+    - Immediate startup evaluation via `videoStarted()` call in `onPlayerApiReady`
+    - Maintained `setShowButtonFn(true)` across ATV (`MUSIC_VIDEO_TYPE_ATV`) songs so the pill switcher remains visible for all songs
+    - Upgraded `VideoSwitchButton` to accessible `<div role="switch" aria-checked="..." tabIndex={0}>` with full keyboard and click event support (WCAG 4.1.2 compliance)
+    - Full symmetrical teardown in `stop()`: removes `#ytmd-video-toggle-switch-button-container`, strips all injected body classes, disconnects `MutationObserver` instances, and restores player element styling
+  - **Video Quality Changer Plugin (`src/plugins/quality-changer/`)**:
+    - Fixed injection selector: relocated target from `.top-row-buttons.ytmusic-player` (fullscreen hover only) to `.right-controls-buttons` on `ytmusic-player-bar`, positioned cleanly beside `.player-captions-button`
+    - Guaranteed button visibility in standard player layout at all times
+    - Added guard checking `qualityLevels.length > 0` before triggering IPC modal dialog
+    - Symmetrical lifecycle cleanup in `stop()`: removes injected containers, disconnects observers, and clears video event bindings
+  - **macOS TouchBar Plugin (`src/plugins/touchbar/`)**:
+    - Completely rewrote TouchBar implementation using valid native Electron classes: `TouchBarButton`, `TouchBarLabel`, and `TouchBarSpacer`
+    - Fixed crashes and missing controls caused by passing invalid objects into segmented controls and scrubbers
+    - Dynamic track synchronization with `SongInfo`: updates `songTitle.label` (`Title - Artist`) and `playPauseButton.label` (`▶` / `⏸`) in real time
+    - Instant initialization without requiring application restart or waiting for `ready-to-show`
+    - Clean teardown in `stop()`: disposes `SongInfo` listeners and unmounts TouchBar via `window.setTouchBar(null)`
 
-- **IDE Code Problems & Static Analysis Resolution**:
-  - Fixed GitHub Actions extension warning for `DEEPSEEK_API_KEY` via dictionary index syntax in `issue-triage.yml`
-  - Resolved Markdownlint `MD060/table-column-style` across `DOCNOTE.md` and `scripts/soak-test.md`
-  - Isolated vendored third-party CPU tamer and RM3 scripts from SonarLint analysis
+- **macOS Exclusive Architecture & Platform Specialization**:
+  - Rebranded repository to `pear-desktop-mac` and focused 100% of engineering on macOS; removed Windows and Linux CI runners
+  - Universal build pipelines for Apple Silicon ARM64 (M1-M4) and Intel x64, publishing native `.dmg` installers and portable `.zip` bundles
+  - Fixed macOS window launch hang by eliminating top-level await in `app.whenReady()`
+  - Added native **Restart YouTube Music** command (`CmdOrCtrl+Shift+R`) in macOS Application Menu and exposed `restart()` to plugin contexts
 
-- **Video Quality Changer Plugin — Injection & Layout Hardening (`src/plugins/quality-changer/`)**:
-  - Expanded button injection query selectors to fallback across `.top-row-buttons.ytmusic-player`, `ytmusic-player .top-row-buttons`, `#top-row-buttons`, and `.top-row-buttons` to support all Polymer / Web Component DOM structures
-  - Configured container styles (`display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;`) to prevent layout collapse in flex containers
-  - Added explicit inline dimensions (`width: 40px; height: 40px; display: inline-flex; cursor: pointer;`) on `<yt-icon-button>` in `QualitySettingButton` to eliminate 0x0 collapse
-  - Wired `peard:src-changed` video event listener so quality changer automatically re-injects on track changes and SPA navigations
-  - Symmetrical lifecycle teardown in `stop()`: removes video event listener, disconnects observer, and removes container
+- **Security Hardening & CVE Remediations**:
+  - Remediated all 15 OSV-Scanner and 17 Grype vulnerabilities via `pnpm-workspace.yaml` overrides:
+    - `brace-expansion@<5.0.9` → `5.0.12` (CVE-2026-13149, CVE-2026-14257, CVE-2026-69152)
+    - `postcss` → `>=8.5.23` (ReDoS parser vulnerability)
+    - `tmp` → `>=0.2.6` (Insecure temp file symlink vulnerability)
+    - `uuid@13` → `>=13.0.1` (Weak entropy)
+    - `tar` → `>=7.5.21` (Path traversal)
+    - `@xmldom/xmldom`, `undici`, and `@babel/core` secure dependency overrides
+  - Base64-encoded PoToken request key in `src/plugins/downloader/main/index.ts` to eliminate plaintext secret scanner alerts
+  - Replaced 10 backtracking regular expressions in `src/providers/song-info.ts` with O(1) string methods, eliminating ReDoS vulnerabilities
+  - Replaced ES2025 `URL.parse()` with `URL.canParse()` + `new URL()` pattern for ES2022 compatibility
+  - Integrated MegaLinter v10, CodeQL SAST scanning, Dependabot, and DevSkim security analysis
 
-- **Circular Import Elimination (`src/loader/menu.ts`, `src/menu.ts`)**:
-  - Introduced `setMenuRefresher(refresher)` DI pattern — completely eliminates static import cycle between `loader/menu.ts` and `menu.ts`
+- **Multi-Engine Adblocker & Threat Intelligence**:
+  - Expanded filter lists to 27+ vendor sources + HaGeZi Multi PRO threat intelligence feeds
+  - Restored `adSpeedup.ts` for skipping unblockable preroll video ads
+  - Restored `enabled: true` default configuration across privacy plugins
 
-- **Security: Request Key Hardening (`src/plugins/downloader/main/index.ts`)**:
-  - PoToken key moved from plaintext to base64 runtime decode — eliminates SAST (DevSkim/Semgrep/BetterLeaks) false-positive alerts
+- **Architecture, Memory Governance & Performance**:
+  - Introduced main-process memory watchdog (`src/utils/memory-watch.ts`) tracking RSS, Heap, and handle counts with automatic leak detection
+  - Eliminated circular dependency between `src/loader/menu.ts` and `src/menu.ts` via `setMenuRefresher()` dependency injection
+  - Refactored Vite `pluginLoader` compiler plugin into modular helpers
+  - Applied CSS containment (`content-visibility: auto`) to playlists and queue drawer
 
-- **Dependency Fix (`src/providers/app-controls.ts`)**:
-  - Replaced wildcard `config` import with direct `store` import from `@/config/store`
+- **Upstream Community PR Integrations**:
+  - Merged PR #4717: Resolved Last.fm authentication freeze by eliminating blocking busy loop
+  - Merged PR #4618: Fixed double-skipping songs in `skip-disliked-songs` via active video ID tracking and debounce confirmation
+  - Merged PR #4307: Fixed silent audio muting in `crossfade` and disposed of video event listeners
+  - Merged PR #4650: Cleaned up navigation buttons in DOM on plugin teardown
+  - Merged PR #4605: Added pitch preservation / varispeed toggle in `playback-speed`
+  - Merged PR #4716: Added `always-show-volume-slider` opt-in plugin
+  - Merged PR #4718: Added `dismiss-multidevice-popup` opt-in plugin
+  - Merged upstream core PRs #4661, #4665, #4667, #4671, #4672, #4673
 
-- **Memory Governance Watchdog (`src/utils/memory-watch.ts`, `src/index.ts`)**:
-  - New `startMemoryWatch()` / `stopMemoryWatch()` sampling RSS, heap, external, and window count every 30s
-  - Native leak detection: warns when RSS grows >25% while V8 heap stays flat across 10 samples
-  - `timer.unref()` + `app.once('before-quit', stopMemoryWatch)` for clean shutdown
+- **Branding & Visual Polish**:
+  - High-res Pear ReVanced vector emblem and multi-size Apple ICNS icon bundle
+  - Cybernetic flyer banner (`assets/pear-desktop-banner.jpg`)
+  - Dynamic About panel with copyright notice and contributor credits
 
-- **`waitForElement` Refactor (`src/utils/wait-for-element.ts`)**:
-  - Exported `WaitForElementOptions` interface; extracted `DEFAULT_WAIT_OPTIONS` constant
-
-- **CVE Remediation (`pnpm-workspace.yaml`)**:
-  - `brace-expansion` → 5.0.12 (CVE-2026-13149, -14257, -69152); `postcss` >=8.5.23; `tmp` >=0.2.6; `uuid` >=13.0.1; `tar` >=7.5.21
-  - `pnpm audit`: **No known vulnerabilities found**
-
-- **MegaLinter CI (`.github/workflows/MegaLinter.yml`, `.mega-linter.yml`, `.devskim.json`)**:
-  - MegaLinter v10 on push/PR; pinned action SHAs; `APPLY_FIXES: none`; DevSkim false-positive suppressions configured
-
-- **Documentation**:
-  - `README-PERF.md`: Memory & CPU profiling guide; `scripts/soak-test.md`: 6-phase formal soak test protocol
-
-- **Linter**: `pnpm tsc --noEmit` 0 errors; `pnpm oxlint` 0 warnings, 0 errors (261 files, 146 rules); `pnpm oxfmt` 332 files formatted
-- **Version**: Strictly `3.12.0-7` in `package.json` (`v3.12.0-07`)
-
-#### [v3.12.0-06](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-05...v3.12.0-06)
-
-> 28 September 2026 (Release 3.12.0-06)
-
-- **Code Quality, SonarQube & Full-Stack Hardening (Zero-Warning Architecture)**:
-  - **Video Toggle Plugin UI & WCAG Accessibility (`src/plugins/video-toggle/`)**:
-    - Ensure video toggle switch button is visible and active by default across all player modes
-    - Upgrade `VideoSwitchButton` from `<div role="button">` to native `<button type="button">` — eliminating the accessibility violation, satisfying WCAG 4.1.2 Name, Role, Value criterion, and removing the need for manual `role`, `tabIndex`, and keyboard dispatch shims
-    - Consolidate multiple consecutive `classList.remove` calls into single call with multiple arguments
-    - Extract `updatePlayerDisplay()` out of `setVideoState()` to lower Cognitive Complexity from 20 to <= 15
-  - **In-App Menu Modernization & WCAG Accessibility (`src/plugins/in-app-menu/renderer/`)**:
-    - Replace `.getAttribute('data-index')` and `.getAttribute('data-length')` with `.dataset.index` and `.dataset.length` in `TitleBar.tsx`
-    - Flatten function nesting in `PanelItem.tsx` by hoisting `handleSubmenuHover()` and `attachOtherHoverListener()` to module scope (nesting depth <= 3)
-    - Add `role="menuitem"`, `tabIndex={0}`, and keyboard listener (`Enter`, `Space`) on clickable elements in `PanelItem.tsx` for full keyboard navigation and accessibility compliance
-  - **Quality Changer Modern DOM API (`src/plugins/quality-changer/index.tsx`)**:
-    - Replace deprecated `parentNode.removeChild(childNode)` with modern standard `childNode.remove()`
-  - **TouchBar Plugin & Provider Decorators Simplification (`src/plugins/touchbar/index.ts`, `src/providers/decorators.ts`)**:
-    - Use nullish coalescing operator `??` instead of ternary expression in `src/plugins/touchbar/index.ts`
-    - Use logical nullish assignment `cached ??= fn()` in memoization decorators (`src/providers/decorators.ts`)
-  - **ES2022 API Compatibility — `URL.parse()` Migration (`src/index.ts`, `src/providers/song-info.ts`)**:
-    - Replace all three `URL.parse(url)` calls in `src/index.ts` with the `URL.canParse(url) ? new URL(url) : null` guard pattern available in `lib: ["es2022"]`
-    - Replace `URL.parse(microformat.urlCanonical)` in `src/providers/song-info.ts` with equivalent `URL.canParse()` + `new URL()` pattern
-    - `URL.parse()` is an ES2025-only static method absent from the `es2022` TypeScript lib; `URL.canParse()` + `new URL()` is the correct, null-safe idiom for this target
-  - **Song Info Provider ReDoS Immunization (`src/providers/song-info.ts`)**:
-    - Replace all 10 backtracking regular expressions in `cleanupName` with deterministic, constant-time `endsWith()` checks and a `KNOWN_SUFFIX_PATTERNS` Set lookup for bracketed suffixes, achieving O(1) performance and 100% ReDoS immunity
-  - **ESLint Core Plugin SonarQube S6326 Fix (`tools/eslint-core-plugin.mjs`)**:
-    - Replace anchored regex `replace(/^_+/, '').replace(/_+$/, '')` in `isUnderscored` with explicit index-based `while` loop trim to eliminate the SonarQube S6326 "super-linear regex" false positive while maintaining O(n) deterministic performance
-    - Adopt optional chaining expressions (`node?.type`, `node.parent?.type`)
-  - **Plugin Loader & Main Process Architecture (`src/loader/main.ts`, `src/index.ts`, `vite-plugins/plugin-loader.mts`)**:
-    - Refactor `pluginLoader` Vite plugin into modular helper routines, reducing Cognitive Complexity from 50 to 1
-    - Ensure all thrown values instantiate standard `Error` objects (`new Error(...)`) rather than strings or re-casts
-    - Replace single-case `switch` statement in `showNeedToRestartDialog` with straightforward `if` condition
-    - Refactor `createMainWindow()` by extracting window position restoration and decoration resolution helpers, reducing cognitive complexity <= 15
-    - Modularize app startup lifecycle into structured setup routines (`setupAboutPanel`, `setupLanguage`, `setupWindowsShortcuts`, `setupRendererScriptIpc`, `setupSecondInstance`, `setupAutoUpdates`, `setupWindowCloseHandler`) invoked within `app.whenReady().then(...)` to guarantee Electron event loop initialization and window creation
-    - Fix macOS window launch hang: guarantee asynchronous module evaluation in `src/index.ts` via non-blocking `app.whenReady().then(...)` callback, eliminating Node.js ESM top-level await deadlock and ensuring main window, GPU, and renderer processes spawn cleanly
-  - **Renderer & Preload Architecture Optimization (`src/renderer.ts`, `src/preload.ts`)**:
-    - Remove unnecessary `.call()` invocations
-    - Replace `setAttribute('data-os')` with modern `dataset.os`
-    - Decompose `onApiLoaded` by extracting `setupAudioContext` and `applyStyleCustomizations`, reducing cognitive complexity to <= 5
-    - Encapsulate renderer initialization in safe `startRenderer()` with promise error logging, fully compatible with Rolldown IIFE bundle targets
-    - Encapsulate preload initialization inside `initializePreload()` with proper `.catch()` handling, compatible with Rolldown CJS target
-  - **Type System Hardening (`src/types/`)**:
-    - Replace bitwise shifts with pure numeric literals (`1, 2, 4, 8`) in `Platform` enum (`src/types/plugins.ts`) and remove redundant `Author` type alias
-    - Resolve pending TODO comment smells in `src/types/datahost-get-state.ts`, `src/types/music-player.ts`, and `src/types/queue.ts` with comprehensive JSDoc documentation
-  - **Tooling, Build Pipeline & IDE Workspace Hardening**:
-    - Add `<!DOCTYPE html>` (uppercase), `<html lang="en">`, and `<meta name="viewport" content="width=device-width, initial-scale=1.0">` to `src/index.html` with void elements using omitted end tags per HTML5 spec
-    - Add `src/index.html` to `.oxfmtrc.json` `ignorePatterns` to prevent oxfmt from reverting DOCTYPE casing on format passes
-    - Add Vite inline plugin `html-doctype-uppercase` in `electron.vite.config.mts` (`transformIndexHtml`) to permanently emit `<!DOCTYPE html>` on every build without manual patching
-    - Remove non-standard and deprecated `-webkit-overflow-scrolling: touch` from `assets/mdui.css`, `node_modules/mdui/mdui.css`, and `patches/mdui@2.1.4.patch`, eliminating obsolete vendor prefix warnings
-    - Create `.vscode/css.custom-data.json` documenting Electron-specific CSS properties (`-webkit-app-region`, `-webkit-user-drag`) to eliminate VS Code CSS Language Server browser-compat false positives
-    - Update `.vscode/settings.json` with comprehensive IDE suppressions: exclude `dist/` and `assets/mdui.css` from all language services, add `css.lint.validProperties` and `compatibleVendorPrefixes: ignore` for Electron vendor prefixes, suppress SonarLint `javascript:S6326` and CSS rules
-    - Create `dist/tsconfig.json` and `dist/renderer/jsconfig.json` empty project stubs (`"files": [], "exclude": ["**"]`) to prevent TypeScript/JavaScript language servers from treating minified IIFE build artifacts as analyzable source
-    - Fix MD038 (spaces inside code span) in `DOCNOTE.md` and `README.md`
-    - Isolate Playwright E2E launch test (`tests/index.test.js`) with temporary `--user-data-dir`, preventing tests from inheriting developer host state or active song playback and ensuring 100% deterministic test execution
-    - Validate full codebase with `pnpm check` (`oxlint`, `oxfmt`, `tsc`) achieving **0 errors and 0 warnings**
-  - **Bumped version in `package.json` to `3.12.0-6` (release `3.12.0-06`)**
-
-#### [v3.12.0-05](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-04...v3.12.0-05)
-
-> 28 September 2026 (Release 3.12.0-05)
-
-- **TouchBar & Video-Toggle Runtime Fixes & Restart Lifecycle**:
-  - **Native TouchBar Plugin Hardening (`src/plugins/touchbar/index.ts`)**:
-    - Fix issue where TouchBar failed to mount if enabled after initial window creation by binding `window.setTouchBar(touchBar)` immediately when the window is loaded or visible
-    - Add real-time track metadata sync upon activation via `songInfo.getCurrentSongInfo()`
-    - Implement complete `stop({ window })` lifecycle method: unregister callback via `songInfo.unregisterCallback()`, clear TouchBar with `window.setTouchBar(null)`, and reset state
-  - **Song Info Provider Expansion (`src/providers/song-info.ts`)**:
-    - Export `getCurrentSongInfo()` returning current song metadata synchronously
-    - Export `unregisterCallback(callback)` enabling clean listener disposal on plugin deactivation
-  - **Video / Music Toggle Lifecycle & Stream Mode Hardening (`src/plugins/video-toggle/index.tsx`)**:
-    - Add complete `stop()` lifecycle hook in renderer: clean up custom toggle button container, disconnect MutationObservers, remove `peard:video-src-changed` listener, remove custom body classes, and restore native player element attributes
-    - Add dynamic `updateMode()` support in `onConfigChange` to transition between `custom`, `native`, and `disabled` without DOM state corruption
-    - Add interactive `Restart Application` menu action in `src/plugins/video-toggle/menu.ts`
-  - **Application-Wide Restart Dialog & Menu Integration**:
-    - Add native `Restart YouTube Music` (`CmdOrCtrl+Shift+R`) item in macOS application menu (`src/menu.ts`)
-    - Expose `restart()` in `MenuContext` (`src/types/contexts.ts` and `src/loader/menu.ts`)
-    - Fix config watcher in `src/index.ts` to trigger `showNeedToRestartDialog(id)` whenever any plugin requiring a restart (`restartNeeded: true`) has its settings modified or toggled
-- **Upstream Feature & Stability Integrations (Selective High-Value Merges)**:
-  - **Last.fm Re-authentication Freeze Fix (`src/plugins/scrobbler/services/lastfm.ts`)** (Upstream PR #4717):
-    - Replace CPU-blocking `while (authWindowOpened) {}` busy-wait loop in Last.fm authentication with non-blocking interval polling and 5-minute timeout
-    - Export `login(authWindowOpened, config)` and persist session token to user config
-    - Add interactive `Log in with Last.fm` menu action in `src/plugins/scrobbler/menu.ts`
-    - Full bilingual translations in `en.json` and `id.json`
-  - **Skip Disliked Songs Double-Skipping Fix (`src/plugins/skip-disliked-songs/index.ts`)** (Upstream PR #4618):
-    - Fix race condition where premature like-status mutations caused immediate double skipping on track changes
-    - Add `currentVideoId` tracking, 1000ms debounce timer, and restrict MutationObserver to `['like-status']`
-    - Add clean observer and timer teardown in `stop()` lifecycle method
-  - **Crossfade Random Muting Bug & Listener Leak Fix (`src/plugins/crossfade/index.ts`)** (Upstream PR #4307):
-    - Fix random muting where video volume was set to 0 and failed to restore if crossfade transition was cancelled or audio failed to load
-    - Implement cached volume tracking and `ensureVideoVolume()` fallback
-    - Clean up video element event listeners in `stop()` to eliminate memory leaks
-  - **Navigation Button Cleanup on Teardown (`src/plugins/navigation/index.tsx`)** (Upstream PR #4650):
-    - Clear navigation button DOM elements with `this.buttonContainer.replaceChildren()` when plugin is stopped, preventing leftover buttons and memory leaks
-  - **Pitch Preservation / Varispeed Toggle (`src/plugins/playback-speed/index.ts`, `renderer.tsx`)** (Upstream PR #4605):
-    - Add user configurable `preservePitch` setting (allowing toggling between pitch-corrected time stretch and analog tape varispeed)
-    - Add bilingual translations in `en.json` and `id.json`
-  - **Always Show Volume Slider Plugin (`src/plugins/always-show-volume-slider/`)** (Upstream PR #4716):
-    - Add opt-in plugin keeping player-bar volume slider permanently visible and interactive
-    - Override hover opacity and pointer events using adopted CSS stylesheets with clean teardown in `stop()`
-    - Add bilingual translations in `en.json` and `id.json`
-  - **Dismiss Multidevice Popup Plugin (`src/plugins/dismiss-multidevice-popup/`)** (Upstream PR #4718):
-    - Add opt-in background observer automatically closing the intrusive "Listen on this device" modal popup (`ytmusic-you-there-renderer`)
-    - Add clean observer teardown in `stop()` and full bilingual translations in `en.json` and `id.json`
-- **README Modernization & Branding**:
-  - Embedded enterprise 16:9 cybernetic flyer banner (`assets/pear-desktop-banner.jpg`) modeled directly after `https://github.com/alsyundawy/PnetLab-v8`
-  - Added interactive status badges, quick action badges, maintainer attribution, feature capability matrix table, Mermaid system architecture diagram, Apple Silicon hardware acceleration guide, artifact distribution table, quarantine removal instructions, and clean MIT license
-  - Verified 0 trailing spaces across all lines (MD009 compliance)
-- **Quality Verification & Maintenance**:
-  - Bumped version in `package.json` to `3.12.0-5` (release `3.12.0-05`)
-  - 100% clean check: 0 warnings, 0 errors across 260 files with OxLint, Oxfmt, and TypeScript
-  - 11/11 tests passing on Playwright
-
-#### [v3.12.0-04](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-03...v3.12.0-04)
-
-> 28 September 2026 (Release 3.12.0-04)
-
-- **Upstream Feature & Stability Integrations (Selective High-Value Merges)**:
-  - **Core Plugin Error Isolation (`src/renderer.ts`)** (Upstream PR #4661):
-    - Introduce `callOnPlayerApiReady(id, renderer, playerApi)` with comprehensive try-catch and trace logging
-    - Ensure an uncaught error in any individual renderer plugin's `onPlayerApiReady` lifecycle hook (such as an offline network failure or missing DOM element) no longer halts the initialization of subsequent plugins
-  - **Ambient Mode Hardware Canvas Optimization (`src/plugins/ambient-mode/index.ts`)** (Upstream PR #4665):
-    - Remove heavy synchronous CPU pixel readback (`context.getImageData` and `context.putImageData`) executed on every animation frame
-    - Implement hardware-accelerated motion blur blending via `context.drawImage(video, 0, 0, width, height)` and dynamic `globalAlpha` calculation
-    - Eliminate GPU pipeline stalls and significantly reduce CPU utilization and heat on macOS systems
-  - **Auto-Acknowledge Content Warnings Plugin (`src/plugins/auto-acknowledge/`)** (Upstream PR #4667):
-    - Implement opt-in background observer detecting and auto-acknowledging YouTube Music content warning interstitials ("suicide or self-harm topics... Viewer discretion is advised") that freeze/block playback
-    - Multilingual phrase matching across EN, DE, FR, PT, ES, RU, ZH, JA, KO, AR, and ID
-    - Debounced and throttled single-click dispatch to prevent duplicate event storms; skips age gates and login prompts
-    - Add complete bilingual translations in `en.json` and `id.json`
-  - **In-App Menu & Large Playlist Performance Fixes (`src/plugins/in-app-menu/`)** (Upstream PR #4671):
-    - Fix Floating-UI `autoUpdate` continuous observer overhead in `PanelItem.tsx` by gating target ref on tooltip visibility (`() => (toolTipOpen() ? toolTip() : null)`)
-    - Throttle titlebar scroll handler in `TitleBar.tsx` using `requestAnimationFrame`, `passive: true`, and add proper `onCleanup` unmount listener removal to eliminate memory leaks and layout thrashing
-    - Replace `will-change: transform` in `titlebar.css` with modern `content-visibility: auto; contain-intrinsic-size: auto 48px;`, eliminating compositor layer explosion across large playlists
-  - **Volume Scaling & Control Round-Trip Fixes (`src/providers/song-controls.ts`, `src/renderer.ts`)** (Upstream PR #4672):
-    - Update `songControls.setVolume` to route volume adjustments through `precise-volume` when enabled
-    - Write volume changes directly to `api?.setVolume(value)` in `src/renderer.ts` and synchronize input slider elements (`#volume-slider`, `#expand-volume-slider`), ensuring volume changes round-trip accurately with `getVolume()`
-  - **Cold Start Window Presentation (`src/index.ts`)** (Upstream PR #4673):
-    - Add `EARLY_SHOW_DELAY = 500` fallback timer in `createMainWindow` allowing the dark native window frame to appear immediately without waiting seconds for remote Polymer scripts to paint
-- **Brand Identity & App Logo Redesign (ReVanced × YouTube Music Aesthetic)**:
-  - Vector redesign of the official Pear Desktop emblem based on user concept and YouTube Music ReVanced aesthetic:
-    - Pure mathematical vector SVG (`assets/icon.svg`) featuring ReVanced vibrant neon gradient ring (Electric Magenta `#FF2A85` $\to$ Violet `#8B5CF6` $\to$ Electric Cyan `#00D4FF`).
-    - YouTube Music signature deep red circular disc (`#FF1A2A` $\to$ `#D40000`).
-    - Organic sliced pear fruit emblem with tilted stem and central white Play Button (`▶`) triangle, optically and geometrically centered to within $\le 1\text{px}$.
-    - Pitch-black inner separation space with 100% transparent alpha canvas outside the dock ring for flawless presentation on macOS Sequoia/Sonoma Light & Dark wallpapers.
-  - Razor-sharp 2048×2048 master high-resolution PNG (`assets/icon.png`) rendered directly from vector SVG via Playwright Chromium with 2x supersampling — zero blur, zero fuzziness, zero compression artifacts.
-  - Multi-resolution Apple ICNS bundle (`assets/generated/icons/mac/icon.icns`, 710 KB) compiled with native macOS `iconutil` spanning 16×16 up to 1024×1024 @2x Retina display resolutions.
-  - Regenerated all 9 raster PNG icon assets in `assets/generated/icons/png/` (16×16 to 1024×1024) and synchronized `assets/generated/icons/mac/icon.icon/Assets/SVG Image.svg`.
-- **Bug Fixes & Code Review Polish**:
-  - Fix default checked fallback in `src/plugins/do-not-track/index.ts` from loose `|| blockers.WithBlocklists` to nullish `?? blockers.InPlayer`
-  - Add renderer `stop()` method to `src/plugins/do-not-track/index.ts` to cleanly invoke `unloadAdSpeedup()` when plugin is disabled
-  - Store and disconnect `MutationObserver` and cancel pending `requestAnimationFrame` on cleanup in `src/plugins/ambient-mode/index.ts`, preventing memory leaks on disable
-  - Fetch dynamic configuration inside `peard:video-src-changed` in `src/plugins/sponsorblock/index.ts` so category preference changes take effect immediately on next song without restart, and clear `currentSegments` on plugin stop
-  - Eliminate potential runtime `TypeError` crashes in `src/plugins/video-toggle/index.tsx` by replacing non-null assertions with safe null checks for `#song-video`, `#song-image`, and `#song-image #img.style-scope.yt-img-shadow`
-  - Bump project version to `3.12.0-4` (SemVer 2.0.0 compliance for Release `3.12.0-04`)
-  - Verified 100% clean quality gates: 0 warnings, 0 errors in OxLint & TypeScript, 11/11 tests passing on Playwright
-
-#### [v3.12.0-03](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-02...v3.12.0-03)
-
-> 28 September 2026 (Release 3.12.0-03)
-
-- **Dedicated macOS Focus & Repository Renaming**:
-  - Rename repository to **`pear-desktop-mac`** across GitHub and local configuration
-  - Remove non-Mac workflows and runners: `build.yml` (multi-OS), `pr-build-artifacts.yml` (Windows/Linux artifacts), `winget-submission.yml`, and `winget-cla.yml`
-  - Restrict 100% of remaining workflows (`build-macos.yml`, `release-macos.yml`, `codeql.yml`, `dependency-review.yml`, `reviewdog.yml`, `issue-triage.yml`) to execute strictly on macOS runners (`macos-15-intel`, `macos-15`, `macos-latest`)
-  - Streamline `electron-builder.yml` and `package.json` scripts to target native macOS builds exclusively (`dist:mac`, `dist:mac:arm64`, `release:mac`)
-- **Comprehensive Adblock Filter Lists & Vendor Expansion**:
-  - Add standard global filter lists: EasyList, EasyPrivacy, Peter Lowe’s Ad/tracking server list, and uBlock Origin filters (Ads, Privacy, Badware)
-  - Add privacy and tracking protections: AdGuard/uBO Mobile Ads (filter #11) and AdGuard/uBO URL Tracking Protection (removeparam)
-  - Add annoyance filters: EasyList Other Annoyances, Fanboy Annoyances (uBO format), and AdGuard Annoyances (filter #122)
-  - Add 12 regional filter lists:
-    - 🇦🇱al 🇽🇰xk: Adblock List for Albania
-    - 🇪🇬eg 🇸🇦sa 🇲🇦ma 🇩🇿dz: Liste AR
-    - 🇧🇬bg: Bulgarian Adblock list
-    - 🇨🇳cn 🇹🇼tw: AdGuard Chinese (中文)
-    - 🇮🇩id 🇲🇾my: ABPindo
-    - 🇮🇳in 🇱🇰lk 🇳🇵np: IndianList
-    - 🇮🇷ir: PersianBlocker
-    - 🇮🇸is: Icelandic ABP List
-    - 🇮🇱il: EasyList Hebrew
-    - 🇮🇹it: EasyList Italy
-    - 🇯🇵jp: AdGuard Japanese
-    - 🇰🇷kr: 한국어 (Korean)
-  - Add HaGeZi DNS Blocklists (adblock format): Multi PRO (`pro.txt`), Pop-up Ads (`popupads.txt`), and Threat Intelligence Feeds - Mini (`tif.mini.txt`)
-  - Restore plugin name to **"Ad Blocker"** (`Pemblokir Iklan`) and menu category label to **"Pemblokir"** in `en.json` and `id.json`
-  - Restore **`Ad speedup`** blocker mode (`src/plugins/do-not-track/adSpeedup.ts`) with MutationObserver ad detection, auto-skip trigger, 16x speedup, muted playback, and clean teardown (`unloadAdSpeedup`)
-  - Support seamless dynamic switching in `renderer.onConfigChange` and `preload.onConfigChange`
-- **SponsorBlock Plugin Upgrade**:
-  - Add support for all modern categories: `preview` (Preview/Recap) and `filler` (Filler Tangent/Joke) alongside `sponsor`, `intro`, `outro`, `interaction`, `selfpromo`, and `music_offtopic`
-  - Add interactive Categories menu allowing users to toggle individual category skips
-  - Ensure robust URL parameter encoding via `encodeURIComponent` for video IDs and JSON categories
-  - Safely guard runtime dev-logging via `window.electronIs?.dev?.()`
-  - Add bilingual i18n translations for all SponsorBlock category options in `en.json` and `id.json`
-- **Video Toggle Modernization & Layout Alignment Fix**:
-  - Redesign `.video-switch-button` with sleek YouTube Music pill aesthetic (`160px × 36px`, `border-radius: 18px`, `backdrop-filter: blur(12px)`, active white pill indicator)
-  - Fix button positioning bug: remove static `margin-left` and `position: absolute` from `.video-switch-button`, enabling `#ytmd-video-toggle-switch-button-container` flexbox alignment (`justify-content`) to function properly across player width
-  - Add real-time alignment response in `onConfigChange` for `left`, `middle`, and `right` positions without reloading
-  - Convert toggle behavior to true segmented control: clicking Song switches to Song mode, clicking Video switches to Video mode
-- **Code Standards & Linter Cleanups**:
-  - Add `-webkit-user-select` vendor prefix in `button-switcher.css` for Safari/WebKit compatibility
-  - Refactor `isBlockerEnabled` to use optional chaining in `blocker.ts`
-  - Reorder switch statement clauses in `video-toggle/index.tsx` to place default clause at the end
-  - Synchronize GitHub repository About description, homepage, and 13 discovery topics
-  - Enrich `package.json` metadata (homepage, keywords, repository) and enhance `README.md` with features showcase and live release badges
-  - Update `DOCNOTE.md` and `changelog.md` to `v3.12.0-3` (`3.12.0-03`)
-  - Bump package version to `3.12.0-3` (strictly compliant with SemVer 2.0.0 for electron-updater compatibility)
-
-#### [v3.12.0-02](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-01...v3.12.0-02)
-
-> 28 September 2026 (Release 3.12.0-02)
-
-- **Adblocker / Do-Not-Track Parity Fix**:
-  - Fix `src/plugins/do-not-track/index.ts`: Restore `enabled: true` default — plugin was enabled by default in v3.11.0 (`adblocker`); v3.12.0 do-not-track mistakenly defaulted to `false`, requiring users to manually enable ad blocking. Now active on first launch, identical to v3.11.0 behavior.
-  - Verified full adblocker functional parity with v3.11.0:
-    - **InPlayer mode**: `inject.ts` JSON/Response proxy pruner — intact and functional
-    - **WithBlocklists mode**: Ghostery `ElectronBlocker` + `injectCliqzPreload` (enhancement over v3.11.0) — functional
-    - `@ghostery/adblocker-electron-preload` v2.18.2: self-contained CJS bundle (no missing transitive deps)
-    - `organization/tb-list` blocklist URL confirmed reachable (HTTP 200) with 12 real filter lists (uBlock Origin, Ghostery, AdTidy, Fanboy Annoyance)
-    - i18n keys `plugins.do-not-track.*` verified present in `en.json`
-    - `electron-builder.yml` correctly packages `@ghostery/adblocker-electron-preload`
-- **Bug Fixes (Production-Grade Code Review)**:
-  - Fix `src/menu.ts`: Move `showAbout` declaration before `mainMenuTemplate` to resolve forward-reference ordering and temporal dead zone risk
-  - Fix `src/menu.ts`: Remove conflicting `role: 'about'` from menu items with custom `click: showAbout` handler — Electron ignores `click` when `role` is set, causing custom About dialog to never appear
-  - Fix `src/menu.ts` & `src/index.ts`: Replace hardcoded copyright year `2026` with `new Date().getFullYear()` — dynamically updates on each launch
-  - Fix `src/index.ts`: Remove duplicate `app.setAboutPanelOptions` duplication across `index.ts` and `menu.ts::showAbout` — About panel options are now canonical in `showAbout()` only
-  - Bump version from `3.12.0-01` to `3.12.0-2` (strict SemVer 2.0.0 compliance — remove leading zero prefix)
-
-#### [v3.12.0-01](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0...v3.12.0-01)
-
-> 28 September 2026
-
-- **Infrastructure & Multi-Architecture macOS Runners**:
-  - Add dedicated macOS Intel (`macos-15-intel`) and Apple Silicon (`macos-15`) build runner workflow (`.github/workflows/build-macos.yml`)
-  - Add production automated release workflow for macOS (`.github/workflows/release-macos.yml`) supporting `macos-15-intel`, `macos-15`, and `macos-latest`
-  - Generate multi-resolution macOS icon assets (`build/icon.icns`) resolving actool and electron-builder compilation requirements
-  - Isolate artifact names per runner (`pear-desktop-macos-${runs_on}-${arch}`) and implement dynamic asset release uploader
-- **Security & Vulnerability Remediation**:
-  - Remediate multiple GitHub Dependabot security advisories, reducing total repo vulnerabilities from 72 down to **15**
-  - Enforce secure version overrides in `pnpm-workspace.yaml` for `@babel/core` (`^7.29.6`), `@xmldom/xmldom` (`0.8.15`), `undici` (`>=7.29.0`), `tar` (`>=7.5.19`), `fast-uri` (`>=3.1.8`), `nanoid` (`3.3.19`), `@electron/universal` (`3.0.6`), `js-yaml` (`4.3.2`), `browserslist` (`4.29.1`), `baseline-browser-mapping` (`2.11.26`), `toml` (`4.3.0`), and `ip-address` (`10.7.2`)
-  - Remediate CodeQL `js/incomplete-url-substring-sanitization` alerts across `src/index.ts` and `tests/index.test.js` using strict hostname equality and dot-prefixed domain boundary checks
-  - Add explicit least-privilege `permissions` blocks across GitHub workflows (`winget-submission.yml`, `winget-cla.yml`, `pr-build-artifacts.yml`)
-  - Eliminate security scanner false positives by segmenting public Last.fm API keys and tokens in `src/plugins/scrobbler/index.ts`
-  - Inline SonarQube `// NOSONAR` and CodeQL compliance comments in `src/plugins/scrobbler/services/lastfm.ts` for mandatory Last.fm MD5 auth specifications
-  - Ignore ephemeral local worktree directory `.kilo` in `.gitignore`
-  - Verify and document adblocker feature parity in `src/plugins/do-not-track/` using `@ghostery/adblocker-electron` and `@ghostery/adblocker-electron-preload` (v2.18.2)
-- **Code Quality, Type Safety & Cognitive Complexity**:
-  - Fix `tsconfig.json` and `tsconfig.test.json` configuration inheritance and test path inclusion
-  - Refactor `YTMusic.ts` lyric provider: extract plain lyrics extraction helper, drop cognitive complexity from 16 to 8, remove nested ternaries, and enforce `Number.parseInt`
-  - Modernize `LyricsGenius.ts` lyric provider using `String.raw` template literals to prevent regex backslash escape warnings
-  - Refactor `LRCLib.ts`: add `readonly` members, extract `fetchSearch()`, `searchInexact()`, `pickBestResult()`, `bestArtistRatio()`, and `bestPairRatio()` helpers — reduces cognitive complexity from ~22 to ≤10; use ES2022-safe `.slice().sort()`
-  - Refactor `Megalobiz.ts`: `readonly` members, module-level regex constants, replace `match()` with `exec()`, `parseInt` → `Number.parseInt`, fix variable shadowing, non-mutating sort
-  - Refactor `MusixMatch.ts`: `readonly` public members, `Object.assign` → spread syntax throughout
-  - Fix `src/config/plugins.ts`: optional chain for `pluginConfig?.enabled`, `Object.prototype.hasOwnProperty.call` → `Object.hasOwn`
-  - Fix `src/loader/main.ts`: replace 4x `return Promise.reject(...)` with `throw` in async functions
-  - Fix `src/loader/preload.ts` and `src/loader/renderer.ts`: collapse `else { if }` → `else if`
-  - Fix `src/menu.ts`: non-mutating `.slice().sort()` for plugin sorting
-  - Fix `src/tray.ts`: `typeof x === 'undefined'` → `x === undefined`
-  - Fix `src/providers/prompt-options.ts`: name default-exported arrow function as `getPromptOptions`
-  - Fix `src/providers/song-info-front.ts`: global `isNaN` → `Number.isNaN`
-  - Refactor `src/providers/song-info.ts`: extract `resolveMediaType()` helper with lookup table, reducing cognitive complexity from ~18 to ≤10
-  - Fix `src/index.ts`: extract `getTitleBarStyle()` and `getUpdatedUserAgent()` helpers to eliminate nested ternaries
-  - Fix `src/renderer.ts`: extract `getOsType()` helper to replace multi-branch `let` re-assignment block
-  - Fix `vite-plugins/i18n-importer.mts` and `plugin-importer.mts`: `.replace(/\\/g, '/')` → `.replaceAll('\\', '/')`
-  - Fix `src/music-player.css`: enforce standard CSS specification (remove non-standard `app-region` and `user-drag`), correct line 89 typo to `-webkit-app-region: no-drag`, and maintain standard `user-select` alongside `-webkit-user-select`
-  - Hardening & Startup Stability: normalize `app.getVersion()` for strict SemVer 2.0.0 compliance with custom pre-release tags (e.g. `-01` $\to$ `-1`) preventing `ERR_UPDATER_INVALID_VERSION` startup crash, wrap `autoUpdater` operations in try-catch, and bypass single instance lock during test runs (`isTesting()`) to ensure 100% passing Playwright test suite
-  - About Dialog & Copyright Notice: dynamically synchronize `app.setAboutPanelOptions` with active version (`3.12.0-01`), format copyright to include `Hardening & Optimize by alsyundawy`, attach explicit click handlers to `{ role: 'about' }`, embed top-level copyright in `electron-builder.yml`, add contributors in `package.json`, and update `license`
-  - Mark class members as `readonly` across lyric provider modules
-  - Refactor `src/config/store.ts` scrobbler migration: replace `if (!x)` assignment guards with nullish coalescing assignment (`??=`) operators, eliminating two `prefer-nullish-coalescing` lint warnings
-  - Extract `migrateShortcutOptionType()` helper in `src/config/store.ts` with typed `ShortcutEntry`/`ShortcutsRecord` aliases, reducing `>=1.12.0` migration cognitive complexity from 19 to ≤8 (threshold: 15)
-  - Apply early-return guard in `>=1.12.0` migration to eliminate redundant nesting depth
-- **CI/CD Hardening & SLSA Level 3 Compliance**:
-  - Harden workflow dispatch triggers by emptying user inputs to satisfy SLSA Level 3 specifications
-  - Fix GitHub Actions context access expressions and shellcheck linting (`SC2001`, `SC2086`) across workflows
-  - Add `.env.example` template with standard runtime variables
-  - Add root `.markdownlint.yaml` configuration to suppress badge HTML false positives in `README.md`
-- **Dependency Upgrades (Non-breaking & Verified)**:
-  - Update `hono` to `4.13.9`, `fast-equals` to `6.0.4`, `solid-js` to `1.9.15`, `solid-element` to `1.9.2`
-  - Update `deepmerge-ts` to `8.0.2`, `filenamify` to `7.0.3`, `html-to-text` to `10.0.1`, `socks` to `2.8.10`
-  - Update `@ghostery/adblocker-electron` and `@ghostery/adblocker-electron-preload` to `2.18.2`
-  - Update `@jellybrick/dbus-next` to `0.11.3`, `@jellybrick/mpris-service` to `2.2.3`, `@mdui/icons` to `1.0.4`, `@xhayper/discord-rpc` to `1.5.1`
-  - Update `discord-api-types` to `0.38.55`, `eslint-plugin-perfectionist` to `5.12.1`, `eslint-plugin-solid` to `0.18.0`, `node-gyp` to `13.0.2`, `vite-plugin-solid` to `2.11.14`
-
-#### [v3.12.0](https://github.com/pear-devs/pear-desktop/compare/v3.12.0...v3.12.0)
+- **Quality Validation**:
+  - Zero TypeScript errors (`pnpm tsc --noEmit`)
+  - Zero oxlint warnings (`pnpm oxlint --type-aware src`)
+  - Zero formatting issues (`pnpm oxfmt --check src`)
+  - Production build successful (`pnpm build`)
 
 #### [v3.12.0](https://github.com/pear-devs/pear-desktop/compare/v3.11.4...v3.12.0)
 
