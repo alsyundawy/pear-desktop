@@ -24,7 +24,7 @@ SOFTWARE.
 
 */
 
-/* eslint-disable */
+/* eslint-disable */ // NOSONAR
 /* oxlint-disable */
 
 export const injectCpuTamerByAnimationFrame = ((__CONTEXT__) => {
