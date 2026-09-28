@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file. Dates are d
     - Update `.vscode/settings.json` with comprehensive IDE suppressions: exclude `dist/` and `assets/mdui.css` from all language services, add `css.lint.validProperties` and `compatibleVendorPrefixes: ignore` for Electron vendor prefixes, suppress SonarLint `javascript:S6326` and CSS rules
     - Create `dist/tsconfig.json` and `dist/renderer/jsconfig.json` empty project stubs (`"files": [], "exclude": ["**"]`) to prevent TypeScript/JavaScript language servers from treating minified IIFE build artifacts as analyzable source
     - Fix MD038 (spaces inside code span) in `DOCNOTE.md` and `README.md`
+    - Isolate Playwright E2E launch test (`tests/index.test.js`) with temporary `--user-data-dir`, preventing tests from inheriting developer host state or active song playback and ensuring 100% deterministic test execution
     - Validate full codebase with `pnpm check` (`oxlint`, `oxfmt`, `tsc`) achieving **0 errors and 0 warnings**
   - **Bumped version in `package.json` to `3.12.0-6` (release `3.12.0-06`)**
 

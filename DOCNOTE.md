@@ -59,7 +59,12 @@ Release **3.12.0-06** (`v3.12.0-06`) delivers comprehensive full-stack code hard
 8. **Electron Lifecycle Deadlock Fix (Main Window Initialization)**:
    - **Root Cause Analysis**: In `src/index.ts`, `app.whenReady()` had been refactored into top-level `await app.whenReady(); await onAppReady();`. Under Electron ESM packaging (`"type": "module"`), Node's ESM loader suspends module evaluation awaiting the top-level promise before yielding execution to the Chromium C++ message loop. Because Electron's `'ready'` event is dispatched by Chromium's message loop, `app.whenReady()` never settled, deadlocking the app startup before `createMainWindow()` could be called. The app hung silently in memory with no window, no renderer, and no GPU helper process.
    - **Remediation**: Restored the asynchronous callback pattern `app.whenReady().then(async () => { await onAppReady(); });`, ensuring synchronous module evaluation completes and hands control to Chromium's message loop.
-   - **Verification**: Playwright E2E launch test `tests/index.test.js` passed in 3.7s (all 11 tests green in 7.4s). The production packaged binary `pack/mac/YouTube Music.app` was launched and verified with `ps aux`, proving all child processes (`YouTube Music Helper (Renderer)`, `YouTube Music Helper` GPU/Audio) spawn and render successfully.
+   - **Verification**: Playwright E2E launch test `tests/index.test.js` passed in 1.8s (all 11 tests green in 2.8s). The production packaged binary `pack/mac/YouTube Music.app` was launched and verified with `ps aux`, proving all child processes (`YouTube Music Helper (Renderer)`, `YouTube Music Helper` GPU/Audio) spawn and render successfully.
+
+9. **Test Suite User Profile Isolation & Deterministic E2E Launch (`tests/index.test.js`)**:
+   - Configured an isolated temporary `--user-data-dir` (`fs.mkdtempSync`) for the Playwright Electron launch test, automatically cleaned up upon test completion (`fs.rmSync`).
+   - Prevents the test suite from reading or interfering with existing user profile state, enabled plugins, or corrupted local sessions on the host developer machine.
+   - Slashed test execution time from flaky timeouts down to 1.8s (11/11 tests passing in ~2.8s total).
 
 ---
 
