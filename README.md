@@ -14,16 +14,16 @@
 
 <div align="center">
 
-# :pear: Pear Desktop
+# :pear: Pear Desktop Mac
 
-[![GitHub release](https://img.shields.io/github/v/release/alsyundawy/pear-desktop?style=for-the-badge&color=2ea44f)](https://github.com/alsyundawy/pear-desktop/releases/latest)
-[![GitHub license](https://img.shields.io/github/license/alsyundawy/pear-desktop?style=for-the-badge)](https://github.com/alsyundawy/pear-desktop/blob/master/license)
+[![GitHub release](https://img.shields.io/github/v/release/alsyundawy/pear-desktop-mac?style=for-the-badge&color=2ea44f)](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)
+[![GitHub license](https://img.shields.io/github/license/alsyundawy/pear-desktop-mac?style=for-the-badge)](https://github.com/alsyundawy/pear-desktop-mac/blob/master/license)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Code style: oxlint](https://img.shields.io/badge/code_style-oxlint-5ed9c7.svg?style=for-the-badge)](https://github.com/oxc-project/oxc)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey?style=for-the-badge)](https://github.com/alsyundawy/pear-desktop/releases/latest)
+[![Platform](https://img.shields.io/badge/platform-macOS%20(Apple%20Silicon%20%26%20Intel)-lightgrey?style=for-the-badge)](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)
 
 <p align="center">
-  <b>Feature-packed, high-performance desktop app for YouTube Music with built-in ad blocker (27+ vendor filters), SponsorBlock, synced lyrics, audio equalizer, and cross-platform native plugins.</b>
+  <b>Feature-packed, high-performance macOS desktop app for YouTube Music with built-in ad blocker (27+ vendor filters), SponsorBlock, synced lyrics, audio equalizer, and native macOS plugins.</b>
 </p>
 
 </div>
@@ -51,21 +51,16 @@
 - 🎤 **Synchronized Lyrics**: Live synced LRC lyrics powered by multiple providers (YouTube Music, Genius, LRCLib, Megalobiz, MusixMatch).
 - 🎚️ **Equalizer & Audio Controls**: Integrated multi-band parametric equalizer and custom audio presets.
 - 📊 **Scrobbler Integration**: Automatic background scrobbling to Last.fm, ListenBrainz, and Libre.fm.
-- 💬 **Discord Rich Presence & MPRIS**: Shows your currently playing track, artist, album, and duration on Discord and native Linux desktop environments.
-- 🎨 **Theme Engine & Glassmorphism**: Supports custom CSS styling, ambient lighting, dynamic accent colors, and custom window frames.
+- 💬 **Discord Rich Presence & TouchBar**: Shows your currently playing track, artist, album, and duration on Discord with native macOS TouchBar support.
+- 🎨 **Theme Engine & Glassmorphism**: Supports custom CSS styling, ambient lighting, dynamic accent colors, and macOS-native titlebars.
 - 🌐 **Full Bilingual Localization**: Native English (`en`) and Indonesian (`id`) interface with extensive internationalization support.
-- 💻 **Cross-Platform & Multi-Architecture**: Native builds for Apple Silicon (ARM64), Intel macOS (x64), Windows (x64, ia32, ARM64), and Linux (AppImage, deb, rpm).
+- 💻 **Dedicated macOS Multi-Architecture**: Optimized native builds for both Apple Silicon (ARM64) and Intel macOS (x64).
 
 ## Content
 
 - [Features](#features)
 - [Translation](#translation)
 - [Download](#download)
-  - [Arch Linux](#arch-linux)
-  - [Solus](#solus)
-  - [MacOS](#macos)
-  - [Windows](#windows)
-    - [How to install without a network connection? (in Windows)](#how-to-install-without-a-network-connection-in-windows)
 - [Themes](#themes)
 - [Dev](#dev)
 - [Build your own plugins](#build-your-own-plugins)
@@ -88,64 +83,18 @@ You can help with translation on [Hosted Weblate](https://bit.ly/48n5YF7).
 
 ## Download
 
-You can check out the [latest release](https://github.com/alsyundawy/pear-desktop/releases/latest) to quickly find the
-latest version.
+You can check out the [latest release](https://github.com/alsyundawy/pear-desktop-mac/releases/latest) to download prebuilt packages for macOS:
 
-### Arch Linux
+- 🍏 **Apple Silicon (M1 / M2 / M3 / M4)**: Download `*-arm64.dmg` or `*-arm64.zip`
+- 🖥️ **Intel x64**: Download `*-x64.dmg` or `*-x64.zip`
 
-Install the [`pear-desktop`](https://aur.archlinux.org/packages/pear-desktop) package from the AUR. For AUR installation instructions, take a look at
-this [wiki page](https://wiki.archlinux.org/index.php/Arch_User_Repository#Installing_packages).
+### macOS Gatekeeper & Quarantine Removal
 
-### [Solus](https://getsol.us/)
-
-```bash
-sudo eopkg install pear-desktop
-```
-
-### macOS
-
-You can install the app using Homebrew (see the [cask definition](https://github.com/pear-devs/homebrew-pear)):
-
-```bash
-brew install pear-devs/pear/pear-desktop
-```
-
-If you install the app manually and get an error "is damaged and can’t be opened." when launching the app, run the following in the Terminal:
+If you install the app manually on macOS and encounter the dialog *"is damaged and can’t be opened"*, remove the quarantine attribute via Terminal:
 
 ```bash
 /usr/bin/xattr -cr /Applications/Pear\ Desktop.app
 ```
-
-### Windows
-
-You can use the [Scoop package manager](https://scoop.sh) to install the `pear-desktop` package from
-the [`extras` bucket](https://github.com/ScoopInstaller/Extras).
-
-```bash
-scoop bucket add extras
-scoop install extras/pear-desktop
-```
-
-Alternately you can use [Winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/), Windows 11s
-official CLI package manager to install the `pear-devs.pear-desktop` package.
-
-*Note: Microsoft Defender SmartScreen might block the installation since it is from an "unknown publisher". This is also
-true for the manual installation when trying to run the executable(.exe) after a manual download here on github (same
-file).*
-
-```bash
-winget install pear-devs.pear-desktop
-```
-
-#### How to install without a network connection? (in Windows)
-
-- Download the `*.nsis.7z` file for _your device architecture_ in [release page](https://github.com/alsyundawy/pear-desktop/releases/latest).
-  - `x64` for 64-bit Windows
-  - `ia32` for 32-bit Windows
-  - `arm64` for ARM64 Windows
-- Download installer in release page. (`*-Setup.exe`)
-- Place them in the **same directory**.
-- Run the installer.
 
 ## Themes
 
@@ -286,30 +235,20 @@ export default createPlugin({
 
 ## Build
 
-1. Clone the repo
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/alsyundawy/pear-desktop-mac.git
+   cd pear-desktop-mac
+   ```
 2. Follow [this guide](https://pnpm.io/installation) to install `pnpm`
 3. Run `pnpm install --frozen-lockfile` to install dependencies
-4. Run `pnpm build:OS`
+4. Package the application for macOS:
 
-- `pnpm dist:win` - Windows
-- `pnpm dist:linux` - Linux (amd64)
-- `pnpm dist:linux:deb-arm64` - Linux (arm64 for Debian)
-- `pnpm dist:linux:rpm-arm64` - Linux (arm64 for Fedora)
-- `pnpm dist:mac` - macOS (amd64)
-- `pnpm dist:mac:arm64` - macOS (arm64)
+- `pnpm dist:mac` - macOS (Intel x64 DMG)
+- `pnpm dist:mac:arm64` - macOS (Apple Silicon ARM64 DMG)
+- `pnpm dist` - macOS (Active architecture)
 
-Builds the app for macOS, Linux, and Windows,
-using [electron-builder](https://github.com/electron-userland/electron-builder).
-
-### Building in devcontainer
-
-1. Clone the repo;
-2. Open the folder in VS Code;
-3. Reopen in container when prompted;
-4. Run `pnpm build` as above (choosing the desired target);
-5. Collect the built files from the `dist` folder.
-
-Since devcontainer uses a mount for the workspace, the built files will be available on the host system as well.
+Builds native macOS distribution packages (`.dmg` & `.zip`) using [electron-builder](https://github.com/electron-userland/electron-builder).
 
 ## Production Preview
 
@@ -327,7 +266,7 @@ Uses [Playwright](https://playwright.dev/) to test the app.
 
 ## License
  
-MIT © [th-ch](https://github.com/th-ch/youtube-music) & [alsyundawy](https://github.com/alsyundawy/pear-desktop)
+MIT © [th-ch](https://github.com/th-ch/youtube-music) & [alsyundawy](https://github.com/alsyundawy/pear-desktop-mac)
 
 ## FAQ
 

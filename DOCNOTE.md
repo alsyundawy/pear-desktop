@@ -1,6 +1,6 @@
 # Release DocNote: v3.12.0-3 (3.12.0-03)
 
-**Repository**: [alsyundawy/pear-desktop](https://github.com/alsyundawy/pear-desktop)  
+**Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  
 **Release Version**: `v3.12.0-3` (`3.12.0-03`)  
 **Base Version**: `v3.12.0-2`  
 **Date**: 28 September 2026  
@@ -12,7 +12,12 @@
 
 Release **v3.12.0-3** (`3.12.0-03`) delivers targeted UI/UX and feature restorations based on user requirements and comprehensive code audits:
 
-1. **Ad Blocker Menu, Full v3.11.0 Parity & Vendor Lists Expansion**:
+1. **Dedicated macOS Repository Focus & Renaming**:
+   - Renamed repository to **`pear-desktop-mac`** across GitHub and local configuration.
+   - Removed all non-Mac GitHub Action workflows and runners (`build.yml`, `pr-build-artifacts.yml`, `winget-submission.yml`, `winget-cla.yml`).
+   - Configured 100% of CI/CD and release automation to execute strictly on macOS runners (`macos-15-intel`, `macos-15`, `macos-latest`).
+   - Streamlined `electron-builder.yml` and `package.json` scripts to target macOS native builds exclusively.
+2. **Ad Blocker Menu, Full v3.11.0 Parity & Vendor Lists Expansion**:
    - Restored plugin title and localized i18n names to **"Ad Blocker"** / **"Pemblokir Iklan"** and menu label **"Pemblokir"**.
    - Restored **`Ad speedup` (`AdSpeedup`)** blocker mode with clean MutationObserver lifecycle, automatic ad detection, 16x fast-forward, muted audio, and leak-free unloading.
    - Restored and expanded filter sources list in `blocker.ts` with **27 canonical global, privacy, annoyance, regional, and threat intelligence vendor filter lists** (EasyList, EasyPrivacy, Peter Lowe, uBlock Origin Filters, AdGuard Mobile Ads, URL Tracking Protection, EasyList Other Annoyances, HaGeZi Multi PRO, Pop-up Ads, TIF Mini, plus 12 regional lists) with resilient fallback to `ElectronBlocker.fromPrebuiltAdsAndTracking`.

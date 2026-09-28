@@ -9,7 +9,7 @@ jobs:
   oxlint:
     if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
     name: runner / oxlint
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: read
       pull-requests: write

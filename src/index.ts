@@ -686,7 +686,7 @@ app.whenReady().then(async () => {
     copyright: `Copyright © ${new Date().getFullYear()} th-ch\nHardening & Optimize by alsyundawy`,
     credits: 'Hardening & Optimize by alsyundawy',
     authors: ['th-ch', 'alsyundawy'],
-    website: 'https://github.com/alsyundawy/pear-desktop',
+    website: 'https://github.com/alsyundawy/pear-desktop-mac',
   });
 
   if (!config.get('options.language')) {

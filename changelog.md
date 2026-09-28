@@ -2,10 +2,15 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v3.12.0-3](https://github.com/alsyundawy/pear-desktop/compare/v3.12.0-2...v3.12.0-3)
+#### [v3.12.0-3](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.12.0-2...v3.12.0-3)
 
 > 28 September 2026 (Release 3.12.0-03)
 
+- **Dedicated macOS Focus & Repository Renaming**:
+  - Rename repository to **`pear-desktop-mac`** across GitHub and local configuration
+  - Remove non-Mac workflows and runners: `build.yml` (multi-OS), `pr-build-artifacts.yml` (Windows/Linux artifacts), `winget-submission.yml`, and `winget-cla.yml`
+  - Restrict 100% of remaining workflows (`build-macos.yml`, `release-macos.yml`, `codeql.yml`, `dependency-review.yml`, `reviewdog.yml`, `issue-triage.yml`) to execute strictly on macOS runners (`macos-15-intel`, `macos-15`, `macos-latest`)
+  - Streamline `electron-builder.yml` and `package.json` scripts to target native macOS builds exclusively (`dist:mac`, `dist:mac:arm64`, `release:mac`)
 - **Comprehensive Adblock Filter Lists & Vendor Expansion**:
   - Add standard global filter lists: EasyList, EasyPrivacy, Peter Lowe’s Ad/tracking server list, and uBlock Origin filters (Ads, Privacy, Badware)
   - Add privacy and tracking protections: AdGuard/uBO Mobile Ads (filter #11) and AdGuard/uBO URL Tracking Protection (removeparam)

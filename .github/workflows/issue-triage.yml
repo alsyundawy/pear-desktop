@@ -10,7 +10,7 @@ on:
 jobs:
   triage:
     name: Triage issue
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     # Job-level (not workflow-level) so runs skipped by the `if` below never join
     # the group — otherwise any comment would cancel an in-progress triage before
     # the `if` is evaluated.

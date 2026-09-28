@@ -38,7 +38,7 @@ const showAbout = () => {
     copyright: `Copyright \u00a9 ${new Date().getFullYear()} th-ch\nHardening & Optimize by alsyundawy`,
     credits: 'Hardening & Optimize by alsyundawy',
     authors: ['th-ch', 'alsyundawy'],
-    website: 'https://github.com/alsyundawy/pear-desktop',
+    website: 'https://github.com/alsyundawy/pear-desktop-mac',
   });
   app.showAboutPanel();
 };
