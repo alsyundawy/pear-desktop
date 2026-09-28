@@ -68,10 +68,10 @@ All notable changes to this project will be documented in this file. Dates are d
   - Merged PR #4718: Added `dismiss-multidevice-popup` opt-in plugin
   - Merged upstream core PRs #4661, #4665, #4667, #4671, #4672, #4673
 
-- **Application Identity & Assets**:
-  - Official YouTube Music high-resolution application vector logo and native Apple ICNS icon bundle
+- **Branding & Visual Polish**:
+  - High-res Pear ReVanced vector emblem and multi-size Apple ICNS icon bundle
   - Cybernetic flyer banner (`assets/pear-desktop-banner.jpg`)
-  - Dynamic About panel with official application logo, copyright notice, and contributor credits
+  - Dynamic About panel with application logo, copyright notice, and contributor credits
 
 - **Quality Validation**:
   - Zero TypeScript errors (`pnpm tsc --noEmit`)

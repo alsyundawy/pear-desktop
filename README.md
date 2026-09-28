@@ -6,7 +6,7 @@
   </a>
 </p>
 
-<h1 align="center"><img src="assets/icon.svg" width="36" height="36" style="vertical-align: -6px;" alt="YouTube Music Logo"> YouTube Music (Pear Desktop Mac)</h1>
+<h1 align="center">Pear Desktop Mac</h1>
 
 <h3 align="center">High-Performance, Privacy-Hardened YouTube Music Desktop Client for macOS</h3>
 
@@ -44,7 +44,7 @@
 > **[`HARRY DERTIN SUTISNA ALSYUNDAWY (@alsyundawy)`](https://github.com/alsyundawy)** —<br>
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
-> 🎵 **[`Latest Releases (v3.12.0-001)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
+> 🍏 **[`Latest Releases (v3.12.0-001)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
 > 📖 **[`Release DocNotes`](file:///Users/alsyundawy/Downloads/GitHub/pear-desktop/DOCNOTE.md)** &nbsp;|&nbsp;
 > 📜 **[`Changelog`](file:///Users/alsyundawy/Downloads/GitHub/pear-desktop/changelog.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
@@ -351,8 +351,8 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
   - Applied CSS containment (`content-visibility: auto`) to playlists and queue drawer.
 - **Upstream PR Integrations**:
   - Merged PRs #4717 (Last.fm auth fix), #4618 (Skip disliked duplicate fix), #4307 (Crossfade mute fix), #4650 (Navigation teardown cleanup), #4605 (Pitch preservation), #4716 (Always show volume slider), #4718 (Dismiss multi-device popup), #4661, #4665, #4667, #4671, #4672, #4673.
-- **Application Identity & Assets**:
-  - Official YouTube Music high-resolution vector application logo, native Apple ICNS icon bundle, and showcase banner.
+- **Branding & Assets**:
+  - High-res Pear ReVanced vector logo, Apple ICNS multi-size icon bundle, and cybernetic showcase banner.
 
 ### [v3.12.0] — 25 September 2026
 - **Base Upgrade**: Upgraded to Electron 34 and Node.js 22 runtimes with modern ECMAScript modules.

@@ -113,11 +113,11 @@ Consolidated community bug fixes and improvements from upstream:
 
 ---
 
-### 2.7 Application Identity & UI Assets
+### 2.7 Brand Identity & UI Polish
 
-- **Official Application Branding & Native macOS Assets**: Restored official YouTube Music application vector logo (`assets/icon.svg`), full multi-resolution Apple ICNS icon bundle (`assets/generated/icons/mac/icon.icns`), and native PNG suites across all icon resolutions.
+- **High-Resolution Pear ReVanced Branding**: Replaced generic icons with custom circular Pear ReVanced emblem, multi-resolution Apple ICNS icon bundle, and vector SVG.
 - **Cybernetic Flyer Banner**: Added 16:9 widescreen showcase flyer banner (`assets/pear-desktop-banner.jpg`).
-- **Dynamic About Panel with Official Icon**: Synchronized `app.setAboutPanelOptions` with active version (`3.12.0-001`), official application icon path (`iconPath`), dynamic copyright notice, and contributor credits.
+- **Dynamic About Panel with Application Logo**: Synchronized `app.setAboutPanelOptions` with active version (`3.12.0-001`), application icon path (`iconPath`), dynamic copyright notice, and contributor credits.
 
 ---
 
@@ -132,7 +132,7 @@ Consolidated community bug fixes and improvements from upstream:
 | **Security & Deps** | `pnpm-workspace.yaml`<br>`pnpm-lock.yaml`<br>`src/plugins/downloader/main/index.ts` | 15 OSV & 17 Grype CVE overrides, base64 PoToken key decoding |
 | **Memory Governance** | `src/utils/memory-watch.ts`<br>`src/utils/wait-for-element.ts` | Memory & handle leak watchdog, reusable options constant |
 | **Adblocker** | `src/plugins/do-not-track/*` | 27+ vendor filters, HaGeZi threat intelligence, adSpeedup |
-| **Branding & Assets** | `assets/*`<br>`package.json`<br>`README.md` | Official YouTube Music vector logo, Apple ICNS icon bundle, flyer banner, version 3.12.0-001 |
+| **Branding & Assets** | `assets/*`<br>`package.json`<br>`README.md` | Pear ReVanced vector logo, ICNS icon bundle, flyer banner, version 3.12.0-001 |
 | **CI / CD** | `.github/workflows/*`<br>`.mega-linter.yml`<br>`.devskim.json` | macOS-exclusive ARM64/x64 builds, MegaLinter v10, CodeQL, Dependabot |
 
 ---
