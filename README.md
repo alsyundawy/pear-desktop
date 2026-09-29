@@ -6,6 +6,12 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/alsyundawy/pear-desktop-mac">
+    <img src="assets/icon.png" width="128" height="128" alt="Pear Desktop Mac Application Logo">
+  </a>
+</p>
+
 <h1 align="center">Pear Desktop Mac</h1>
 
 <h3 align="center">High-Performance, Privacy-Hardened YouTube Music Desktop Client for macOS</h3>
@@ -45,8 +51,8 @@
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
 > 🍏 **[`Latest Releases (v3.12.0-001)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
-> 📖 **[`Release DocNotes`](file:///Users/alsyundawy/Downloads/GitHub/pear-desktop/DOCNOTE.md)** &nbsp;|&nbsp;
-> 📜 **[`Changelog`](file:///Users/alsyundawy/Downloads/GitHub/pear-desktop/changelog.md)** &nbsp;|&nbsp;
+> 📖 **[`Release DocNotes`](DOCNOTE.md)** &nbsp;|&nbsp;
+> 📜 **[`Changelog`](CHANGELOG.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
 > 💬 **[`Discord Community`](https://discord.gg/pear-desktop)** &nbsp;|&nbsp;
 > 💖 **[`Support via PayPal`](https://www.paypal.me/alsyundawy)**
@@ -78,7 +84,7 @@
 - [Plugin System & Custom Extensions](#plugin-system--custom-extensions)
 - [Developer Setup & Quality Verification](#developer-setup--quality-verification)
 - [Code Review & Quality Standards](#code-review--quality-standards)
-- [Changelog (v3.12.0 — v3.12.0-001)](#changelog-v3120--v3120-06)
+- [Changelog (v3.12.0 — v3.12.0-001)](#changelog-v3120--v3120-001)
 - [Upstream Credits & Attribution](#upstream-credits--attribution)
 - [FAQ & Troubleshooting](#faq--troubleshooting)
 - [Support & Donation](#support--donation)

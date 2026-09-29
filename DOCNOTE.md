@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/alsyundawy/pear-desktop-mac">
+    <img src="assets/icon.png" width="96" height="96" alt="Pear Desktop Mac Application Logo">
+  </a>
+</p>
+
 # Release DocNote: 3.12.0-001
 
 **Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  

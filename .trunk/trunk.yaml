@@ -27,7 +27,7 @@ lint:
     - linters: [ALL]
       paths:
         - .kilo/**
-        - changelog.md
+        - CHANGELOG.md
     - linters: [trufflehog]
       paths:
         - src/plugins/scrobbler/index.ts

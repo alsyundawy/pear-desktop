@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/alsyundawy/pear-desktop-mac">
+    <img src="../assets/icon.png" width="96" height="96" alt="Pear Desktop Mac Application Logo">
+  </a>
+</p>
+
 # Soak Testing & Governance Protocol: Pear Desktop
 
 This protocol defines the formal soak test execution and verification criteria for memory stability, handle release, and process count governance.

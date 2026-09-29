@@ -1,4 +1,10 @@
-### Changelog
+<p align="center">
+  <a href="https://github.com/alsyundawy/pear-desktop-mac">
+    <img src="assets/icon.png" width="96" height="96" alt="Pear Desktop Mac Application Logo">
+  </a>
+</p>
+
+# Changelog
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 

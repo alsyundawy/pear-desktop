@@ -173,6 +173,6 @@
     "hideCredit": true,
     "package": true,
     "unreleased": true,
-    "output": "changelog.md"
+    "output": "CHANGELOG.md"
   }
 }

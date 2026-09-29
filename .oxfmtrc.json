@@ -13,7 +13,7 @@
     "node_modules/",
     "coverage/",
     "pnpm-lock.yaml",
-    "changelog.md",
+    "CHANGELOG.md",
     "**/*.d.ts",
     "src/index.html",
     "src/plugins/performance-improvement/scripts/**/*.js"

@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/alsyundawy/pear-desktop-mac">
+    <img src="assets/icon.png" width="96" height="96" alt="Pear Desktop Mac Application Logo">
+  </a>
+</p>
+
 # Memory & CPU Performance Profiling Guide: Pear Desktop
 
 This document outlines the standard operating procedures for auditing, profiling, and benchmarking memory and CPU performance across main and renderer processes.
