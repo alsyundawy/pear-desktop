@@ -18,7 +18,8 @@ All notable changes to this project will be documented in this file. Dates are d
     - Default configuration set to `enabled: true`
     - Dual event listener support for both `ytmd:src-changed` and `peard:src-changed`
   - **Video Quality Changer Plugin (`src/plugins/quality-changer/`)**:
-    - Relocated injection to prioritize `.top-row-buttons.ytmusic-player` (directly on the video player in the upper-right corner), with fallback to `.right-controls-buttons` on `ytmusic-player-bar`
+    - Relocated injection exclusively to `.top-row-buttons.ytmusic-player` (directly on the video player in the upper-right corner alongside PiP and Fullscreen buttons, matching v3.11.5 parity)
+    - Restored native YouTube Music icon button styling by removing custom inline style overrides
     - Enabled by default (`enabled: true`)
     - Added guard checking `qualityLevels.length > 0` before triggering IPC modal dialog
     - Symmetrical lifecycle cleanup in `stop()`: removes injected containers, disconnects observers, and clears video event bindings

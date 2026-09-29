@@ -67,39 +67,18 @@ export default createPlugin<
       const topRowButtons = document.querySelector<HTMLElement>(
         '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons',
       );
-      const rightControls = document.querySelector<HTMLElement>(
-        '.right-controls-buttons',
-      );
+      if (!topRowButtons) return;
 
-      const target = topRowButtons ?? rightControls;
-      if (!target) return;
-
-      if (!target.contains(this.qualitySettingsButtonContainer)) {
-        if (target === rightControls) {
-          const captionsBtn = target.querySelector('.player-captions-button');
-          if (captionsBtn) {
-            target.insertBefore(
-              this.qualitySettingsButtonContainer,
-              captionsBtn,
-            );
-          } else {
-            target.prepend(this.qualitySettingsButtonContainer);
-          }
-        } else {
-          target.prepend(this.qualitySettingsButtonContainer);
-        }
+      if (!topRowButtons.contains(this.qualitySettingsButtonContainer)) {
+        topRowButtons.prepend(this.qualitySettingsButtonContainer);
       }
       this.injected = true;
     },
 
     onPlayerApiReady(api: MusicPlayer, context) {
-      // Create container lazily inside lifecycle — not at module-parse time
+      // Create container lazily inside lifecycle
       const container = document.createElement('div');
       container.id = 'ytmd-quality-changer-button-container';
-      container.style.display = 'inline-flex';
-      container.style.alignItems = 'center';
-      container.style.justifyContent = 'center';
-      container.style.verticalAlign = 'middle';
       this.qualitySettingsButtonContainer = container;
       this.injected = false;
 
@@ -151,13 +130,13 @@ export default createPlugin<
         container,
       );
 
-      // Attempt immediate injection in case the player bar is already in DOM
+      // Attempt immediate injection
       this.injectButton();
 
-      // Resilient injection: wait up to 5 s for target container to appear
+      // Resilient injection: wait for top-row-buttons container to appear
       if (!this.injected) {
         waitForElement<HTMLElement>(
-          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .right-controls-buttons',
+          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons',
           {
             maxRetry: -1,
             retryInterval: 200,
@@ -165,21 +144,7 @@ export default createPlugin<
         )
           .then((target) => {
             if (this.qualitySettingsButtonContainer && !this.injected) {
-              if (target.classList.contains('right-controls-buttons')) {
-                const captionsBtn = target.querySelector(
-                  '.player-captions-button',
-                );
-                if (captionsBtn) {
-                  target.insertBefore(
-                    this.qualitySettingsButtonContainer,
-                    captionsBtn,
-                  );
-                } else {
-                  target.prepend(this.qualitySettingsButtonContainer);
-                }
-              } else {
-                target.prepend(this.qualitySettingsButtonContainer);
-              }
+              target.prepend(this.qualitySettingsButtonContainer);
               this.injected = true;
             }
           })
@@ -195,6 +160,8 @@ export default createPlugin<
       if (video) {
         video.removeEventListener('peard:src-changed', onVideoChange);
         video.addEventListener('peard:src-changed', onVideoChange);
+        video.removeEventListener('ytmd:src-changed', onVideoChange);
+        video.addEventListener('ytmd:src-changed', onVideoChange);
       }
 
       // Re-inject when the player page navigates (YouTube SPA route changes

@@ -312,39 +312,67 @@ export default createPlugin({
       };
 
       if (config.mode !== 'native' && config.mode != 'disabled') {
-        document
-          .querySelector<HTMLVideoElement>('#player')
-          ?.prepend(switchButtonContainer);
+        const mountSwitchButton = () => {
+          const playerSelector =
+            document.querySelector<HTMLVideoElement>('#player');
+          if (!playerSelector) return false;
 
-        setVideoState(!config.hideVideo);
-        forcePlaybackMode();
-        // Fix black video
-        if (video) {
-          video.style.height = 'auto';
-        }
-
-        video?.addEventListener('ytmd:src-changed', videoStarted);
-        video?.addEventListener('peard:src-changed', videoStarted);
-
-        observeThumbnail();
-        videoStarted();
-
-        switch (config.align) {
-          case 'right': {
-            switchButtonContainer.style.justifyContent = 'flex-end';
-            return;
+          if (!playerSelector.contains(switchButtonContainer)) {
+            playerSelector.prepend(switchButtonContainer);
           }
-
-          case 'middle': {
-            switchButtonContainer.style.justifyContent = 'center';
-            return;
+          setVideoState(!config.hideVideo);
+          forcePlaybackMode();
+          if (video) {
+            video.style.height = 'auto';
           }
+          return true;
+        };
 
-          default:
-          case 'left': {
-            switchButtonContainer.style.justifyContent = 'flex-start';
+        const applyAlignment = () => {
+          switch (config.align) {
+            case 'right': {
+              switchButtonContainer.style.justifyContent = 'flex-end';
+              return;
+            }
+
+            case 'middle': {
+              switchButtonContainer.style.justifyContent = 'center';
+              return;
+            }
+
+            default:
+            case 'left': {
+              switchButtonContainer.style.justifyContent = 'flex-start';
+            }
           }
-        }
+        };
+
+        applyAlignment();
+
+        setTimeout(() => {
+          mountSwitchButton();
+          video?.addEventListener('ytmd:src-changed', videoStarted);
+          video?.addEventListener('peard:src-changed', videoStarted);
+          observeThumbnail();
+          videoStarted();
+        }, 0);
+
+        // Keep it mounted across track transitions and player re-mounts
+        const observer = new MutationObserver(() => {
+          const playerSelector =
+            document.querySelector<HTMLVideoElement>('#player');
+          if (
+            playerSelector &&
+            !playerSelector.contains(switchButtonContainer)
+          ) {
+            mountSwitchButton();
+          }
+        });
+        const appOrLayout =
+          document.querySelector('ytmusic-app-layout') ??
+          document.querySelector('ytmusic-app') ??
+          document.body;
+        observer.observe(appOrLayout, { childList: true, subtree: true });
       }
     },
     onConfigChange(newConfig) {

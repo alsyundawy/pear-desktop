@@ -38,7 +38,8 @@ Every feature, fix, and optimization in `3.12.0-001` has been strictly audited a
 - **Dual Event Listeners**: Supported both `ytmd:src-changed` and `peard:src-changed` on the video element for persistent audio/video toggle synchronization across tracks.
 
 #### 2. Video Quality Changer Plugin (`src/plugins/quality-changer/index.tsx`, `templates/quality-setting-button.tsx`)
-- **Player-Front Video Controls Injection**: Prioritizes injection into `.top-row-buttons.ytmusic-player` (directly on the player overlay in the upper-right corner of the video), matching original layout, with fallback to `.right-controls-buttons` on `ytmusic-player-bar`.
+- **Exclusive Video Player Controls Injection**: Directly targets `.top-row-buttons.ytmusic-player` (in the upper-right corner of the video player, directly alongside native PiP and Fullscreen buttons, matching v3.11.5 exact parity). Eliminated fallback to the bottom player bar.
+- **Native YouTube Music Button Styling**: Removed custom inline style overrides on `QualitySettingButton`, preserving the native look, sizing, and hover effects of YouTube Music's player buttons.
 - **Enabled by Default**: Updated default configuration to `enabled: true`.
 - **Safe Quality Level Detection**: Added validation checking `qualityLevels.length > 0` before triggering IPC modal dialogs to prevent blank menus when video feeds are audio-only.
 - **Symmetrical Teardown**: `stop()` method cleanly removes injected containers, disconnects observers, and clears video event bindings.
