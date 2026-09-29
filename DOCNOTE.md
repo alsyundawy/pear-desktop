@@ -27,22 +27,20 @@ Every feature, fix, and optimization in `3.12.0-001` has been strictly audited a
 ### 2.1 Runtime Plugin Fixes (Verified & Empirically Tested)
 
 #### 1. Video Toggle Plugin (`src/plugins/video-toggle/index.tsx`, `button-switcher.css`, `templates/video-switch-button.tsx`)
-- **Automatic Fallback for Missing Polymer Toggle**: Modern YouTube Music desktop omits the `<ytmusic-av-toggle>` DOM element. If configured in `'native'` mode, the toggle was invisible and broke video switching. The plugin now automatically detects missing native controls and falls back seamlessly to the verified `'custom'` segmented pill switcher (`Song | Video`).
-- **Inverted State Logic Fix**: Fixed critical inversion bug in `videoStarted()`. Previously, when `config.hideVideo` was `true`, `setVideoStateFn(false)` was skipped. The state engine now correctly calls `setVideoStateFn(false)` when `config.hideVideo: true`, ensuring video hiding functions reliably.
-- **Polymer Style Override Protection**: Added `.video-toggle-hidden` and `.video-toggle-visible` CSS helper classes with explicit `!important` declarations to `#player.ytmusic-player-page`, `#main-panel`, and `video`, preventing internal Polymer shadow/template re-renders from overriding user display state.
-- **Dynamic Track Change Synchronization**: Added `videodatachange` event listener alongside `peard:src-changed` on the HTML5 video element so audio/video toggles remain synchronized across playlist transitions and autoplay queues.
-- **Reactive Configuration Updates**: `onConfigChange` now re-evaluates `updatePlayerDisplay()` immediately when options are changed in the plugin menu without requiring a full page refresh.
-- **ATV (Audio Track Video) Display Retention**: Maintained `setShowButtonFn(true)` across ATV tracks so the pill switcher remains visible for all songs.
-- **WCAG Semantics & Accessibility**: Upgraded `VideoSwitchButton` to an accessible `<div role="switch" aria-checked="..." tabIndex={0}>` with keyboard navigation and click event delegation.
-- **Clean Teardown Protocol**: Complete symmetrical cleanup in `stop()`: removes `#ytmd-video-toggle-switch-button-container`, strips all injected body classes, disconnects `MutationObserver` instances, and restores player element styling.
+- **Byte-for-Byte Restoration to v3.11.0**: Restored the verified v3.11.0 pill switcher directly floating in front of the album artwork / video area (`#player`), with the original 20rem width, 18px font size, and 10rem sliding pill indicator (`Song | Video`).
+- **Verified DOM Positioning**: Preserved v3.11.0 mounting behavior (`#player.prepend(switchButtonContainer)` with `position: absolute; margin-top: 20px; margin-left: 10px; z-index: 999;`).
+- **Dual Event Listeners**: Supported both `ytmd:src-changed` and `peard:src-changed` on the video element for persistent audio/video toggle synchronization across tracks.
 
 #### 2. Video Quality Changer Plugin (`src/plugins/quality-changer/index.tsx`, `templates/quality-setting-button.tsx`)
-- **Correct DOM Injection Target**: Previously targeted `.top-row-buttons.ytmusic-player`, which is only rendered when hovering over fullscreen video, causing query selectors to return `null` and failing to mount the button in standard player view. The injection target is now relocated to `.right-controls-buttons` on `ytmusic-player-bar`, positioned cleanly next to `.player-captions-button`.
-- **Permanent Player Bar Visibility**: The gear icon button is now rendered and accessible in standard player bar layout at all times.
+- **Player-Front Video Controls Injection**: Prioritizes injection into `.top-row-buttons.ytmusic-player` (directly on the player overlay in the upper-right corner of the video), matching original layout, with fallback to `.right-controls-buttons` on `ytmusic-player-bar`.
+- **Enabled by Default**: Updated default configuration to `enabled: true`.
 - **Safe Quality Level Detection**: Added validation checking `qualityLevels.length > 0` before triggering IPC modal dialogs to prevent blank menus when video feeds are audio-only.
 - **Symmetrical Teardown**: `stop()` method cleanly removes injected containers, disconnects observers, and clears video event bindings.
 
-#### 3. macOS TouchBar Plugin (`src/plugins/touchbar/index.ts`)
+#### 3. Synced Lyrics Plugin (`src/plugins/synced-lyrics/renderer/index.ts`)
+- **Pure v3.12.0 Upstream Behavior**: Retained exact v3.12.0 upstream implementation, preserving `header.removeAttribute('disabled')` in the observer loop to ensure community synced lyrics remain accessible even when native YouTube Music lyrics are absent.
+
+#### 4. macOS TouchBar Plugin (`src/plugins/touchbar/index.ts`)
 - **Direct Electron TouchBar Primitives**: Completely rewrote the TouchBar implementation using valid native Electron classes: `TouchBarButton`, `TouchBarLabel`, and `TouchBarSpacer`. Previous code attempted to pass `TouchBarButton` instances inside `TouchBarSegmentedControl.segments` (which expects `{label, icon}` plain objects) and `TouchBarLabel` inside `TouchBarScrubber` (which expects `ScrubberItem`), crashing Electron's native macOS bridge.
 - **Responsive Song Info Updates**: Live track metadata from `SongInfo` dynamically updates `songTitle.label` (formatted as `"Title - Artist"`), `playPauseButton.label` (`"▶"` / `"⏸"`), and album artwork icon in real time.
 - **Immediate Initialization**: Removed stale `window.once('ready-to-show')` callback, allowing the TouchBar to initialize immediately when toggled on from the plugins menu without requiring an application restart.

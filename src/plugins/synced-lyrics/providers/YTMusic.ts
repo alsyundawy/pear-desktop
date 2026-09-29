@@ -12,8 +12,8 @@ const client = {
 };
 
 export class YTMusic implements LyricProvider {
-  public readonly name = 'YTMusic';
-  public readonly baseUrl =
+  public name = 'YTMusic';
+  public baseUrl =
     'https://music.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com/';
 
   // prettier-ignore
@@ -52,16 +52,25 @@ export class YTMusic implements LyricProvider {
 
     const synced = syncedLines?.length && syncedLines[0]?.cueRange
       ? syncedLines.map((it) => ({
-        time: this.millisToTime(Number.parseInt(it.cueRange.startTimeMilliseconds, 10)),
-        timeInMs: Number.parseInt(it.cueRange.startTimeMilliseconds, 10),
-        duration: Number.parseInt(it.cueRange.endTimeMilliseconds, 10) -
-          Number.parseInt(it.cueRange.startTimeMilliseconds, 10),
+        time: this.millisToTime(parseInt(it.cueRange.startTimeMilliseconds)),
+        timeInMs: parseInt(it.cueRange.startTimeMilliseconds),
+        duration: parseInt(it.cueRange.endTimeMilliseconds) -
+          parseInt(it.cueRange.startTimeMilliseconds),
         text: it.lyricLine.trim() === '♪' ? '' : it.lyricLine.trim(),
         status: 'upcoming' as const,
       }))
       : undefined;
 
-    const plain = !synced ? this.extractPlainLyrics(contents, syncedLines) : undefined;
+    const plain = !synced
+      ? syncedLines?.length
+        ? syncedLines.map((it) => it.lyricLine).join('\n')
+        : contents?.messageRenderer
+        ? contents?.messageRenderer?.text?.runs?.map((it) => it.text).join('\n')
+        : contents?.sectionListRenderer?.contents?.[0]
+          ?.musicDescriptionShelfRenderer?.description?.runs?.map((it) =>
+            it.text,
+          )?.join('\n')
+      : undefined;
 
     if (typeof plain === 'string' && plain === 'Lyrics not available') {
       return null;
@@ -86,29 +95,6 @@ export class YTMusic implements LyricProvider {
     };
   }
 
-  private extractPlainLyrics(
-    contents: BrowseData['contents'] | undefined,
-    syncedLines?: { lyricLine: string }[],
-  ): string | undefined {
-    if (syncedLines?.length) {
-      return syncedLines.map((it) => it.lyricLine).join('\n');
-    }
-
-    const messageRuns = contents?.messageRenderer?.text?.runs;
-    if (Array.isArray(messageRuns)) {
-      return messageRuns.map((it) => it.text).join('\n');
-    }
-
-    const descriptionRuns =
-      contents?.sectionListRenderer?.contents?.[0]
-        ?.musicDescriptionShelfRenderer?.description?.runs;
-    if (Array.isArray(descriptionRuns)) {
-      return descriptionRuns.map((it) => it.text).join('\n');
-    }
-
-    return undefined;
-  }
-
   private millisToTime(millis: number) {
     const minutes = Math.floor(millis / 60000);
     const seconds = Math.floor((millis - minutes * 60 * 1000) / 1000);
@@ -119,7 +105,7 @@ export class YTMusic implements LyricProvider {
   }
 
   // RATE LIMITED (2 req per sec)
-  private readonly PROXIED_ENDPOINT = 'https://ytmbrowseproxy.zvz.be/';
+  private PROXIED_ENDPOINT = 'https://ytmbrowseproxy.zvz.be/';
 
   private fetchNext(videoId: string) {
     const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');

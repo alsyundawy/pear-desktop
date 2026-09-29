@@ -4,12 +4,6 @@ import { LRC } from '../parsers/lrc';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
-// Simplified non-backtracking regexes (linear performance)
-const FEAT_REGEX = /\((?:[Ff]eat)\. (.+)\)/;
-const TITLE_ARTIST_REGEX = /(?<artists>.*?) [-•] (?<title>.*)/;
-const ARTIST_TITLE_REGEX = /(?<title>.*) by (?<artists>.*)/;
-const TIMESTAMP_REGEX = /\[(?<minutes>\d+):(?<seconds>\d+)\.(?<millis>\d+)\]/;
-
 const removeNoise = (text: string) => {
   return text
     .replace(/\[.*?\]/g, '')
@@ -21,9 +15,9 @@ const removeNoise = (text: string) => {
 };
 
 export class Megalobiz implements LyricProvider {
-  public readonly name = 'Megalobiz';
-  public readonly baseUrl = 'https://www.megalobiz.com';
-  private readonly domParser = new DOMParser();
+  public name = 'Megalobiz';
+  public baseUrl = 'https://www.megalobiz.com';
+  private domParser = new DOMParser();
 
   // prettier-ignore
   async search({ title, artist, songDuration }: SearchSongInfo): Promise<LyricResult | null> {
@@ -45,20 +39,21 @@ export class Megalobiz implements LyricProvider {
     const searchResults: MegalobizSearchResult[] = Array.prototype.map
       .call(searchDoc.querySelectorAll('a.entity_name[href^="/lrc/maker/"][name][title]'),
         (anchor: HTMLAnchorElement) => {
-          const tsMatch = TIMESTAMP_REGEX.exec(anchor.getAttribute('title')!);
-          if (!tsMatch?.groups) return null;
-          const { minutes, seconds, millis } = tsMatch.groups;
+          const { minutes, seconds, millis } = anchor
+            .getAttribute('title')!
+            .match(/\[(?<minutes>\d+):(?<seconds>\d+)\.(?<millis>\d+)\]/)!
+            .groups!;
 
           let name = anchor.getAttribute('name')!;
 
           const artists = [
-            removeNoise(FEAT_REGEX.exec(name)?.[1] ?? ''),
-            ...(TITLE_ARTIST_REGEX.exec(removeNoise(name))?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
-            ...(ARTIST_TITLE_REGEX.exec(removeNoise(name))?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
+            removeNoise(name.match(/\(?[Ff]eat\. (.+)\)?/)?.[1] ?? ''),
+            ...(removeNoise(name).match(/(?<artists>.*?) [-•] (?<title>.*)/)?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
+            ...(removeNoise(name).match(/(?<title>.*) by (?<artists>.*)/)?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
           ].filter(Boolean);
 
-          for (const art of artists) {
-            name = name.replace(art, '');
+          for (const artist of artists) {
+            name = name.replace(artist, '');
             name = removeNoise(name);
           }
 
@@ -69,16 +64,16 @@ export class Megalobiz implements LyricProvider {
             artists,
             href: anchor.getAttribute('href')!,
             duration:
-              (Number.parseInt(minutes, 10) * 60) +
-              Number.parseInt(seconds, 10) +
-              (Number.parseInt(millis, 10) / 1000),
+              (parseInt(minutes) * 60) +
+              parseInt(seconds) +
+              (parseInt(millis) / 1000),
           };
         },
       )
       .filter(Boolean);
 
-    const sortedResults = searchResults.slice().sort(
-      ({ duration: durationA }: MegalobizSearchResult, { duration: durationB }: MegalobizSearchResult) => {
+    const sortedResults = searchResults.sort(
+      ({ duration: durationA }, { duration: durationB }) => {
         const left = Math.abs(durationA - songDuration);
         const right = Math.abs(durationB - songDuration);
 

@@ -4,9 +4,9 @@ const preloadedStateRegex = /__PRELOADED_STATE__ = JSON\.parse\('(.*?)'\);/;
 const preloadHtmlRegex = /body":{"html":"(.*?)","children"/;
 
 export class LyricsGenius implements LyricProvider {
-  public readonly name = 'Genius';
-  public readonly baseUrl = 'https://genius.com';
-  private readonly domParser = new DOMParser();
+  public name = 'Genius';
+  public baseUrl = 'https://genius.com';
+  private domParser = new DOMParser();
 
   // prettier-ignore
   async search({ title, artist }: SearchSongInfo): Promise<LyricResult | null> {
@@ -64,21 +64,16 @@ export class LyricsGenius implements LyricProvider {
       },
     ) as HTMLScriptElement;
 
-    const textContent = preloadedStateScript.textContent;
-    const preloadedStateMatch = textContent
-      ? preloadedStateRegex.exec(textContent)
-      : null;
-    const preloadedState = preloadedStateMatch?.[1]?.replaceAll(String.raw`\"`, '"');
+    const preloadedState = preloadedStateScript.textContent?.match(
+      preloadedStateRegex,
+    )?.[1]?.replace(/\\"/g, '"');
 
-    const lyricsMatch = preloadedState
-      ? preloadHtmlRegex.exec(preloadedState)
-      : null;
-    const lyricsHtml = lyricsMatch?.[1]
-      ?.replaceAll(String.raw`\/`, '/')
-      ?.replaceAll(String.raw`\n`, '\n')
-      ?.replaceAll(String.raw`\'`, "'")
-      ?.replaceAll(String.raw`\"`, '"')
-      ?.replaceAll(String.raw`\\`, '\\');
+    const lyricsHtml = preloadedState?.match(preloadHtmlRegex)?.[1]
+      ?.replace(/\\\//g, '/')
+      ?.replace(/\\\\/g, '\\')
+      ?.replace(/\\n/g, '\n')
+      ?.replace(/\\'/g, "'")
+      ?.replace(/\\"/g, '"');
 
     const hasUnreleasedPlaceholder = preloadedState &&
       /lyricsPlaceholderReason.{1,5}unreleased/.test(preloadedState);

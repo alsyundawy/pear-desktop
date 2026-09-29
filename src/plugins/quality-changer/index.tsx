@@ -64,15 +64,18 @@ export default createPlugin<
     injectButton() {
       if (!this.qualitySettingsButtonContainer) return;
 
-      const target =
-        document.querySelector<HTMLElement>('.right-controls-buttons') ??
-        document.querySelector<HTMLElement>(
-          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons',
-        );
+      const topRowButtons = document.querySelector<HTMLElement>(
+        '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons',
+      );
+      const rightControls = document.querySelector<HTMLElement>(
+        '.right-controls-buttons',
+      );
+
+      const target = topRowButtons ?? rightControls;
       if (!target) return;
 
       if (!target.contains(this.qualitySettingsButtonContainer)) {
-        if (target.classList.contains('right-controls-buttons')) {
+        if (target === rightControls) {
           const captionsBtn = target.querySelector('.player-captions-button');
           if (captionsBtn) {
             target.insertBefore(
@@ -154,7 +157,7 @@ export default createPlugin<
       // Resilient injection: wait up to 5 s for target container to appear
       if (!this.injected) {
         waitForElement<HTMLElement>(
-          '.right-controls-buttons, .top-row-buttons.ytmusic-player, #top-row-buttons',
+          '.top-row-buttons.ytmusic-player, ytmusic-player .top-row-buttons, #top-row-buttons, .right-controls-buttons',
           {
             maxRetry: -1,
             retryInterval: 200,
