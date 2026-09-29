@@ -1,0 +1,35 @@
+allowBuilds:
+  bufferutil: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  unrs-resolver: true
+  utf-8-validate: true
+overrides:
+  node-gyp: 13.0.2
+  xml2js: 0.6.2
+  node-fetch: 3.3.2
+  "@electron/universal": 3.0.6
+  "@babel/runtime": 8.0.0
+  "@xmldom/xmldom@<0.8.15": 0.8.15
+  tar: ">=7.5.21"
+  fast-uri: ">=3.1.8"
+  nanoid@<3.3.19: 3.3.19
+  undici: ">=7.29.0"
+  "@babel/core": "^7.29.6"
+  js-yaml@<4.3.2: 4.3.2
+  browserslist@<4.28.7: 4.29.1
+  baseline-browser-mapping@<2.11.0: 2.11.26
+  toml@<4.2.0: 4.3.0
+  ip-address@<10.2.1: 10.7.2
+  brace-expansion@<5.0.9: 5.0.12
+  postcss: ">=8.5.23"
+  tmp: ">=0.2.6"
+  uuid@13: ">=13.0.1"
+patchedDependencies:
+  vudio@2.1.1: patches/vudio@2.1.1.patch
+  "@malept/flatpak-bundler@0.4.0": patches/@malept__flatpak-bundler@0.4.0.patch
+  kuromoji@0.1.2: patches/kuromoji@0.1.2.patch
+  file-type@16.5.4: patches/file-type@16.5.4.patch
+  electron-is@3.0.0: patches/electron-is@3.0.0.patch
+  mdui@2.1.4: patches/mdui@2.1.4.patch

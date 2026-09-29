@@ -1,35 +1,75 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g filter="url(#filter0_d_18_2)">
-<circle cx="512" cy="512" r="410" fill="url(#paint0_linear_18_2)"/>
-<circle cx="512" cy="512" r="402" stroke="url(#paint1_radial_18_2)" stroke-opacity="0.5" stroke-width="16"/>
-</g>
-<path d="M675 505.072C680.333 508.152 680.333 515.849 675 518.928L436.5 656.626C431.167 659.705 424.5 655.857 424.5 649.698V374.302C424.5 368.24 430.96 364.415 436.249 367.234L436.5 367.374L675 505.072Z" fill="url(#paint2_linear_18_2)" stroke="url(#paint3_linear_18_2)" stroke-width="8" stroke-linejoin="round"/>
-<defs>
-<filter id="filter0_d_18_2" x="78" y="90" width="868" height="868" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="12"/>
-<feGaussianBlur stdDeviation="12"/>
-<feComposite in2="hardAlpha" operator="out"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0.866667 0 0 0 0 0.141176 0 0 0 0 0.462745 0 0 0 0.4 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_18_2"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_18_2" result="shape"/>
-</filter>
-<linearGradient id="paint0_linear_18_2" x1="102" y1="102" x2="922" y2="922" gradientUnits="userSpaceOnUse">
-<stop stop-color="#FF632F"/>
-<stop offset="1" stop-color="#DC148C"/>
-</linearGradient>
-<radialGradient id="paint1_radial_18_2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(512 512) rotate(45) scale(579.828)">
-<stop offset="0.68" stop-color="white" stop-opacity="0"/>
-<stop offset="0.72" stop-color="white"/>
-</radialGradient>
-<linearGradient id="paint2_linear_18_2" x1="512" y1="329" x2="512" y2="695" gradientUnits="userSpaceOnUse">
-<stop stop-color="white"/>
-<stop offset="1" stop-color="white" stop-opacity="0.4"/>
-</linearGradient>
-<linearGradient id="paint3_linear_18_2" x1="512" y1="329" x2="512" y2="695" gradientUnits="userSpaceOnUse">
-<stop stop-color="white" stop-opacity="0"/>
-<stop offset="1" stop-color="white" stop-opacity="0.5"/>
-</linearGradient>
-</defs>
+  <defs>
+    <!-- ReVanced Signature Gradient: Neon Magenta -> Violet -> Cyan -->
+    <linearGradient id="revancedRingGradient" x1="180" y1="180" x2="844" y2="844" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF2A85" />
+      <stop offset="30%" stop-color="#DB3EB1" />
+      <stop offset="55%" stop-color="#8B5CF6" />
+      <stop offset="80%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#00D4FF" />
+    </linearGradient>
+
+    <!-- YouTube Music Deep Vibrant Red Gradient -->
+    <radialGradient id="ytmRedDisc" cx="48%" cy="44%" r="58%">
+      <stop offset="0%" stop-color="#FF1A2A" />
+      <stop offset="70%" stop-color="#EE0000" />
+      <stop offset="100%" stop-color="#D40000" />
+    </radialGradient>
+  </defs>
+
+  <!-- Dark Base Circle (Transparent outside dock ring) -->
+  <circle cx="512" cy="512" r="465" fill="#080A0E" />
+
+  <!-- ReVanced Neon Gradient Outer Ring -->
+  <circle cx="512" cy="512" r="448" stroke="url(#revancedRingGradient)" stroke-width="28" fill="none" />
+
+  <!-- YouTube Music Central Red Circle -->
+  <circle cx="512" cy="512" r="366" fill="url(#ytmRedDisc)" />
+
+  <!-- White Pear Fruit & Play Button Emblem -->
+  <g transform="translate(512, 512) scale(0.498638) translate(-975.2, 1029.5) scale(0.1, -0.1)" fill="#FFFFFF" stroke="none">
+
+<path d="M8470 14314 c-47 -43 -88 -101 -132 -188 -34 -68 -88 -196 -88 -210
+0 -5 -9 -28 -19 -50 -42 -87 -109 -308 -152 -501 -23 -101 -69 -385 -69 -425
+0 -14 -7 -36 -16 -48 -15 -21 -21 -22 -180 -22 -232 0 -358 -29 -569 -130
+-197 -95 -372 -253 -509 -463 -69 -107 -195 -406 -247 -587 -5 -19 -16 -51
+-23 -70 -8 -19 -33 -96 -56 -170 -87 -281 -129 -386 -225 -554 -80 -138 -182
+-287 -251 -366 -31 -36 -84 -96 -118 -135 -33 -38 -159 -171 -280 -295 -218
+-224 -389 -435 -491 -602 -137 -226 -242 -534 -292 -858 -35 -227 -17 -612 38
+-799 11 -35 19 -70 19 -78 0 -29 81 -254 140 -388 9 -22 20 -48 23 -57 4 -10
+22 -43 42 -73 19 -31 35 -57 35 -60 0 -2 41 -64 92 -137 99 -143 261 -320 385
+-419 141 -113 351 -230 489 -273 272 -85 516 -76 894 34 199 58 359 58 560 0
+145 -42 180 -54 288 -96 148 -58 223 -61 236 -10 3 13 -8 61 -29 118 -18 52
+-48 155 -65 229 -18 74 -39 156 -47 183 -8 26 -18 84 -23 127 -5 43 -14 95
+-19 116 -47 177 -44 1023 5 1208 7 31 14 71 14 88 0 18 7 60 16 92 9 33 22 89
+29 125 43 225 141 483 243 635 93 139 139 194 362 420 267 272 370 404 450
+582 17 37 35 76 41 85 16 31 50 122 64 173 46 166 58 218 87 385 32 181 33
+191 33 485 -1 284 -2 308 -28 455 -63 351 -148 547 -311 719 -117 122 -226
+190 -401 251 -49 17 -102 36 -116 41 -73 28 -55 113 84 399 149 308 338 569
+535 741 39 33 73 67 76 75 24 63 -210 249 -393 313 -34 11 -68 21 -76 21 -8 0
+-33 -16 -55 -36z"/>
+<path d="M10655 11830 c-278 -41 -543 -178 -681 -354 -167 -211 -198 -391
+-129 -756 32 -169 109 -385 207 -585 59 -118 206 -343 332 -508 128 -166 160
+-211 279 -387 153 -226 234 -372 321 -580 15 -36 34 -78 41 -95 70 -154 142
+-409 175 -615 17 -106 24 -490 11 -655 -12 -165 -51 -374 -105 -560 -35 -122
+-49 -161 -105 -295 -43 -105 -42 -133 10 -167 34 -22 54 -27 122 -30 87 -5
+121 3 383 80 66 20 141 39 165 43 24 3 69 13 99 22 119 33 299 19 485 -39 176
+-54 212 -61 349 -66 303 -13 485 50 771 263 148 111 172 134 333 317 178 202
+395 521 511 752 44 88 84 171 90 185 6 14 15 32 20 40 49 78 179 424 236 625
+10 33 26 89 36 125 29 100 49 180 59 234 5 26 16 67 24 90 8 22 17 73 21 111
+3 39 10 86 15 105 5 19 19 116 31 215 19 151 23 231 23 500 0 281 -3 338 -22
+463 -13 79 -29 168 -37 200 -8 31 -15 70 -15 87 0 16 -9 50 -20 74 -11 24 -20
+49 -20 57 0 7 -6 28 -14 46 -7 18 -24 60 -36 93 -42 113 -150 320 -202 390
+-137 182 -302 322 -498 423 -136 70 -195 93 -340 130 -99 25 -118 26 -330 25
+-219 -1 -228 -2 -335 -31 -166 -46 -200 -57 -330 -107 -363 -139 -449 -165
+-552 -165 -87 0 -215 35 -348 96 -87 39 -282 113 -340 129 -27 7 -63 18 -80
+24 -103 38 -205 53 -375 56 -96 2 -202 0 -235 -5z"/>
+<path d="M8776 8854 c-3 -9 -6 -461 -6 -1005 0 -914 1 -990 17 -996 22 -9 148
+58 413 219 118 71 224 134 235 139 11 6 55 31 97 57 42 26 125 76 185 111 59
+35 124 73 143 86 44 28 466 279 500 297 91 49 136 89 127 112 -5 14 -76 62
+-147 101 -19 10 -73 43 -120 74 -47 30 -110 68 -140 84 -30 17 -77 44 -105 62
+-27 17 -104 62 -170 100 -66 37 -127 74 -135 80 -8 7 -60 37 -115 67 -95 53
+-272 156 -435 255 -106 64 -311 173 -326 173 -6 0 -15 -7 -18 -16z"/>
+
+  </g>
 </svg>

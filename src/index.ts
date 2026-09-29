@@ -56,6 +56,8 @@ import {
 import { LoggerPrefix } from '@/utils';
 import { APPLICATION_NAME, loadI18n, setLanguage, t } from '@/i18n';
 
+import packageJson from '../package.json';
+
 import ErrorHtmlAsset from '@assets/error.html?asset';
 
 import { defaultAuthProxyConfig } from '@/plugins/auth-proxy-adapter/config';
@@ -633,7 +635,23 @@ app.on('activate', async () => {
 const getDefaultLocale = async (locale: string) =>
   Object.keys(await languageResources()).includes(locale) ? locale : null;
 
+function setupAboutPanel() {
+  const iconPath = path.join(app.getAppPath(), 'assets', 'icon.png');
+  app.setAboutPanelOptions({
+    applicationName: APPLICATION_NAME,
+    applicationVersion: packageJson.version,
+    version: packageJson.version,
+    copyright: `Copyright © ${new Date().getFullYear()} th-ch\nHardening & Optimize by alsyundawy`,
+    credits: 'Hardening & Optimize by alsyundawy',
+    authors: ['th-ch', 'alsyundawy'],
+    website: 'https://github.com/alsyundawy/pear-desktop-mac',
+    iconPath,
+  });
+}
+
 app.whenReady().then(async () => {
+  setupAboutPanel();
+
   if (!config.get('options.language')) {
     const locale = await getDefaultLocale(app.getLocale());
     if (locale) {

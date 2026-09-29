@@ -1,12 +1,16 @@
+export interface WaitForElementOptions {
+  maxRetry?: number;
+  retryInterval?: number;
+}
+
+const DEFAULT_WAIT_OPTIONS: WaitForElementOptions = {
+  maxRetry: -1,
+  retryInterval: 100,
+};
+
 export const waitForElement = <T extends Element>(
   selector: string,
-  options: {
-    maxRetry?: number;
-    retryInterval?: number;
-  } = {
-    maxRetry: -1,
-    retryInterval: 100,
-  },
+  options: WaitForElementOptions = DEFAULT_WAIT_OPTIONS,
 ): Promise<T> => {
   return new Promise<T>((resolve) => {
     let retryCount = 0;

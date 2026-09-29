@@ -1,9 +1,13 @@
 import Store from 'electron-store';
+import { app } from 'electron';
+import semver from 'semver';
 
 import { defaultConfig as defaults } from './defaults';
 
+import { blockers } from '@/plugins/do-not-track/types';
 import { DefaultPresetList, type Preset } from '@/plugins/downloader/types';
 
+import type { TrackerBlockerConfig } from '@/plugins/do-not-track';
 import type { SyncedLyricsPluginConfig } from '@/plugins/synced-lyrics/types';
 
 export type IStore = InstanceType<
@@ -11,6 +15,18 @@ export type IStore = InstanceType<
 >;
 
 const migrations = {
+  '>=3.11.5'(store: IStore) {
+    const blockerConfig = store.get(
+      'plugins.adblocker',
+    ) as TrackerBlockerConfig;
+    if (blockerConfig) {
+      if (!Object.values(blockers).includes(blockerConfig.blocker)) {
+        blockerConfig.blocker = blockers.InPlayer;
+      }
+      store.set('plugins.do-not-track', blockerConfig);
+      store.delete('plugins.adblocker');
+    }
+  },
   '>=3.10.0'(store: IStore) {
     const lyricGeniusConfig = store.get('plugins.lyrics-genius') as
       | {
@@ -260,6 +276,12 @@ const migrations = {
   },
 };
 
+const appVersion = app?.getVersion?.();
+const safeProjectVersion =
+  (appVersion && semver.valid(appVersion)) ||
+  (appVersion && semver.coerce(appVersion)?.version) ||
+  '3.11.5';
+
 export const store = new Store({
   defaults: {
     ...defaults,
@@ -267,4 +289,5 @@ export const store = new Store({
   },
   clearInvalidConfig: false,
   migrations,
+  ...({ projectVersion: safeProjectVersion } as Record<string, unknown>),
 }) as Store & IStore;

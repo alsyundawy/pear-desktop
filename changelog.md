@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.11.5](https://github.com/ArjixWasTaken/pear-desktop/compare/v3.11.4...v3.11.5)
+
+> 29 September 2026
+
+- **Ad Blocker / Do-Not-Track Suite (Backported from v3.12.0-001)**:
+  - Imported advanced adblocker suite (`src/plugins/do-not-track/`) replacing legacy adblocker.
+  - Multi-tier filtering engine with 27+ vendor blocklists, HaGeZi threat intelligence and tracking feeds, and automated prebuilt engine fallback (`@ghostery/adblocker-electron@2.18.2`).
+  - Integrated `adSpeedup` engine for instantaneous YouTube video advertisement skipping and playback acceleration.
+  - Automatic migration path in `src/config/store.ts` (`>=3.11.5`) seamlessly migrating legacy `plugins.adblocker` configuration to `plugins.do-not-track`.
+- **SponsorBlock Integration (Backported from v3.12.0-001)**:
+  - Enhanced `src/plugins/sponsorblock/index.ts` with full support for 8 segment categories (Sponsor, Intermission/Intro, Outro/Endcards, Preview/Recap, Filler Tangent/Jokes, Music: Non-Music Section, Self Promotion, Interaction Reminder).
+  - Added native menu toggles with persistent checkbox states per category.
+  - Hardened with safe URL query encoding (`encodeURIComponent`) and active segment cleanup on track stop.
+  - Comprehensive internationalization (`en` and `id`) for all category names and descriptions.
+- **Synced Lyrics Modernization (Backported from v3.12.0)**:
+  - Imported `src/plugins/synced-lyrics/` with enhanced LRC parsing, multi-provider fallbacks (LRCLib, MusixMatch, Genius, Megalobiz, YTMusic), and reactive rendering architecture.
+  - Added `DEFAULT_WAIT_OPTIONS` constant in `src/utils/wait-for-element.ts`.
+- **Official Branding & Logo Suite (Backported from v3.12.0-001)**:
+  - Imported official application icons and media assets (`assets/icon.png`, `assets/icon.svg`, macOS ICNS suite, complete PNG dimensions 16x16 through 1024x1024, media icons, and desktop banner).
+- **About Panel Logic & Native Dialog (Backported from v3.12.0-001)**:
+  - Hoisted `showAbout()` in `src/menu.ts` to prevent temporal dead zone issues.
+  - Implemented dynamic copyright year calculation (`new Date().getFullYear()`) and structured application metadata (website, credits, icon path).
+  - Bound direct click handlers across macOS application menu and Help menu items.
+  - Initialized `setupAboutPanel()` on `app.whenReady()` in `src/index.ts`.
+- **Security Hardening & Dependency Upgrades**:
+  - Upgraded core dependencies: `@ghostery/adblocker-electron@2.18.2`, `@ghostery/adblocker-electron-preload@2.18.2`, `hono@4.13.9`, `socks@2.8.10`, `node-html-parser@9.0.4`, `youtubei.js@18.1.0`, `deepmerge-ts@8.0.2`, `electron-updater@6.8.9`, `zod@4.6.5`.
+  - Configured `pnpm-workspace.yaml` with strict overrides addressing critical transitive CVEs: `tar@>=7.5.7`, `fast-uri@>=3.1.0`, `nanoid@>=5.1.6`, `undici@>=7.20.0`, `ip-address@>=10.1.0`, `brace-expansion@>=4.0.1`, `postcss@>=8.5.8`, `tmp@>=0.2.4`, `uuid@>=11.1.0`, `@xmldom/xmldom@>=0.9.9`, and `node-gyp@>=11.5.0`.
+  - Regenerated lockfile `pnpm-lock.yaml` with pnpm v12.
+
+#### [v3.11.4](https://github.com/ArjixWasTaken/pear-desktop/compare/v3.11.3...v3.11.4)
+
+> 10 February 2026
+
+- Fixed downloader by updating Youtubei.js dependency (`#9`)
+- chore(deps): update dependency hono to v4.11.10 [security] (`#4331`)
+- chore(deps): update dependencies (`eslint`, `@playwright/test`, `i18next`, `conf`, `semver`)
+- chore(i18n): translations for Hindi, Indonesian, Greek, Chinese, Lithuanian, Turkish, Vietnamese, German, Telugu
+
 #### [v3.11.3](https://github.com/ArjixWasTaken/pear-desktop/compare/v3.11.2...v3.11.3)
 
 - [chore]: sync with upstream [`#2`](https://github.com/ArjixWasTaken/pear-desktop/pull/2)
