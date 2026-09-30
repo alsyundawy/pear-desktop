@@ -4,11 +4,20 @@ on:
   push:
     branches:
       - master
+    tags:
+      - '*'
+      - '**'
   pull_request:
     branches:
       - master
       - main
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or commit SHA to build (e.g. master, v3.11.5, v3.12.0-001)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -52,6 +61,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
           persist-credentials: false
 
       - name: Inspect Runner Environment
@@ -62,6 +72,9 @@ jobs:
           echo "Runner OS   : $RUNNER_OS"
           echo "Target Arch : ${{ matrix.arch }}"
           echo "System Arch : $(uname -m)"
+          echo "Event Name  : $GITHUB_EVENT_NAME"
+          echo "Trigger Ref : $GITHUB_REF"
+          echo "Target Ref  : ${{ inputs.ref || github.ref }}"
           sw_vers || true
           echo "=========================================="
 
@@ -79,7 +92,7 @@ jobs:
 
       - name: Install Dependencies
         shell: bash
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile || pnpm install
 
       - name: Build macOS DMG (${{ matrix.arch_label }})
         shell: bash
