@@ -71,8 +71,10 @@ Platform.shim.eval = (
 
   const code = `${data.output}\nreturn { ${properties.join(', ')} }`;
 
+  /* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call */
   // oxlint-disable-next-line typescript/no-unsafe-return,typescript/no-implied-eval,typescript/no-unsafe-call
   return new Function(code)();
+  /* eslint-enable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call */
 };
 
 let yt: Innertube;
@@ -110,8 +112,11 @@ const sendError = (error: Error, source?: string) => {
   const songNameMessage = source ? `\nin ${source}` : '';
   const cause = error.cause
     ? `\n\n${
-        // oxlint-disable-next-line typescript/no-base-to-string,typescript/restrict-template-expressions
-        error.cause instanceof Error ? error.cause.toString() : error.cause
+        error.cause instanceof Error
+          ? error.cause.toString()
+          : typeof error.cause === 'string'
+            ? error.cause
+            : JSON.stringify(error.cause)
       }`
     : '';
   const message = `${error.toString()}${songNameMessage}${cause}`;
@@ -197,8 +202,10 @@ export const onMainLoad = async ({
       if (interpreterJavascript) {
         // This is a workaround to run the interpreterJavascript code
         // Maybe there is a better way to do this (e.g. https://github.com/Siubaak/sval ?)
+        /* eslint-disable @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call */
         // oxlint-disable-next-line typescript/no-implied-eval,typescript/no-unsafe-call
         new Function(interpreterJavascript)();
+        /* eslint-enable @typescript-eslint/no-implied-eval, @typescript-eslint/no-unsafe-call */
 
         const poTokenResult = await BG.PoToken.generate({
           program: bgChallenge.program,

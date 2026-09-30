@@ -1,5 +1,6 @@
-import { LRC } from '../parsers/lrc';
 import { isSongMatch } from './matcher';
+
+import { LRC } from '../parsers/lrc';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 

@@ -53,8 +53,7 @@ declare module 'custom-electron-prompt' {
   export interface CounterPromptOptions extends BasePromptOptions<'counter'> {
     counterOptions: CounterOptions;
   }
-  export interface MultiInputPromptOptions
-    extends BasePromptOptions<'multiInput'> {
+  export interface MultiInputPromptOptions extends BasePromptOptions<'multiInput'> {
     multiInputOptions: InputOptions[];
   }
   export interface KeybindPromptOptions extends BasePromptOptions<'keybind'> {

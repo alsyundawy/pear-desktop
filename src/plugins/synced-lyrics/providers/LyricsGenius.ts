@@ -1,4 +1,5 @@
 import { isSongMatch } from './matcher';
+
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 const preloadedStateRegex = /__PRELOADED_STATE__ = JSON\.parse\('(.*?)'\);/;

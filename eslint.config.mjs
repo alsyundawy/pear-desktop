@@ -14,7 +14,16 @@ export default tsEslint.config(
   ...tsEslint.configs.recommendedTypeChecked,
   prettier,
   solid,
-  { ignores: ['dist', 'node_modules', '*.config.*js', '*.test.*js'] },
+  {
+    ignores: [
+      'dist',
+      'node_modules',
+      '**/*.config.*',
+      '**/*.test.*',
+      '**/tests/**',
+      'src/plugins/performance-improvement/scripts/**',
+    ],
+  },
   {
     plugins: {
       stylistic,

@@ -1,6 +1,7 @@
+import { isSongMatch } from './matcher';
+
 import { LRC } from '../parsers/lrc';
 import { config } from '../renderer/renderer';
-import { isSongMatch } from './matcher';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 

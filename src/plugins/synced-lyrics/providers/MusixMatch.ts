@@ -1,8 +1,9 @@
 import * as z from 'zod';
 
+import { isSongMatch } from './matcher';
+
 import { LRC } from '../parsers/lrc';
 import { netFetch } from '../renderer';
-import { isSongMatch } from './matcher';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
@@ -202,8 +203,8 @@ class MusixMatchAPI {
   public hasValidToken(): boolean {
     return Boolean(
       this.token &&
-        !this.token.startsWith('0000000000000000000000000000000000000000') &&
-        this.token.length > 10,
+      !this.token.startsWith('0000000000000000000000000000000000000000') &&
+      this.token.length > 10,
     );
   }
 
@@ -309,7 +310,7 @@ class MusixMatchAPI {
 
     localStorage.setItem(
       this.key,
-      JSON.stringify({ token: this.token, expires: Date.now() + (60 * 1000) }),
+      JSON.stringify({ token: this.token, expires: Date.now() + 60 * 1000 }),
     );
   }
 

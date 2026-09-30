@@ -56,11 +56,11 @@ import {
 import { LoggerPrefix } from '@/utils';
 import { APPLICATION_NAME, loadI18n, setLanguage, t } from '@/i18n';
 
-import packageJson from '../package.json';
-
 import ErrorHtmlAsset from '@assets/error.html?asset';
 
 import { defaultAuthProxyConfig } from '@/plugins/auth-proxy-adapter/config';
+
+import packageJson from '../package.json';
 
 import type { PluginConfig } from '@/types/plugins';
 
@@ -352,7 +352,8 @@ async function createMainWindow() {
 
   const electronWindowSettings: Electron.BrowserWindowConstructorOptions = {
     icon,
-    title: '\u0059\u006f\u0075\u0074\u0075\u0062\u0065 \u004D\u0075\u0073\u0069\u0063',
+    title:
+      '\u0059\u006f\u0075\u0074\u0075\u0062\u0065 \u004D\u0075\u0073\u0069\u0063',
     width: windowSize.width,
     height: windowSize.height,
     minWidth: 325,
@@ -825,7 +826,8 @@ app.whenReady().then(async () => {
       clearTimeout(updateTimeout);
     }, 2000);
     autoUpdater.on('update-available', () => {
-      const downloadLink = 'https://github.com/ArjixWasTaken/pear-desktop/releases/latest';
+      const downloadLink =
+        'https://github.com/ArjixWasTaken/pear-desktop/releases/latest';
       const dialogOptions: Electron.MessageBoxOptions = {
         type: 'info',
         buttons: [

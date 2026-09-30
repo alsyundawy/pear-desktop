@@ -157,7 +157,7 @@ export default createPlugin({
         type: 'checkbox',
         checked: Boolean(
           config.globalShortcuts?.volumeUp ??
-            config.globalShortcuts?.volumeDown,
+          config.globalShortcuts?.volumeDown,
         ),
         click: (item) => promptGlobalShortcuts(config, item),
       },

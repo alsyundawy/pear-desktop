@@ -7,9 +7,18 @@ import { jaroWinkler } from '@skyra/jaro-winkler';
 export function cleanTitle(title?: string | null): string {
   if (!title) return '';
   return title
-    .replace(/\[(?:official\s*)?(?:music\s*)?(?:video|audio|mv|lyric|lyrics|visualizer)?\]/gi, '')
-    .replace(/\((?:official\s*)?(?:music\s*)?(?:video|audio|mv|lyric|lyrics|live|remastered|version|visualizer)?\)/gi, '')
-    .replace(/\b(?:official\s+music\s+video|official\s+video|official\s+audio|music\s+video|lyric\s+video|audio)\b/gi, '')
+    .replace(
+      /\[(?:official\s*)?(?:music\s*)?(?:video|audio|mv|lyric|lyrics|visualizer)?\]/gi,
+      '',
+    )
+    .replace(
+      /\((?:official\s*)?(?:music\s*)?(?:video|audio|mv|lyric|lyrics|live|remastered|version|visualizer)?\)/gi,
+      '',
+    )
+    .replace(
+      /\b(?:official\s+music\s+video|official\s+video|official\s+audio|music\s+video|lyric\s+video|audio)\b/gi,
+      '',
+    )
     .trim();
 }
 
@@ -119,8 +128,14 @@ export function isSongMatch(
   ]);
 
   if (qA && rA && !genericArtists.has(qA)) {
-    const qArtists = qA.split(/[&,]/g).map((s) => s.trim()).filter(Boolean);
-    const rArtists = rA.split(/[&,]/g).map((s) => s.trim()).filter(Boolean);
+    const qArtists = qA
+      .split(/[&,]/g)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const rArtists = rA
+      .split(/[&,]/g)
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     const artistScores: number[] = [jaroWinkler(qA, rA)];
 
