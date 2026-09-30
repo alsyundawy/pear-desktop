@@ -8,7 +8,6 @@ import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 import lazyVar from 'lazy-var';
 import { pinyin } from 'pinyin-pro';
 import { render } from 'solid-js/web';
-import { detect } from 'tinyld';
 
 import { waitForElement } from '@/utils/wait-for-element';
 
@@ -214,6 +213,7 @@ export const romanizeThai = (line: string) => {
 };
 
 export const romanizeBengali = (line: string) => {
+  if (!hasBengali([line])) return line;
   try {
     let out = Sanscript.t(line, 'bengali', 'iast');
     out = out.normalize('NFD');
@@ -226,6 +226,7 @@ export const romanizeBengali = (line: string) => {
 };
 
 export const romanizeHindi = (line: string) => {
+  if (!hasHindi([line])) return line;
   try {
     let out = Sanscript.t(line, 'devanagari', 'iast');
     out = out.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // strip accents
@@ -235,30 +236,13 @@ export const romanizeHindi = (line: string) => {
   }
 };
 
-const handlers: Record<string, (line: string) => Promise<string> | string> = {
-  ja: romanizeJapanese,
-  ko: romanizeHangul,
-  zh: romanizeChinese,
-  th: romanizeThai,
-  bn: romanizeBengali,
-  hi: romanizeHindi,
-};
-
 export const romanize = async (line: string) => {
-  const lang = detect(line);
-
-  const handler = handlers[lang];
-  if (handler) {
-    return handler(line);
-  }
-
-  // fallback
-  if (hasJapanese([line])) line = await romanizeJapanese(line);
-  if (hasKorean([line])) line = romanizeHangul(line);
-  if (hasChinese([line])) line = romanizeChinese(line);
-  if (hasThai([line])) line = romanizeThai(line);
-  if (hasBengali([line])) line = romanizeBengali(line);
-  if (hasHindi([line])) line = romanizeHindi(line);
+  if (hasJapanese([line])) return await romanizeJapanese(line);
+  if (hasKorean([line])) return romanizeHangul(line);
+  if (hasChinese([line])) return romanizeChinese(line);
+  if (hasThai([line])) return romanizeThai(line);
+  if (hasBengali([line])) return romanizeBengali(line);
+  if (hasHindi([line])) return romanizeHindi(line);
 
   return line;
 };

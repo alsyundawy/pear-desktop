@@ -1,3 +1,4 @@
+import { isSongMatch } from './matcher';
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 const preloadedStateRegex = /__PRELOADED_STATE__ = JSON\.parse\('(.*?)'\);/;
@@ -9,7 +10,7 @@ export class LyricsGenius implements LyricProvider {
   private domParser = new DOMParser();
 
   // prettier-ignore
-  async search({ title, artist }: SearchSongInfo): Promise<LyricResult | null> {
+  async search({ title, alternativeTitle, artist }: SearchSongInfo): Promise<LyricResult | null> {
     const query = new URLSearchParams({
       q: `${artist} ${title}`,
       page: '1',
@@ -22,31 +23,33 @@ export class LyricsGenius implements LyricProvider {
     }
 
     const data = (await response.json()) as LyricsGeniusSearch;
-    const hits = data.response.sections[0].hits;
+    const hits = data?.response?.sections?.[0]?.hits;
+    if (!Array.isArray(hits) || hits.length === 0) {
+      return null;
+    }
 
-    hits.sort(
-      ({
-        result: {
-          title: titleA,
-          primary_artist: { name: artistA },
-        },
-      }, {
-        result: {
-          title: titleB,
-          primary_artist: { name: artistB },
-        },
-      }) => {
-        const pointsA = (titleA === title ? 1 : 0) +
-          (artistA.includes(artist) ? 1 : 0);
-        const pointsB = (titleB === title ? 1 : 0) +
-          (artistB.includes(artist) ? 1 : 0);
+    const matchingHits = hits.filter((hit) => {
+      const res = hit?.result;
+      if (
+        !res ||
+        !res.title ||
+        !res.primary_artist?.name ||
+        res.primary_artist.url === 'https://genius.com/artists/Deleted-artist'
+      ) {
+        return false;
+      }
 
-        return pointsB - pointsA;
-      },
-    );
+      return isSongMatch(
+        title,
+        alternativeTitle,
+        artist,
+        res.title,
+        res.primary_artist.name,
+      );
+    });
 
-    const closestHit = hits.at(0);
-    if (!closestHit || closestHit.result.primary_artist.url === 'https://genius.com/artists/Deleted-artist') {
+    const closestHit = matchingHits.at(0);
+    if (!closestHit) {
       return null;
     }
 

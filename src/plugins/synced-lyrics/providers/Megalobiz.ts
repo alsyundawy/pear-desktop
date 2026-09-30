@@ -1,6 +1,5 @@
-import { jaroWinkler } from '@skyra/jaro-winkler';
-
 import { LRC } from '../parsers/lrc';
+import { isSongMatch } from './matcher';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
@@ -20,7 +19,7 @@ export class Megalobiz implements LyricProvider {
   private domParser = new DOMParser();
 
   // prettier-ignore
-  async search({ title, artist, songDuration }: SearchSongInfo): Promise<LyricResult | null> {
+  async search({ title, alternativeTitle, artist, songDuration }: SearchSongInfo): Promise<LyricResult | null> {
     const query = new URLSearchParams({
       qry: `${artist} ${title}`,
     });
@@ -52,12 +51,13 @@ export class Megalobiz implements LyricProvider {
             ...(removeNoise(name).match(/(?<title>.*) by (?<artists>.*)/)?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
           ].filter(Boolean);
 
-          for (const artist of artists) {
-            name = name.replace(artist, '');
+          for (const a of artists) {
+            name = name.replace(a, '');
             name = removeNoise(name);
           }
 
-          if (jaroWinkler(title, name) < 0.8) return null;
+          const joinedArtists = artists.join(', ');
+          if (!isSongMatch(title, alternativeTitle, artist, name, joinedArtists)) return null;
 
           return {
             title: name,
@@ -84,6 +84,18 @@ export class Megalobiz implements LyricProvider {
     const closestResult = sortedResults[0];
     if (!closestResult) return null;
     if (Math.abs(closestResult.duration - songDuration) > 15) {
+      return null;
+    }
+
+    if (
+      !isSongMatch(
+        title,
+        alternativeTitle,
+        artist,
+        closestResult.title,
+        closestResult.artists.join(', '),
+      )
+    ) {
       return null;
     }
 

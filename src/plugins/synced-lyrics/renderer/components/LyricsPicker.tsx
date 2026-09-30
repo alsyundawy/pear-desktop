@@ -34,7 +34,7 @@ import {
 import { _ytAPI } from '../index';
 import { reactiveOwner } from '../reactive-root';
 import { config } from '../renderer';
-import { currentLyrics, lyricsStore, setLyricsStore } from '../store';
+import { lyricsStore, setLyricsStore } from '../store';
 
 import type { PlayerAPIEvents } from '@/types/player-api-events';
 
@@ -206,75 +206,72 @@ export const LyricsPicker = (props: {
       <div class="lyrics-picker-content">
         <div class="lyrics-picker-content-label">
           <Index each={providerNames}>
-            {(provider) => (
-              <div
-                class="lyrics-picker-item"
-                style={{
-                  transform: `translateX(${providerIdx() * -100 - 5}%)`,
-                }}
-                tabindex="-1"
-              >
-                <Switch>
-                  <Match
-                    when={
-                      // prettier-ignore
-                      currentLyrics().state === 'fetching'
-                    }
-                  >
-                    <tp-yt-paper-spinner-lite
-                      active
-                      class="loading-indicator style-scope"
-                      style={{ padding: '5px', transform: 'scale(0.5)' }}
-                      tabindex="-1"
-                    />
-                  </Match>
-                  <Match when={currentLyrics().state === 'error'}>
-                    <LitElementWrapper
-                      elementClass={IconError}
-                      props={{ style: { padding: '5px', scale: '0.8' } }}
-                    />
-                  </Match>
-                  <Match
-                    when={
-                      currentLyrics().state === 'done' &&
-                      (currentLyrics().data?.lines ||
-                        currentLyrics().data?.lyrics)
-                    }
-                  >
-                    <LitElementWrapper
-                      elementClass={IconCheckCircle}
-                      props={{ style: { padding: '5px', scale: '0.8' } }}
-                    />
-                  </Match>
-                  <Match
-                    when={
-                      currentLyrics().state === 'done' &&
-                      !currentLyrics().data?.lines &&
-                      !currentLyrics().data?.lyrics
-                    }
-                  >
-                    <LitElementWrapper
-                      elementClass={IconWarning}
-                      props={{ style: { padding: '5px', scale: '0.8' } }}
-                    />
-                  </Match>
-                </Switch>
-                <yt-formatted-string
-                  class="description ytmusic-description-shelf-renderer"
-                  text={{ runs: [{ text: provider() }] }}
-                />
-                <mdui-button-icon onClick={toggleStar} tabindex={-1}>
-                  <Show
-                    fallback={
-                      <LitElementWrapper elementClass={IconStarBorder} />
-                    }
-                    when={starredProvider() === provider()}
-                  >
-                    <LitElementWrapper elementClass={IconStar} />
-                  </Show>
-                </mdui-button-icon>
-              </div>
-            )}
+            {(provider) => {
+              const pState = () => lyricsStore.lyrics[provider()];
+              return (
+                <div
+                  class="lyrics-picker-item"
+                  style={{
+                    transform: `translateX(${providerIdx() * -100 - 5}%)`,
+                  }}
+                  tabindex="-1"
+                >
+                  <Switch>
+                    <Match when={pState().state === 'fetching'}>
+                      <tp-yt-paper-spinner-lite
+                        active
+                        class="loading-indicator style-scope"
+                        style={{ padding: '5px', transform: 'scale(0.5)' }}
+                        tabindex="-1"
+                      />
+                    </Match>
+                    <Match when={pState().state === 'error'}>
+                      <LitElementWrapper
+                        elementClass={IconError}
+                        props={{ style: { padding: '5px', scale: '0.8' } }}
+                      />
+                    </Match>
+                    <Match
+                      when={
+                        pState().state === 'done' &&
+                        (pState().data?.lines || pState().data?.lyrics)
+                      }
+                    >
+                      <LitElementWrapper
+                        elementClass={IconCheckCircle}
+                        props={{ style: { padding: '5px', scale: '0.8' } }}
+                      />
+                    </Match>
+                    <Match
+                      when={
+                        pState().state === 'done' &&
+                        !pState().data?.lines &&
+                        !pState().data?.lyrics
+                      }
+                    >
+                      <LitElementWrapper
+                        elementClass={IconWarning}
+                        props={{ style: { padding: '5px', scale: '0.8' } }}
+                      />
+                    </Match>
+                  </Switch>
+                  <yt-formatted-string
+                    class="description ytmusic-description-shelf-renderer"
+                    text={{ runs: [{ text: provider() }] }}
+                  />
+                  <mdui-button-icon onClick={toggleStar} tabindex={-1}>
+                    <Show
+                      fallback={
+                        <LitElementWrapper elementClass={IconStarBorder} />
+                      }
+                      when={starredProvider() === provider()}
+                    >
+                      <LitElementWrapper elementClass={IconStar} />
+                    </Show>
+                  </mdui-button-icon>
+                </div>
+              );
+            }}
           </Index>
         </div>
 

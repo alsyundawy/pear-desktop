@@ -2,6 +2,7 @@ import * as z from 'zod';
 
 import { LRC } from '../parsers/lrc';
 import { netFetch } from '../renderer';
+import { isSongMatch } from './matcher';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
@@ -12,43 +13,71 @@ export class MusixMatch implements LyricProvider {
   private api: MusixMatchAPI | undefined;
 
   async search(info: SearchSongInfo): Promise<LyricResult | null> {
-    // late-init the API, to avoid an electron IPC issue
-    // an added benefit is that if it has an error during init, the user can hit the retry button
-    this.api ??= await MusixMatchAPI.new();
-    await this.api.reinit();
+    try {
+      // late-init the API, to avoid an electron IPC issue
+      // an added benefit is that if it has an error during init, the user can hit the retry button
+      this.api ??= await MusixMatchAPI.new();
+      await this.api.reinit();
 
-    const data = await this.api.query(Endpoint.getMacroSubtitles, {
-      q_track: info.alternativeTitle || info.title,
-      q_artist: info.artist,
-      q_duration: info.songDuration.toString(),
-      ...(info.album ? { q_album: info.album } : {}),
-      namespace: 'lyrics_richsynched',
-      subtitle_format: 'lrc',
-    });
+      if (!this.api.hasValidToken()) {
+        return null;
+      }
 
-    const { macro_calls: macroCalls } = data.body;
+      const data = await this.api.query(Endpoint.getMacroSubtitles, {
+        q_track: info.alternativeTitle || info.title,
+        q_artist: info.artist,
+        q_duration: info.songDuration.toString(),
+        ...(info.album ? { q_album: info.album } : {}),
+        namespace: 'lyrics_richsynched',
+        subtitle_format: 'lrc',
+      });
 
-    // prettier-ignore
-    const getter = <T extends keyof typeof macroCalls>(key: T): typeof macroCalls[T]['message']['body'] => macroCalls[key].message.body;
+      const { macro_calls: macroCalls } = data.body;
 
-    const track = getter('matcher.track.get')?.track;
-    const lyrics = getter('track.lyrics.get')?.lyrics?.lyrics_body;
-    const subtitle = getter('track.subtitles.get')?.subtitle_list?.[0];
+      // prettier-ignore
+      const getter = <T extends keyof typeof macroCalls>(key: T): typeof macroCalls[T]['message']['body'] => macroCalls[key].message.body;
 
-    // either no track found, or musixmatch's algorithm returned "Coldplay - Paradise" for no reason whatsoever
-    if (!track || track.track_id === 115264642) return null;
+      const track = getter('matcher.track.get')?.track;
+      const lyrics = getter('track.lyrics.get')?.lyrics?.lyrics_body;
+      const subtitle = getter('track.subtitles.get')?.subtitle_list?.[0];
 
-    return {
-      title: track.track_name,
-      artists: [track.artist_name],
-      lines: subtitle
-        ? LRC.parse(subtitle.subtitle.subtitle_body).lines.map((l) => ({
-            ...l,
-            status: 'upcoming' as const,
-          }))
-        : undefined,
-      lyrics: lyrics,
-    };
+      // Discard dummy tracks returned when search fails or token is blocked (e.g. Coldplay - Paradise, Drake - NOKIA)
+      if (
+        !track ||
+        track.track_id === 115264642 ||
+        track.track_id === 226291677 ||
+        track.track_name.toLowerCase() === 'nokia'
+      ) {
+        return null;
+      }
+
+      // Strictly verify that the returned track and artist match the currently playing song
+      if (
+        !isSongMatch(
+          info.title,
+          info.alternativeTitle,
+          info.artist,
+          track.track_name,
+          track.artist_name,
+        )
+      ) {
+        return null;
+      }
+
+      return {
+        title: track.track_name,
+        artists: [track.artist_name],
+        lines: subtitle
+          ? LRC.parse(subtitle.subtitle.subtitle_body).lines.map((l) => ({
+              ...l,
+              status: 'upcoming' as const,
+            }))
+          : undefined,
+        lyrics: lyrics,
+      };
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -168,6 +197,14 @@ class MusixMatchAPI {
     const api = new MusixMatchAPI();
     await api.initPromise;
     return api;
+  }
+
+  public hasValidToken(): boolean {
+    return Boolean(
+      this.token &&
+        !this.token.startsWith('0000000000000000000000000000000000000000') &&
+        this.token.length > 10,
+    );
   }
 
   public async reinit() {
