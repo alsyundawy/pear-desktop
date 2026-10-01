@@ -1,0 +1,118 @@
+name: Build Pear Desktop Alsyundawy
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+      - '**'
+  pull_request:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, atau commit SHA yang ingin di-build (contoh: v3.11.5, master)'
+        required: false
+        default: 'v3.11.5'
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "11"
+  CSC_IDENTITY_AUTO_DISCOVERY: false
+  MACOSX_DEPLOYMENT_TARGET: "12.0"
+
+jobs:
+  build-macos:
+    name: Build macOS (${{ matrix.arch_label }})
+    runs-on: ${{ matrix.runs_on }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ─── macOS Intel ───────────────────────────────────────────
+          - runs_on: macos-15-intel
+            platform: mac
+            arch: x64
+            arch_label: Intel x64
+            build_script: dist:mac
+
+          # ─── macOS Apple Silicon (macOS Latest) ────────────────────
+          - runs_on: macos-latest
+            platform: mac
+            arch: arm64
+            arch_label: Apple Silicon ARM64 (macOS Latest)
+            build_script: dist:mac:arm64
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Inspect Runner Environment
+        shell: bash
+        run: |
+          echo "=========================================="
+          echo "Runner Name : $RUNNER_NAME"
+          echo "Runner OS   : $RUNNER_OS"
+          echo "Target Arch : ${{ matrix.arch }}"
+          echo "System Arch : $(uname -m)"
+          echo "Event Name  : $GITHUB_EVENT_NAME"
+          echo "Trigger Ref : $GITHUB_REF"
+          echo "Target Ref  : ${{ inputs.ref || github.ref }}"
+          sw_vers || true
+          echo "=========================================="
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup NodeJS for macOS
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: Build macOS DMG (${{ matrix.arch_label }})
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo mdutil -a -i off 2>/dev/null || true
+          echo "Building Pear Desktop for macOS ${{ matrix.arch }} using '${{ matrix.build_script }}'..."
+          pnpm ${{ matrix.build_script }} || {
+            echo "First DMG build attempt failed, retrying after cleanup..."
+            sleep 3
+            pnpm ${{ matrix.build_script }}
+          }
+
+      - name: Verify Output Files
+        shell: bash
+        run: |
+          echo "=== Content of pack/ directory ==="
+          ls -lh pack/
+
+      - name: Upload macOS Artifacts (${{ matrix.arch }})
+        uses: actions/upload-artifact@v7
+        with:
+          name: pear-desktop-macos-${{ matrix.arch }}
+          path: |
+            pack/*.dmg
+            pack/*.zip
+            pack/*.blockmap
+          if-no-files-found: error

@@ -1,0 +1,151 @@
+name: Release Pear Desktop (macOS Intel & ARM)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag rilis yang ingin di-build (contoh: v3.11.5)'
+        required: true
+        default: 'v3.11.5'
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "11"
+  CSC_IDENTITY_AUTO_DISCOVERY: false
+  MACOSX_DEPLOYMENT_TARGET: "12.0"
+
+jobs:
+  build:
+    name: Build macOS Release (${{ matrix.arch_label }})
+    runs-on: ${{ matrix.runs_on }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ─── macOS Intel ───────────────────────────────────────────
+          - runs_on: macos-15-intel
+            platform: mac
+            arch: x64
+            arch_label: Intel x64
+            build_script: dist:mac
+
+          # ─── macOS Apple Silicon (macOS Latest) ────────────────────
+          - runs_on: macos-latest
+            platform: mac
+            arch: arm64
+            arch_label: Apple Silicon ARM64 (macOS Latest)
+            build_script: dist:mac:arm64
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag != '' && inputs.tag || github.ref }}
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Setup NodeJS for macOS
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+
+      - name: Build macOS DMG (${{ matrix.arch_label }})
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo mdutil -a -i off 2>/dev/null || true
+          echo "Packaging Release DMG for ${{ matrix.arch }}..."
+          pnpm ${{ matrix.build_script }} || {
+            echo "First DMG build attempt failed, retrying after cleanup..."
+            sleep 3
+            pnpm ${{ matrix.build_script }}
+          }
+
+      - name: Upload Build Artifact (${{ matrix.arch_label }})
+        uses: actions/upload-artifact@v7
+        with:
+          name: pear-desktop-macos-${{ matrix.runs_on }}-${{ matrix.arch }}
+          path: |
+            pack/*.dmg
+            pack/*.zip
+          if-no-files-found: error
+
+  # ─── GitHub Release Job (Pola yang sama persis dengan NotepadNext-MacOS) ───
+  github-release:
+    name: Publish GitHub Release
+    runs-on: macos-latest
+    timeout-minutes: 20
+    needs: [build]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag != '' && inputs.tag || github.ref }}
+          persist-credentials: false
+
+      - name: Determine Release Tag
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "RELEASE_TAG=${TAG}" >> "$GITHUB_ENV"
+
+      - name: Create or Verify Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 || \
+          gh release create "$RELEASE_TAG" \
+            --title "${RELEASE_TAG#v}" \
+            --generate-notes
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+
+      - name: Upload Release Assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== Downloaded Artifact Directories ==="
+          ls -la
+
+          # Upload DMG dan ZIP dari setiap direktori build artifact
+          for dir in pear-desktop-macos-*; do
+            echo "Processing artifact dir: ${dir}"
+            if [ -d "${dir}" ]; then
+              for file in "${dir}"/*.dmg "${dir}"/*.zip; do
+                if [ -f "${file}" ]; then
+                  echo "Uploading ${file} -> Release ${RELEASE_TAG}..."
+                  gh release upload "${RELEASE_TAG}" "${file}" --clobber
+                fi
+              done
+            else
+              echo "WARNING: Directory ${dir} not found"
+            fi
+          done
