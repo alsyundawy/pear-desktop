@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
-    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.12.0-001 Enterprise Music Client Flyer Banner" width="100%">
+    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.5 Music Client Flyer Banner" width="100%">
   </a>
 </p>
 
@@ -33,7 +33,7 @@
 
 <p align="center">
   <a href="#downloads--artifact-catalogs">
-    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.12.0--001-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
+    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.5-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
   </a>
   <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest">
     <img src="https://img.shields.io/badge/🪞_Releases_&_Changelog-GitHub-0284c7?style=for-the-badge&logo=github&logoColor=white" alt="Releases & Changelog">
@@ -50,9 +50,9 @@
 > **[`HARRY DERTIN SUTISNA ALSYUNDAWY (@alsyundawy)`](https://github.com/alsyundawy)** —<br>
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
-> 🍏 **[`Latest Releases (v3.12.0-001)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
+> 🍏 **[`Latest Releases (v3.11.5)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
 > 📖 **[`Release DocNotes`](DOCNOTE.md)** &nbsp;|&nbsp;
-> 📜 **[`Changelog`](CHANGELOG.md)** &nbsp;|&nbsp;
+> 📜 **[`Changelog`](changelog.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
 > 💬 **[`Discord Community`](https://discord.gg/pear-desktop)** &nbsp;|&nbsp;
 > 💖 **[`Support via PayPal`](https://www.paypal.me/alsyundawy)**
@@ -84,7 +84,7 @@
 - [Plugin System & Custom Extensions](#plugin-system--custom-extensions)
 - [Developer Setup & Quality Verification](#developer-setup--quality-verification)
 - [Code Review & Quality Standards](#code-review--quality-standards)
-- [Changelog (v3.12.0 — v3.12.0-001)](#changelog-v3120--v3120-001)
+- [Changelog (v3.11.5)](#changelog-v3115)
 - [Upstream Credits & Attribution](#upstream-credits--attribution)
 - [FAQ & Troubleshooting](#faq--troubleshooting)
 - [Support & Donation](#support--donation)
@@ -187,12 +187,10 @@ To deliver uncompromising energy efficiency and responsiveness on MacBook Air an
 
 Official distribution packages are compiled, signed, and published for macOS under [Releases](https://github.com/alsyundawy/pear-desktop-mac/releases/latest):
 
-| Target Architecture | Package Type | Minimum OS | File Artifact Name | Recommended Hardware |
-| :--- | :--- | :--- | :--- | :--- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `Pear-Desktop-3.12.0-001-arm64.dmg` | MacBook Air/Pro, Mac mini, Mac Studio (M1, M2, M3, M4) |
-| **Apple Silicon (ARM64)** | Portable `.zip` | macOS 12+ | `Pear-Desktop-3.12.0-001-arm64-mac.zip` | Standalone portable execution without DMG mounting |
-| **Intel x64** | `.dmg` Installer | macOS 12+ | `Pear-Desktop-3.12.0-001-x64.dmg` | Intel-based MacBook Pro, iMac, Mac Pro |
-| **Intel x64** | Portable `.zip` | macOS 12+ | `Pear-Desktop-3.12.0-001-x64-mac.zip` | Standalone portable execution without DMG mounting |
+| Target Architecture | Package Type | Minimum OS | File Artifact Name | File Size | SHA-256 Digest |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d688cf1e85ee2cb55577ceef77bfefdf586e3cb` |
+| **Intel x64** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5.dmg` | 116.79 MiB | `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237` |
 
 ---
 
@@ -330,38 +328,30 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 
 ---
 
-## Changelog (v3.12.0 — v3.12.0-001)
+## Changelog (v3.11.5)
 
-### [v3.12.0-001] — 29 September 2026 (Production Release)
-- **Verified Runtime Plugin Restorations**:
-  - **Video Toggle**: Auto-fallback to custom segmented pill switcher (`Song | Video`) when `<ytmusic-av-toggle>` is missing; fixed inverted `videoStarted()` state logic; added `.video-toggle-hidden` / `.video-toggle-visible` classes with `!important` display rules; persistent track synchronization via `videodatachange`; accessible `<div role="switch">` WCAG compliance.
-  - **Quality Changer**: Relocated injection target to `.right-controls-buttons` on `ytmusic-player-bar` (alongside captions button), ensuring the button is always visible in standard player view; added `qualityLevels.length > 0` safety validation.
-  - **macOS TouchBar**: Complete rewrite using direct Electron native `TouchBarButton`, `TouchBarLabel`, and `TouchBarSpacer` primitives; eliminated crashes from passing invalid segmented items; dynamic real-time track metadata synchronization; instant initialization without app restart.
+### [v3.11.5] — 30 September 2026 (Production Release)
+- **Synchronized Lyrics Modernization & Mismatch Prevention**:
+  - Implemented strict track & artist matching engine (`matcher.ts`) combining Jaro-Winkler distance and token overlap to eliminate lyrics mismatch bugs.
+  - Unicode script isolation: prevents non-Latin tracks (Korean Hangul, Japanese Kana/CJK, Arabic, Devanagari, Thai) from falsely matching unrelated Latin/Romanized song titles.
+  - MusixMatch honeypot defense: detects and discards dummy placeholder lyrics returned to unauthorized API clients, falling back cleanly to LRCLib, Genius, Megalobiz, or YTMusic.
+  - Direct YTMusic proxy endpoint with clean header stripping and rate-limit handling.
+  - Interactive `LyricsPicker.tsx` component with per-provider fetching status, error states, and live switcher.
+- **Do-Not-Track / AdBlocker Suite**:
+  - Multi-tier filtering engine with 27+ vendor blocklists, HaGeZi threat intelligence and tracking feeds, and automated prebuilt engine fallback (`@ghostery/adblocker-electron@2.18.2`).
+  - Integrated `adSpeedup.ts` engine for instantaneous YouTube video advertisement skipping and playback acceleration.
+  - Automatic migration in `src/config/store.ts` (`>=3.11.5`) seamlessly migrating legacy user configuration to `plugins.do-not-track`.
+- **SponsorBlock Integration**:
+  - Full support for 8 segment categories (Sponsor, Intermission/Intro, Outro/Endcards, Preview/Recap, Filler Tangent/Jokes, Music: Non-Music Section, Self Promotion, Interaction Reminder).
+  - Native menu toggles with persistent checkbox states per category and safe URL query encoding.
 - **macOS Specialization & Packaging**:
-  - Exclusively dedicated to macOS (`pear-desktop-mac`); eliminated Windows/Linux CI overhead.
-  - Universal binary builds for Apple Silicon (ARM64 M1-M4) and Intel (x64) with native `.dmg` installers and portable `.zip` archives.
-  - Fixed window launch freeze by eliminating top-level await in `app.whenReady()`.
-  - Added native **Restart YouTube Music** menu command (`CmdOrCtrl+Shift+R`).
-- **Security & Dependency Hardening**:
-  - Remediated all 15 OSV-Scanner and 17 Grype vulnerabilities via `pnpm-workspace.yaml` overrides (`brace-expansion` 5.0.12, `postcss` >=8.5.23, `tmp` >=0.2.6, `uuid` >=13.0.1, `tar` >=7.5.21).
-  - Runtime base64 decode for PoToken request key in `downloader` to prevent SAST scanner flags.
-  - Eliminated ReDoS vulnerabilities by replacing 10 backtracking regexes in `song-info.ts` with O(1) string methods.
-  - Replaced ES2025 `URL.parse()` with `URL.canParse()` + `new URL()` pattern for ES2022 compatibility.
-  - Integrated MegaLinter v10, CodeQL SAST, Dependabot, and DevSkim.
-- **Adblocker & Threat Intelligence**:
-  - 27+ canonical vendor filter lists + HaGeZi Multi PRO threat intelligence rules.
-  - Integrated `adSpeedup.ts` for skipping unblockable preroll video ads.
-- **Architecture & Memory Governance**:
-  - Main-process memory watchdog (`src/utils/memory-watch.ts`) tracking RSS, Heap, and handle counts.
-  - Decoupled `src/loader/menu.ts` and `src/menu.ts` via `setMenuRefresher()` dependency injection.
-  - Applied CSS containment (`content-visibility: auto`) to playlists and queue drawer.
-- **Upstream PR Integrations**:
-  - Merged PRs #4717 (Last.fm auth fix), #4618 (Skip disliked duplicate fix), #4307 (Crossfade mute fix), #4650 (Navigation teardown cleanup), #4605 (Pitch preservation), #4716 (Always show volume slider), #4718 (Dismiss multi-device popup), #4661, #4665, #4667, #4671, #4672, #4673.
+  - Exclusively curated for macOS (`pear-desktop-mac`) with native `.dmg` installers for Apple Silicon (ARM64) and Intel (x64).
+  - Lightweight stack running on Electron 40.1.0 with DMG file sizes strictly under 120 MiB (`113.57 MiB` for ARM64 and `116.79 MiB` for Intel).
+  - Corrected macOS icon build path in `electron-builder.yml` to `assets/generated/icons/mac/icon.icns`.
 - **Branding & Assets**:
   - High-res Pear ReVanced vector logo, Apple ICNS multi-size icon bundle, and cybernetic showcase banner.
-
-### [v3.12.0] — 25 September 2026
-- **Base Upgrade**: Upgraded to Electron 34 and Node.js 22 runtimes with modern ECMAScript modules.
+- **Security Hardening**:
+  - Remediated critical transitive vulnerabilities via strict overrides (`tar`, `fast-uri`, `nanoid`, `undici`, `ip-address`, `postcss`, `tmp`, `uuid`, etc.).
 
 ---
 

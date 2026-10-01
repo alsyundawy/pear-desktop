@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
-#### [v3.11.5](https://github.com/ArjixWasTaken/pear-desktop/compare/v3.11.4...v3.11.5)
+#### [v3.11.5](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.4...v3.11.5)
 
 > 30 September 2026
 
@@ -14,27 +14,31 @@ All notable changes to this project will be documented in this file. Dates are d
   - Interactive `LyricsPicker.tsx` component with per-provider fetching status, error states, and live switcher.
   - Multi-provider fallbacks across LRCLib, MusixMatch, Genius, Megalobiz, and YTMusic with reactive root and DOM observer.
   - Added `DEFAULT_WAIT_OPTIONS` constant in `src/utils/wait-for-element.ts`.
-- **Ad Blocker / Do-Not-Track Suite (Backported from v3.12.0-001)**:
+- **Ad Blocker / Do-Not-Track Suite**:
   - Imported advanced adblocker suite (`src/plugins/do-not-track/`) cleanly replacing legacy adblocker.
   - Multi-tier filtering engine with 27+ vendor blocklists, HaGeZi threat intelligence and tracking feeds, and automated prebuilt engine fallback (`@ghostery/adblocker-electron@2.18.2`).
   - Integrated `adSpeedup` engine for instantaneous YouTube video advertisement skipping and playback acceleration.
   - Automatic migration path in `src/config/store.ts` (`>=3.11.5`) seamlessly migrating legacy `plugins.adblocker` configuration to `plugins.do-not-track`.
   - Hardened property getter/setter binding (`odesc.get.bind(owner)`, `odesc.set.bind(owner)`) in `inject.ts` for strict linter compliance.
   - Comprehensive internationalization (`en` and `id`).
-- **SponsorBlock Integration (Backported from v3.12.0-001)**:
+- **SponsorBlock Integration**:
   - Enhanced `src/plugins/sponsorblock/index.ts` with full support for 8 segment categories (Sponsor, Intermission/Intro, Outro/Endcards, Preview/Recap, Filler Tangent/Jokes, Music: Non-Music Section, Self Promotion, Interaction Reminder).
   - Added native menu toggles with persistent checkbox states per category.
   - Hardened with safe URL query encoding (`encodeURIComponent`) and active segment cleanup on track stop.
   - Comprehensive internationalization (`en` and `id`) for all category names and descriptions.
-- **Official Branding & Logo Suite (Backported from v3.12.0-001)**:
+- **Official Branding & Logo Suite**:
   - Imported official application icons and media assets (`assets/icon.png`, `assets/icon.svg`, macOS ICNS suite, complete PNG dimensions 16x16 through 1024x1024, media icons, and desktop banner).
   - Corrected macOS icon build path in `electron-builder.yml` to `assets/generated/icons/mac/icon.icns`.
-- **About Panel Logic & Menu Architecture (Backported from v3.12.0-001)**:
+- **About Panel Logic & Menu Architecture**:
   - Hoisted `showAbout()` in `src/menu.ts` to prevent temporal dead zone issues.
   - Implemented dynamic copyright year calculation (`new Date().getFullYear()`) and structured application metadata (website, credits, icon path).
   - Bound direct click handlers across macOS application menu and Help menu items.
   - Initialized `setupAboutPanel()` on `app.whenReady()` in `src/index.ts`.
   - Refactored `src/menu.ts` plugin menu mapper to use typed async promises with `await Promise.all(...)`.
+- **macOS Distribution Artifacts & Package Validation**:
+  - Native `.dmg` builds for Apple Silicon (ARM64) and Intel (x64) strictly optimized to stay under 120 MiB.
+  - Apple Silicon (`YouTube-Music-3.11.5-arm64.dmg`): 113.57 MiB | SHA-256: `8ee1ed04cf49666d5c01b0fb5d688cf1e85ee2cb55577ceef77bfefdf586e3cb`.
+  - Intel x64 (`YouTube-Music-3.11.5.dmg`): 116.79 MiB | SHA-256: `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237`.
 - **Code Quality, Linters & TypeScript Compilation**:
   - Configured `tsconfig.test.json` to allow JS files (`"allowJs": true`), resolving TS18003 parser error.
   - Updated ESLint configuration (`eslint.config.mjs`) with proper glob ignores for tests and performance scripts.

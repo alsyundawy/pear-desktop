@@ -1,12 +1,12 @@
 <p align="center">
-  <a href="https://github.com/alsyundawy/pear-desktop">
+  <a href="https://github.com/alsyundawy/pear-desktop-mac">
     <img src="assets/icon.png" width="96" height="96" alt="Pear Desktop Application Logo">
   </a>
 </p>
 
 # Release DocNote: 3.11.5
 
-**Repository**: [alsyundawy/pear-desktop](https://github.com/alsyundawy/pear-desktop)  
+**Repository**: [alsyundawy/pear-desktop-mac](https://github.com/alsyundawy/pear-desktop-mac)  
 **Release Version**: `3.11.5` (`v3.11.5`)  
 **Base Version**: `3.11.4` (`v3.11.4`, commit `3c78e6fa`)  
 **Date**: 30 September 2026  
@@ -16,9 +16,9 @@
 
 ## 1. Executive Summary
 
-Release **3.11.5** (`v3.11.5`) is an official maintenance, feature backport, and stability hardening release built strictly from base tag **v3.11.4**.
+Release **3.11.5** (`v3.11.5`) is an official maintenance, feature enhancement, and stability hardening release built strictly from base tag **v3.11.4**.
 
-This release introduces critical enhancements from `3.12.0-001` into the stable 3.11.x line without introducing breaking changes or affecting other release branches and tags. It features the advanced multi-vendor ad blocker suite (`do-not-track`), the expanded SponsorBlock controller with 8 segment categories, official branding and high-resolution macOS icons, a modernized and mismatch-proof synced lyrics engine, robust About dialog logic, comprehensive security remediation for `package.json` / `pnpm-lock.yaml`, and complete linter & TypeScript cleanliness (0 errors).
+This release introduces critical enhancements into the stable 3.11.x line without introducing breaking changes. It features the advanced multi-vendor ad blocker suite (`do-not-track`), the expanded SponsorBlock controller with 8 segment categories, official branding and high-resolution macOS icons, a modernized and mismatch-proof synced lyrics engine, robust About dialog logic, comprehensive security remediation for `package.json` / `pnpm-lock.yaml`, and complete linter & TypeScript cleanliness (0 errors).
 
 ---
 
@@ -125,7 +125,20 @@ To resolve known CVEs and adhere to pnpm v12 architecture, security overrides we
 
 ---
 
-## 5. Scope Invariant & Isolation Guarantee
+## 5. Build Artifacts & Checksums
+
+Official release binaries are built natively for macOS with packages kept strictly under 120 MiB:
+
+| Target Architecture | Package Type | File Artifact Name | File Size | SHA-256 Digest |
+| :--- | :--- | :--- | :--- | :--- |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d688cf1e85ee2cb55577ceef77bfefdf586e3cb` |
+| **Intel x64** | `.dmg` Installer | `YouTube-Music-3.11.5.dmg` | 116.79 MiB | `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237` |
+
+Both release packages are verified to be under 120 MiB and compiled on the clean Electron 40.1.0 stack.
+
+---
+
+## 6. Scope Invariant & Verification
 
 - All changes are strictly confined to the `v3.11.5` release line.
-- `master`, `v3.12.0`, `v3.12.0-001`, and prior tags remain completely untouched.
+- Source code is strictly verified against Electron 40.1.0 and electron-vite 5.0.0.
