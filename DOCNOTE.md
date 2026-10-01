@@ -1,3 +1,5 @@
+<!-- markdownlint-disable-file MD033 MD041 -->
+
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
     <img src="assets/icon.png" width="96" height="96" alt="Pear Desktop Application Logo">
@@ -25,6 +27,7 @@ This release introduces critical enhancements into the stable 3.11.x line withou
 ## 2. Feature & Architecture Changes (from v3.11.4)
 
 ### 2.1 Ad Blocker / Do-Not-Track Suite (`src/plugins/do-not-track/`)
+
 - **Legacy Replacement**: Replaces legacy `src/plugins/adblocker/` implementation with a modern `do-not-track` suite.
 - **Multi-Vendor Blocklists**: Integrates 27+ vendor filter lists alongside HaGeZi threat intelligence and tracking blocklists.
 - **Automated Fallback**: Automatically falls back to `@ghostery/adblocker-electron@2.18.2` prebuilt caching (`fromPrebuiltAdsAndTracking`) if remote list downloads are unavailable or rate-limited.
@@ -34,6 +37,7 @@ This release introduces critical enhancements into the stable 3.11.x line withou
 - **Internationalization**: Full localization strings added to `src/i18n/resources/en.json` and `src/i18n/resources/id.json`.
 
 ### 2.2 SponsorBlock Integration (`src/plugins/sponsorblock/`)
+
 - **Full 8 Segment Categories**:
   - `sponsor`: Sponsor segments
   - `intro`: Intermission / Intro animation
@@ -49,6 +53,7 @@ This release introduces critical enhancements into the stable 3.11.x line withou
 - **Localization**: Category names and descriptions localized in `en.json` and `id.json`.
 
 ### 2.3 Synced Lyrics Engine Modernization & Mismatch Prevention (`src/plugins/synced-lyrics/`)
+
 - **Multi-Provider Architecture**: Robust multi-provider architecture supporting LRCLib, MusixMatch, Genius, Megalobiz, and YTMusic.
 - **Strict Track & Artist Matcher (`matcher.ts`)**:
   - Eliminates lyrics mismatch bugs where songs received lyrics from completely unrelated tracks.
@@ -66,11 +71,13 @@ This release introduces critical enhancements into the stable 3.11.x line withou
   - Added `DEFAULT_WAIT_OPTIONS` constant in `src/utils/wait-for-element.ts`.
 
 ### 2.4 Official Branding & Asset Suite (`assets/`)
+
 - **High-Resolution Icons**: Updated `assets/icon.png` (high-res pear icon), `assets/icon.svg`, macOS native `assets/generated/icons/mac/icon.icns`, and complete multi-resolution PNG suite (`16x16`, `24x24`, `32x32`, `48x48`, `64x64`, `128x128`, `256x256`, `512x512`, `1024x1024`).
 - **macOS Build Path**: Corrected `mac.icon` path in `electron-builder.yml` to `assets/generated/icons/mac/icon.icns`.
 - **Media Controls & Banner**: Updated white media control icons (`play.png`, `pause.png`, `next.png`, `previous.png`) and application banner (`assets/pear-desktop-banner.jpg`).
 
 ### 2.5 About Panel Logic & Menu Architecture (`src/menu.ts`, `src/index.ts`)
+
 - **TDZ Elimination**: Hoisted `showAbout()` declaration above menu template creation to prevent temporal dead zone ReferenceErrors.
 - **Dynamic Metadata**: Set `app.setAboutPanelOptions(...)` with dynamic copyright year (`new Date().getFullYear()`), application version, website link, and resolved icon path.
 - **Menu Binding**: Bound direct `click: showAbout` handlers across macOS application menu and Help menu items (avoiding Electron's overriding native `role: 'about'`).
@@ -95,6 +102,7 @@ All code quality tools and compilers have been verified with **0 errors**:
 ## 4. Security Hardening & Dependency Upgrades
 
 ### 4.1 Direct Dependency Upgrades
+
 - Bumped version in `package.json` to `"3.11.5"`.
 - `@ghostery/adblocker-electron`: `^2.18.2`
 - `@ghostery/adblocker-electron-preload`: `^2.18.2`
@@ -111,6 +119,7 @@ All code quality tools and compilers have been verified with **0 errors**:
 - `zod`: `^4.6.5`
 
 ### 4.2 Transitive Vulnerability Remediations (`pnpm-workspace.yaml`)
+
 To resolve known CVEs and adhere to pnpm v12 architecture, security overrides were configured in `pnpm-workspace.yaml`:
 - `tar@>=7.5.7`: Remediates arbitrary file overwrite vulnerabilities (CVE-2026-31804).
 - `fast-uri@>=3.1.0`: Remediates regular expression denial of service (CVE-2026-33758).

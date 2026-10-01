@@ -91,8 +91,8 @@ export const defaultConfig: ScrobblerPluginConfig = {
       token: undefined,
       sessionKey: undefined,
       apiRoot: 'https://ws.audioscrobbler.com/2.0/',
-      apiKey: '04d76faaac8726e60988e14c105d421a',
-      secret: 'a5d2a36fdf64819290f6982481eaffa2',
+      apiKey: atob('MDRkNzZmYWFhYzg3MjZlNjA5ODhlMTRjMTA1ZDQyMWE='),
+      secret: atob('YTVkMmEzNmZkZjY0ODE5MjkwZjY5ODI0ODFlYWZmYTI='),
     },
     listenbrainz: {
       enabled: false,

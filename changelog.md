@@ -1,4 +1,6 @@
-### Changelog
+<!-- markdownlint-disable-file MD034 MD041 -->
+
+# Changelog
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
@@ -73,7 +75,7 @@ All notable changes to this project will be documented in this file. Dates are d
 
 > 7 February 2026
 
-- feat(plugins): restore and fix adblocker plugin (https://github.com/pear-devs/pear-desktop/pull/4212) [`91b983e`](https://github.com/ArjixWasTaken/pear-desktop/commit/91b983eb125d84357bf8a32de09e23cd72c0ec7b)
+- feat(plugins): restore and fix adblocker plugin ([#4212](https://github.com/pear-devs/pear-desktop/pull/4212)) [`91b983e`](https://github.com/ArjixWasTaken/pear-desktop/commit/91b983eb125d84357bf8a32de09e23cd72c0ec7b)
 - release 3.11.2 [`a1102b3`](https://github.com/ArjixWasTaken/pear-desktop/commit/a1102b3160544170384ddd6fbebe3485fa1b8f44)
 
 #### [v3.11.1](https://github.com/ArjixWasTaken/pear-desktop/compare/v3.11.0...v3.11.1)

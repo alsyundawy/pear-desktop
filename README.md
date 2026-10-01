@@ -60,6 +60,7 @@
 ---
 
 > [!IMPORTANT]
+>
 > ### ⚠️ Legal Disclaimer & Trademark Notice
 >
 > **No Affiliation**<br>
@@ -331,6 +332,7 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 ## Changelog (v3.11.5)
 
 ### [v3.11.5] — 30 September 2026 (Production Release)
+
 - **Synchronized Lyrics Modernization & Mismatch Prevention**:
   - Implemented strict track & artist matching engine (`matcher.ts`) combining Jaro-Winkler distance and token overlap to eliminate lyrics mismatch bugs.
   - Unicode script isolation: prevents non-Latin tracks (Korean Hangul, Japanese Kana/CJK, Arabic, Devanagari, Thai) from falsely matching unrelated Latin/Romanized song titles.
@@ -370,12 +372,15 @@ Pear Desktop Mac is built upon the extraordinary contributions of the global ope
 ## FAQ & Troubleshooting
 
 ### Why is the application menu hidden?
+
 If the menu bar is hidden, tap the <kbd>Alt</kbd> key or press the backtick (<kbd>&#96;</kbd>) key when using the `in-app-menu` plugin to toggle the navigation overlay.
 
 ### Does Pear Desktop Mac require a YouTube Music Premium subscription?
+
 No. Pear Desktop Mac provides full audio and video playback, high-fidelity audio streams, and complete ad blocking on standard free accounts without requiring a paid subscription.
 
 ### How do I report a bug or request a feature?
+
 Submit issues directly to our [GitHub Issue Tracker](https://github.com/alsyundawy/pear-desktop-mac/issues) including macOS version, hardware architecture (Apple Silicon vs Intel), and step-by-step reproduction logs.
 
 ---
