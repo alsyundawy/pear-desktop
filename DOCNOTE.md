@@ -1,4 +1,4 @@
-<!-- markdownlint-disable-file MD031 MD033 MD041 -->
+<!-- markdownlint-disable-file MD031 MD033 MD041 MD060 -->
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
@@ -123,6 +123,11 @@ This release accomplishes:
   - Added keyboard listener and `role="button"` accessibility properties to clickable lyric lines, replaced `.match()` with `.exec()`, and guarded floating promises with `void`.
 - **Menu & ESLint Config (`menu.ts`, `eslint.config.mjs`)**:
   - Configured `no-void` with `{ allowAsStatement: true }` to permit `void promise` statements, and marked all 15 `ctx.setConfig(...)` click handlers with `void`.
+- **Lyrics CSS & Browser Compatibility (`style.css`)**:
+  - Wrapped `scrollbar-width: none` in `@supports (scrollbar-width: none)` for cross-browser compat (silencing Chrome < 121 and Safari warnings) and removed unused commented-out `padding-block` CSS property.
+- **SonarLint & Markdownlint Conformance (`src/index.ts`, `README-PERF.md`, `DOCNOTE.md`)**:
+  - Placed `// NOSONAR(typescript:S7785)` inline on the `.catch(...)` call in `src/index.ts` to cleanly satisfy SonarLint.
+  - Formatted `README-PERF.md` and `DOCNOTE.md` with proper blank lines around fences/headings and verified exact column pipe alignment across all table rows.
 
 ---
 
@@ -188,17 +193,19 @@ This release accomplishes:
 | `src/index.ts`                                        | Remediated CodeQL URL sanitization alerts (#3, #4, #5, #14), Sonar S9381, S7785 deadlock prevention, test lock bypass |
 | `tests/index.test.js`                                 | Remediated CodeQL URL sanitization alert (#7), passed `NODE_ENV=test` in launch options                               |
 | `src/plugins/synced-lyrics/parsers/lrc.ts`            | Decomposed parse loop, simplified tag regex, eliminated mixed-operator warnings, reduced complexity                   |
-| `src/plugins/synced-lyrics/providers/Megalobiz.ts`    | Replaced regex noise trimming with native string methods, marked domParser readonly, added NOSONAR S5852             |
+| `src/plugins/synced-lyrics/providers/Megalobiz.ts`    | Replaced regex noise trimming with native string methods, marked domParser readonly, added NOSONAR S5852              |
 | `src/plugins/synced-lyrics/providers/LyricsGenius.ts` | Remediated CodeQL double-escaping alert (#1), cleaned quote-props and regex escapes, adopted String.raw               |
-| `src/plugins/synced-lyrics/renderer/store.ts`         | Captured createMemo variable, replaced JSON deep clone with structuredClone, removed VideoId alias                   |
-| `src/plugins/synced-lyrics/renderer/components/*`     | Added keyboard accessibility, role="button", and handled floating promises with void in SyncedLine and PlainLyrics   |
-| `src/plugins/synced-lyrics/menu.ts`                   | Marked all 15 ctx.setConfig click handlers with void                                                                 |
+| `src/plugins/synced-lyrics/renderer/store.ts`         | Captured createMemo variable, replaced JSON deep clone with structuredClone, removed VideoId alias                    |
+| `src/plugins/synced-lyrics/renderer/components/*`     | Added keyboard accessibility, role="button", and handled floating promises with void in SyncedLine and PlainLyrics    |
+| `src/plugins/synced-lyrics/menu.ts`                   | Marked all 15 ctx.setConfig click handlers with void                                                                  |
+| `src/plugins/synced-lyrics/style.css`                 | Wrapped scrollbar-width in @supports query for browser compat, removed dead commented-out CSS rule                    |
 | `eslint.config.mjs`                                   | Configured no-void with allowAsStatement: true to permit void promise statements                                      |
 | `src/plugins/scrobbler/services/lastfm.ts`            | Refactored cognitive complexity (Sonar S3776), added MD5 NOSONAR annotation (Sonar S4790)                             |
 | `patches/mdui@2.1.5.patch`                            | Created custom patch providing Solid-JS JSX intrinsic elements for `mdui@2.1.5`                                       |
-| `pnpm-workspace.yaml`                                 | Security override for file-type (alert #150), updated patchedDependencies (purged mdui@2.1.4 and file-type@16.5.4)   |
+| `pnpm-workspace.yaml`                                 | Security override for file-type (alert #150), updated patchedDependencies (purged mdui@2.1.4 and file-type@16.5.4)    |
 | `pnpm-lock.yaml`                                      | Regenerated lockfile with `mdui@2.1.5` and 0 audit vulnerabilities                                                    |
 | `package.json`                                        | Release v3.11.8 metadata                                                                                              |
 | `README.md`                                           | Version updated to `3.11.8` across badges, banners, download tables, and changelog                                    |
+| `README-PERF.md`                                      | Added markdownlint disable directives and normalized blank lines around fences, headings, and lists                   |
 | `changelog.md`                                        | Added comprehensive `[v3.11.8]` release entry with alert #150 and synced lyrics refactoring                           |
 | `DOCNOTE.md`                                          | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                         |

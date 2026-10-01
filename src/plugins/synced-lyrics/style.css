@@ -12,7 +12,12 @@
 /* Hide the scrollbar in the lyrics-tab */
 #tab-renderer[page-type='MUSIC_PAGE_TYPE_TRACK_LYRICS'] {
   -ms-overflow-style: none;
-  scrollbar-width: none;
+}
+
+@supports (scrollbar-width: none) {
+  #tab-renderer[page-type='MUSIC_PAGE_TYPE_TRACK_LYRICS'] {
+    scrollbar-width: none;
+  }
 }
 
 #tab-renderer[page-type='MUSIC_PAGE_TYPE_TRACK_LYRICS']::-webkit-scrollbar {
@@ -184,7 +189,6 @@
   display: flex;
   overflow: hidden;
   width: 100%;
-  /* padding-block: 5%; */
 }
 
 .lyrics-picker-content-dots {
