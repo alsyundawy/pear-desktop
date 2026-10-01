@@ -1,5 +1,7 @@
 import { isSongMatch } from './matcher';
 
+import { LRC } from '../parsers/lrc';
+
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 const preloadedStateRegex = /__PRELOADED_STATE__ = JSON\.parse\('(.*?)'\);/;
@@ -91,17 +93,62 @@ export class LyricsGenius implements LyricProvider {
       throw new TypeError('Failed to extract lyrics from preloaded state.');
     }
 
-    const lyricsDoc = this.domParser.parseFromString(lyricsHtml, 'text/html');
-    const lyrics = lyricsDoc.body.innerText;
+    const processedHtml = lyricsHtml
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(p|div)>/gi, '\n');
+    const lyricsDoc = this.domParser.parseFromString(processedHtml, 'text/html');
+    let rawLyrics =
+      lyricsDoc.body.textContent ?? lyricsDoc.body.innerText ?? '';
 
-    if (lyrics.trim().toLowerCase().replace(/[[\]]/g, '') === 'instrumental') {
+    // Strip header annotations
+    rawLyrics = rawLyrics.replace(
+      /^\d+\s*Contributors.*?(?:Translations.*?)?Lyrics\s*/i,
+      '',
+    );
+    // Strip footer noise
+    rawLyrics = rawLyrics
+      .replace(/\d*Embed$/i, '')
+      .replace(/You might also like.*$/is, '')
+      .replace(/See .*? Live.*$/is, '')
+      .trim();
+
+    const cleanedLines = rawLyrics
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l, i, arr) => {
+        if (i === 0 && /^\d+\s*Contributors/i.test(l)) return false;
+        if (
+          /^(Translations|Romanization|English Translation).*Lyrics$/i.test(l)
+        ) {
+          return false;
+        }
+        if (/^\d*Embed$/i.test(l)) return false;
+        if (!l && (!arr[i - 1] || !arr[i - 1].trim())) return false;
+        return true;
+      });
+
+    const cleanedLyrics = cleanedLines.join('\n').trim();
+
+    if (
+      cleanedLyrics.toLowerCase().replace(/[[\]]/g, '') === 'instrumental'
+    ) {
       return null;
     }
+
+    const parsedLrc = LRC.parse(cleanedLyrics);
+    const hasSync = parsedLrc.lines.some((l) => l.timeInMs > 0);
+    const syncedLines = hasSync
+      ? parsedLrc.lines.map((l) => ({
+          ...l,
+          status: 'upcoming' as const,
+        }))
+      : undefined;
 
     return {
       title: closestHit.result.title,
       artists: closestHit.result.primary_artists.map(({ name }) => name),
-      lyrics,
+      lines: syncedLines,
+      lyrics: cleanedLyrics,
     };
   }
 }

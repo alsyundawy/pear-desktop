@@ -186,16 +186,17 @@ const ResponseSchema = {
 } as const;
 
 class MusixMatchAPI {
-  private initPromise: Promise<void>;
+  private initPromise!: Promise<void>;
   private cookie = 'x-mxm-user-id=';
   private token: string | null = null;
 
   private constructor() {
-    this.initPromise = this.init();
+    // Asynchronous initialization moved to MusixMatchAPI.new()
   }
 
   public static async new() {
     const api = new MusixMatchAPI();
+    api.initPromise = api.init();
     await api.initPromise;
     return api;
   }
@@ -233,16 +234,12 @@ class MusixMatchAPI {
 
     const url = `${this.baseUrl}${endpoint}`;
 
-    const clonedParams = new URLSearchParams(
-      Object.assign(
-        {
-          app_id: this.app_id,
-          format: 'json',
-          usertoken: this.token,
-        },
-        <Record<string, string>>params,
-      ),
-    );
+    const clonedParams = new URLSearchParams({
+      app_id: this.app_id,
+      format: 'json',
+      usertoken: this.token,
+      ...(params as Record<string, string>),
+    });
 
     const [, json, headers] = await netFetch(`${url}?${clonedParams}`, {
       headers: { Cookie: this.cookie },
@@ -282,7 +279,7 @@ class MusixMatchAPI {
     return parsed.data.message as R;
   }
 
-  private savedTokenSchema = z.union([
+  private readonly savedTokenSchema = z.union([
     z.object({
       token: z.literal(null),
       expires: z.number().optional(),
@@ -293,7 +290,7 @@ class MusixMatchAPI {
     }),
   ]);
 
-  private key = 'ytm:synced-lyrics:mxm:token';
+  private readonly key = 'ytm:synced-lyrics:mxm:token';
   private async init() {
     const { token, expires } = this.savedTokenSchema.parse(
       JSON.parse(localStorage.getItem(this.key) ?? '{ "token": null }'),
@@ -310,11 +307,11 @@ class MusixMatchAPI {
 
     localStorage.setItem(
       this.key,
-      JSON.stringify({ token: this.token, expires: Date.now() + 60 * 1000 }),
+      JSON.stringify({ token: this.token, expires: Date.now() + 60_000 }),
     );
   }
 
-  private tokenSchema = z.object({
+  private readonly tokenSchema = z.object({
     message: z.object({
       body: z
         .object({
@@ -329,7 +326,7 @@ class MusixMatchAPI {
     const [, json, headers] = await netFetch(
       `${this.baseUrl}${endpoint}?${params}`,
       {
-        headers: Object.assign({ Cookie: this.cookie }, this.headers),
+        headers: { Cookie: this.cookie, ...this.headers },
       },
     );
 

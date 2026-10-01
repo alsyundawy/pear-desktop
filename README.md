@@ -331,20 +331,29 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 
 ## Changelog (v3.11.8)
 
-### [v3.11.8] — 01 October 2026 (Translations Sync, Security Hardening & Zero-Vulnerability Release)
+### [v3.11.8] — 01 October 2026 (Production Release: Release Auto-Update, Lyrics Overhaul & Hardening)
 
-- **Upstream Translation Synchronization**:
+- **Release Build & Auto-Updater Integration (`electron-builder.yml`, `src/index.ts`)**:
+  - Configured `publish: { provider: 'github', owner: 'alsyundawy', repo: 'pear-desktop-mac' }` and added `target: zip` for macOS build targets, ensuring `latest-mac.yml` with sha512 checksums is automatically generated upon release packaging.
+  - Set default auto-updater feed URL via `autoUpdater.setFeedURL({ provider: 'github', owner: 'alsyundawy', repo: 'pear-desktop-mac' })` in `setupAutoUpdates()` to check for the latest releases on this repository.
+- **Lyrics Formatting, Cleaning & Plain Lyrics Scrolling (`src/plugins/synced-lyrics`)**:
+  - **LyricsGenius Scraper Overhaul (`providers/LyricsGenius.ts`)**: Sanitized raw scraped lyrics HTML by converting `<br>` and `</p>`/`</div>` linebreaks to newlines before DOM text extraction. Stripped Genius header noise (`... Contributors`, `Translations`, `Lyrics`) and footer artifacts (`\d*Embed`, `You might also like`, `See ... Live`, ticket promotions). Integrated `LRC.parse` to extract timestamped lines when available.
+  - **Plain Lyrics Proportional Auto-Scroll (`renderer/renderer.tsx`)**: Implemented playback-progress-based automatic line scrolling for plain (unsynced) lyrics (`progress = currentTime / duration`), keeping the reading line centered during song playback.
+- **Dependabot Security Alert #150 Remediation (`pnpm-workspace.yaml`, `pnpm-lock.yaml`)**:
+  - Remediated GitHub Dependabot Alert #150: *file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header* (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
+  - Pinned security override `'file-type@<21.3.1': 21.3.4` in `pnpm-workspace.yaml`, ensuring all transitive dependencies from `@jimp/core` resolve to `file-type@21.3.4` (patched `>= 21.3.1`), preventing denial-of-service (DoS) infinite loops when encountering malformed ASF files.
+  - Purged obsolete legacy patch files `patches/file-type@16.5.4.patch` and `patches/mdui@2.1.4.patch`.
+- **Upstream Translation Synchronization & Menu Restoration (`src/i18n`)**:
   - Pulled and synchronized complete upstream translation catalogs from `pear-devs/pear-desktop:src/i18n` across 63 languages (including newly upstreamed `af`, `be-Latn`, `ckb`, `km`, `lo`, `mk`).
-  - Preserved custom plugin translation namespaces (`do-not-track` suite and `sponsorblock.menu.categories`) in `en.json` and `id.json`.
+  - Restored classic "Ad Blocker" / "Pemblokir Iklan" menu display labels across all 67 locales while preserving underlying `do-not-track` configuration.
 - **CodeQL Security Remediation**:
   - Remediated Incomplete URL substring sanitization (alerts #3, #4, #5, #14 in `src/index.ts` and #7 in `tests/index.test.js`) by replacing prefix matches with strict WHATWG URL origin and hostname domain checking.
   - Remediated Double escaping or unescaping (alert #1 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts`) using single-pass regex replacement with lookup dictionary.
-- **SonarLint Code Quality & Architectural Hardening**:
+- **SonarLint Code Quality, Cognitive Complexity & Accessibility Hardening**:
   - Fixed nested promises (`typescript:S9381`) in `src/index.ts` across auto-update and hide-menu dialog flows.
   - Documented and resolved architectural event-loop deadlock on `app.whenReady()` (`typescript:S7785`), preserving Electron's standard lifecycle loop.
-  - Reduced cognitive complexity (`typescript:S3776`) in `src/plugins/scrobbler/services/lastfm.ts` from 17 to under 8 via modular helper decomposition.
-  - Added compliance documentation for legacy Last.fm MD5 API requirements (`typescript:S4790`).
-- **Dependencies & 0 Known Vulnerabilities**:
+  - Reduced cognitive complexity across `matcher.ts` (25 to <7), `LRCLib.ts` (30 to <7), `YTMusic.ts` (16 to <7), and `lastfm.ts` (17 to <8) via modular helper decomposition.
+  - Replaced clickable `<li>` dots and `<div>` lines with accessible native `<button>` elements with zeroed reset styles in `style.css` for 100% universal accessibility across screen readers and keyboard navigation.
   - Upgraded `mdui` to `2.1.5` with custom JSX intrinsic elements patch (`patches/mdui@2.1.5.patch`).
   - Synced `pnpm-workspace.yaml` and `pnpm-lock.yaml`, achieving **0 known vulnerabilities** on `pnpm audit`.
 

@@ -6,8 +6,27 @@ import { config } from '../renderer/renderer';
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 export class LRCLib implements LyricProvider {
-  name = 'LRCLib';
-  baseUrl = 'https://lrclib.net';
+  public readonly name = 'LRCLib';
+  public readonly baseUrl = 'https://lrclib.net';
+
+  private async querySearch(
+    params: Record<string, string>,
+  ): Promise<LRCLIBSearchResponse> {
+    const query = new URLSearchParams(params);
+    const url = `${this.baseUrl}/api/search?${query.toString()}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`bad HTTPStatus(${response.statusText})`);
+    }
+
+    const data = (await response.json()) as LRCLIBSearchResponse;
+    if (!Array.isArray(data)) {
+      throw new TypeError(`Expected an array, instead got ${typeof data}`);
+    }
+
+    return data;
+  }
 
   async search({
     title,
@@ -16,84 +35,39 @@ export class LRCLib implements LyricProvider {
     album,
     songDuration,
   }: SearchSongInfo): Promise<LyricResult | null> {
-    let query = new URLSearchParams({
+    const params: Record<string, string> = {
       artist_name: artist,
       track_name: title,
-    });
-
-    query.set('album_name', album!);
-    if (query.get('album_name') === 'undefined') {
-      query.delete('album_name');
+    };
+    if (album && album !== 'undefined') {
+      params.album_name = album;
     }
 
-    let url = `${this.baseUrl}/api/search?${query.toString()}`;
-    let response = await fetch(url);
+    let data = await this.querySearch(params);
 
-    if (!response.ok) {
-      throw new Error(`bad HTTPStatus(${response.statusText})`);
-    }
-
-    let data = (await response.json()) as LRCLIBSearchResponse;
-    if (!data || !Array.isArray(data)) {
-      throw new Error(`Expected an array, instead got ${typeof data}`);
-    }
-
-    if (data.length === 0) {
-      if (!config()?.showLyricsEvenIfInexact) {
-        return null;
-      }
-
+    if (data.length === 0 && config()?.showLyricsEvenIfInexact) {
       // Try to search with the alternative title (original language) + artist
       const trackName = alternativeTitle || title;
-      query = new URLSearchParams({ q: `${trackName} ${artist}`.trim() });
-      url = `${this.baseUrl}/api/search?${query.toString()}`;
-
-      response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`bad HTTPStatus(${response.statusText})`);
-      }
-
-      data = (await response.json()) as LRCLIBSearchResponse;
-      if (!Array.isArray(data)) {
-        throw new Error(`Expected an array, instead got ${typeof data}`);
-      }
+      data = await this.querySearch({ q: `${trackName} ${artist}`.trim() });
 
       // If still no results, try with the original title + artist as fallback
       if (data.length === 0 && alternativeTitle) {
-        query = new URLSearchParams({ q: `${title} ${artist}`.trim() });
-        url = `${this.baseUrl}/api/search?${query.toString()}`;
-
-        response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`bad HTTPStatus(${response.statusText})`);
-        }
-
-        data = (await response.json()) as LRCLIBSearchResponse;
-        if (!Array.isArray(data)) {
-          throw new Error(`Expected an array, instead got ${typeof data}`);
-        }
+        data = await this.querySearch({ q: `${title} ${artist}`.trim() });
       }
     }
 
-    const filteredResults = [];
-    for (const item of data) {
-      if (!item.trackName || !item.artistName) continue;
-
-      // Strictly enforce track and artist matching
-      if (
-        !isSongMatch(
+    const filteredResults = data.filter(
+      (item) =>
+        item.trackName &&
+        item.artistName &&
+        isSongMatch(
           title,
           alternativeTitle,
           artist,
           item.trackName,
           item.artistName,
-        )
-      ) {
-        continue;
-      }
-
-      filteredResults.push(item);
-    }
+        ),
+    );
 
     filteredResults.sort(({ duration: durationA }, { duration: durationB }) => {
       const left = Math.abs(durationA - songDuration);

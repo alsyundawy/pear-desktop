@@ -12,9 +12,34 @@ const client = {
 };
 
 export class YTMusic implements LyricProvider {
-  public name = 'YTMusic';
-  public baseUrl =
+  public readonly name = 'YTMusic';
+  public readonly baseUrl =
     'https://music.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com/';
+
+  // RATE LIMITED (2 req per sec)
+  private readonly PROXIED_ENDPOINT = 'https://b-ytmbrowseproxy.zvz.be/';
+
+  private extractPlainLyrics(
+    contents: BrowseData['contents'],
+    syncedLines: SyncedLyricLine[] | undefined,
+  ): string | undefined {
+    if (syncedLines?.length) {
+      return syncedLines.map((it) => it.lyricLine).join('\n');
+    }
+
+    if (contents?.messageRenderer?.text?.runs) {
+      return contents.messageRenderer.text.runs.map((it) => it.text).join('\n');
+    }
+
+    const descriptionRuns =
+      contents?.sectionListRenderer?.contents?.[0]
+        ?.musicDescriptionShelfRenderer?.description?.runs;
+    if (descriptionRuns) {
+      return descriptionRuns.map((it) => it.text).join('\n');
+    }
+
+    return undefined;
+  }
 
   // prettier-ignore
   public async search(
@@ -51,25 +76,21 @@ export class YTMusic implements LyricProvider {
       ?.componentType?.model?.timedLyricsModel?.lyricsData?.timedLyricsData;
 
     const synced = syncedLines?.length && syncedLines[0]?.cueRange
-      ? syncedLines.map((it) => ({
-        time: this.millisToTime(parseInt(it.cueRange.startTimeMilliseconds)),
-        timeInMs: parseInt(it.cueRange.startTimeMilliseconds),
-        duration: parseInt(it.cueRange.endTimeMilliseconds) -
-          parseInt(it.cueRange.startTimeMilliseconds),
-        text: it.lyricLine.trim() === '♪' ? '' : it.lyricLine.trim(),
-        status: 'upcoming' as const,
-      }))
+      ? syncedLines.map((it) => {
+          const startMs = Number.parseInt(it.cueRange.startTimeMilliseconds, 10);
+          const endMs = Number.parseInt(it.cueRange.endTimeMilliseconds, 10);
+          return {
+            time: this.millisToTime(startMs),
+            timeInMs: startMs,
+            duration: endMs - startMs,
+            text: it.lyricLine.trim() === '♪' ? '' : it.lyricLine.trim(),
+            status: 'upcoming' as const,
+          };
+        })
       : undefined;
 
     const plain = !synced
-      ? syncedLines?.length
-        ? syncedLines.map((it) => it.lyricLine).join('\n')
-        : contents?.messageRenderer
-        ? contents?.messageRenderer?.text?.runs?.map((it) => it.text).join('\n')
-        : contents?.sectionListRenderer?.contents?.[0]
-          ?.musicDescriptionShelfRenderer?.description?.runs?.map((it) =>
-            it.text,
-          )?.join('\n')
+      ? this.extractPlainLyrics(contents, syncedLines)
       : undefined;
 
     if (typeof plain === 'string' && plain === 'Lyrics not available') {
@@ -96,16 +117,15 @@ export class YTMusic implements LyricProvider {
   }
 
   private millisToTime(millis: number) {
-    const minutes = Math.floor(millis / 60000);
-    const seconds = Math.floor((millis - minutes * 60 * 1000) / 1000);
-    const remaining = (millis - minutes * 60 * 1000 - seconds * 1000) / 10;
+    const minutes = Math.floor(millis / 60_000);
+    const minutesMs = minutes * 60_000;
+    const seconds = Math.floor((millis - minutesMs) / 1000);
+    const secondsMs = seconds * 1000;
+    const remaining = (millis - minutesMs - secondsMs) / 10;
     return `${minutes.toString().padStart(2, '0')}:${seconds
       .toString()
       .padStart(2, '0')}.${remaining.toString().padStart(2, '0')}`;
   }
-
-  // RATE LIMITED (2 req per sec)
-  private PROXIED_ENDPOINT = 'https://b-ytmbrowseproxy.zvz.be/';
 
   private fetchNext(videoId: string) {
     const app = document.querySelector<MusicPlayerAppElement>('ytmusic-app');

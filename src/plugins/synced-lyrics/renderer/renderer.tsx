@@ -16,6 +16,7 @@ import {
   SyncedLine,
   PlainLyrics,
 } from './components';
+import { getPlayerApi } from './index';
 import { LyricsPicker } from './components/LyricsPicker';
 import { reactiveOwner } from './reactive-root';
 import { currentLyrics } from './store';
@@ -236,7 +237,10 @@ export const LyricsRenderer = () => {
     const time = currentTime();
     const data = currentLyrics()?.data;
 
-    if (!data || !data.lines) return setStatuses([]);
+    if (!data?.lines) {
+      setStatuses([]);
+      return;
+    }
 
     const previous = untrack(statuses);
     const current = data.lines.map((line) => {
@@ -245,16 +249,18 @@ export const LyricsRenderer = () => {
       return 'current';
     });
 
-    if (previous.length !== current.length) return setStatuses(current);
+    if (previous.length !== current.length) {
+      setStatuses(current);
+      return;
+    }
     if (previous.every((status, idx) => status === current[idx])) return;
 
     setStatuses(current);
-    return;
   });
 
   const [currentIndex, setCurrentIndex] = createSignal(0);
   createEffect(() => {
-    const index = statuses().findIndex((status) => status === 'current');
+    const index = statuses().indexOf('current');
     if (index === -1) return;
     setCurrentIndex(index);
   });
@@ -275,6 +281,41 @@ export const LyricsRenderer = () => {
     });
   });
 
+  const [plainScrollIndex, setPlainScrollIndex] = createSignal(0);
+  createEffect(() => {
+    const data = currentLyrics()?.data;
+    if (!data?.lyrics || data.lines) return;
+
+    const lines = data.lyrics.split('\n').filter((line) => line.trim());
+    if (lines.length === 0) return;
+
+    const duration = (getPlayerApi()?.getDuration() ?? 0) * 1000;
+    if (duration <= 0) return;
+
+    const progress = Math.min(1, Math.max(0, currentTime() / duration));
+    const targetIdx = Math.min(
+      Math.floor(progress * lines.length),
+      lines.length - 1,
+    );
+
+    if (targetIdx !== untrack(plainScrollIndex)) {
+      setPlainScrollIndex(targetIdx);
+    }
+  });
+
+  createEffect(() => {
+    const current = currentLyrics();
+    if (!scroller() || current.data?.lines || !current.data?.lyrics) return;
+
+    const idx = plainScrollIndex();
+    const scrollIndex = idx + 1;
+
+    scroller()!.scrollToIndex(scrollIndex, {
+      smooth: true,
+      align: 'center',
+    });
+  });
+
   return (
     <Show when={isVisible()}>
       <VList
@@ -288,7 +329,7 @@ export const LyricsRenderer = () => {
         data={[lyricsPicker, ...children()]}
       >
         {(props, idx) => {
-          if (typeof props === 'undefined') return null;
+          if (props === undefined) return null;
           switch (props.kind) {
             case 'LyricsPicker':
               return <LyricsPicker setStickRef={setStickRef} />;

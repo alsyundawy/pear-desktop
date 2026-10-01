@@ -13,10 +13,18 @@ files:
   - '!node_modules/**/*.ts'
 asarUnpack:
   - assets
+publish:
+  provider: github
+  owner: alsyundawy
+  repo: pear-desktop-mac
 mac:
   identity: null
   target:
     - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
       arch:
         - x64
         - arm64

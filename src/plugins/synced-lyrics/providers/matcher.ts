@@ -64,6 +64,73 @@ function wordOverlapScore(a: string, b: string): number {
   return Math.max(recallA, recallB);
 }
 
+const GENERIC_ARTISTS = new Set([
+  '',
+  'various',
+  'various artists',
+  'unknown',
+  'unknown artist',
+  'va',
+  'lagu anak',
+  'lagu anak indonesia',
+]);
+
+function calculateTitleScore(qT: string, qAlt: string, rT: string): number {
+  const titleScores = [jaroWinkler(qT, rT)];
+  if (qAlt) {
+    titleScores.push(jaroWinkler(qAlt, rT));
+  }
+
+  const overlapQ = wordOverlapScore(qT, rT);
+  if (
+    overlapQ >= 0.8 &&
+    Math.min(qT.length, rT.length) / Math.max(qT.length, rT.length) >= 0.4
+  ) {
+    titleScores.push(0.85);
+  }
+  if (qAlt) {
+    const overlapAlt = wordOverlapScore(qAlt, rT);
+    if (
+      overlapAlt >= 0.8 &&
+      Math.min(qAlt.length, rT.length) / Math.max(qAlt.length, rT.length) >= 0.4
+    ) {
+      titleScores.push(0.85);
+    }
+  }
+
+  return Math.max(...titleScores);
+}
+
+function calculateArtistScore(qA: string, rA: string): number {
+  const qArtists = qA
+    .split(/[&,]/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const rArtists = rA
+    .split(/[&,]/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const artistScores: number[] = [jaroWinkler(qA, rA)];
+
+  const overlapArtist = wordOverlapScore(qA, rA);
+  if (overlapArtist >= 0.5) {
+    artistScores.push(0.8);
+  }
+
+  for (const a of qArtists) {
+    for (const b of rArtists) {
+      artistScores.push(jaroWinkler(a, b));
+      const abOverlap = wordOverlapScore(a, b);
+      if (abOverlap >= 0.5) {
+        artistScores.push(0.8);
+      }
+    }
+  }
+
+  return Math.max(...artistScores);
+}
+
 /**
  * Strict song and artist matching engine to prevent cross-language
  * and completely mismatched lyrics from displaying.
@@ -84,77 +151,15 @@ export function isSongMatch(
 
   if (!rT || (!qT && !qAlt)) return false;
 
-  // Title similarity scoring
-  const titleScores = [jaroWinkler(qT, rT)];
-  if (qAlt) {
-    titleScores.push(jaroWinkler(qAlt, rT));
-  }
-
-  // Word overlap scoring
-  const overlapQ = wordOverlapScore(qT, rT);
-  if (
-    overlapQ >= 0.8 &&
-    Math.min(qT.length, rT.length) / Math.max(qT.length, rT.length) >= 0.4
-  ) {
-    titleScores.push(0.85);
-  }
-  if (qAlt) {
-    const overlapAlt = wordOverlapScore(qAlt, rT);
-    if (
-      overlapAlt >= 0.8 &&
-      Math.min(qAlt.length, rT.length) / Math.max(qAlt.length, rT.length) >= 0.4
-    ) {
-      titleScores.push(0.85);
-    }
-  }
-
-  const maxTitleScore = Math.max(...titleScores);
+  const maxTitleScore = calculateTitleScore(qT, qAlt, rT);
 
   // If title similarity is below 0.75, it is a mismatched track
   if (maxTitleScore < 0.75) {
     return false;
   }
 
-  // Artist similarity scoring
-  const genericArtists = new Set([
-    '',
-    'various',
-    'various artists',
-    'unknown',
-    'unknown artist',
-    'va',
-    'lagu anak',
-    'lagu anak indonesia',
-  ]);
-
-  if (qA && rA && !genericArtists.has(qA)) {
-    const qArtists = qA
-      .split(/[&,]/g)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const rArtists = rA
-      .split(/[&,]/g)
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const artistScores: number[] = [jaroWinkler(qA, rA)];
-
-    const overlapArtist = wordOverlapScore(qA, rA);
-    if (overlapArtist >= 0.5) {
-      artistScores.push(0.8);
-    }
-
-    for (const a of qArtists) {
-      for (const b of rArtists) {
-        artistScores.push(jaroWinkler(a, b));
-        const abOverlap = wordOverlapScore(a, b);
-        if (abOverlap >= 0.5) {
-          artistScores.push(0.8);
-        }
-      }
-    }
-
-    const maxArtistScore = Math.max(...artistScores);
+  if (qA && rA && !GENERIC_ARTISTS.has(qA)) {
+    const maxArtistScore = calculateArtistScore(qA, rA);
 
     // If title is an exact/near-exact match (>= 0.92), allow slightly broader artist match
     if (maxTitleScore >= 0.92) {

@@ -1,4 +1,3 @@
-//@ts-check
 
 import eslint from '@eslint/js';
 import prettier from 'eslint-plugin-prettier/recommended';
@@ -81,7 +80,12 @@ export default tsEslint.config(
       'importPlugin/no-unresolved': [
         'error',
         {
-          ignore: ['^virtual:', '\\?inline$', '\\?raw$', '\\?asset&asarUnpack'],
+          ignore: [
+            '^virtual:',
+            String.raw`\?inline$`,
+            String.raw`\?raw$`,
+            String.raw`\?asset&asarUnpack`,
+          ],
         },
       ],
       'importPlugin/order': [

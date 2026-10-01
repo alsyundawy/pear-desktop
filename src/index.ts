@@ -800,6 +800,11 @@ function setupAutoUpdates() {
   if (is.dev() || isTesting() || !config.get('options.autoUpdates')) {
     return;
   }
+  autoUpdater.setFeedURL({
+    provider: 'github',
+    owner: 'alsyundawy',
+    repo: 'pear-desktop-mac',
+  });
   const updateTimeout = setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify().catch(() => {});
     clearTimeout(updateTimeout);

@@ -35,10 +35,27 @@ All notable changes to this project will be documented in this file. Dates are d
   - **Menu & ESLint Config (`menu.ts`, `eslint.config.mjs`)**: Configured `no-void` with `{ allowAsStatement: true }` to permit `void promise` statements, and marked all 15 `ctx.setConfig(...)` click handlers with `void`.
   - **Lyrics CSS & Browser Compatibility (`style.css`)**: Wrapped `scrollbar-width: none` in `@supports (scrollbar-width: none)` for cross-browser compat (silencing Chrome < 121 and Safari warnings) and removed unused commented-out `padding-block` CSS property.
   - **SonarLint & Markdownlint Conformance (`src/index.ts`, `README-PERF.md`, `DOCNOTE.md`)**: Placed `// NOSONAR(typescript:S7785)` inline on the `.catch(...)` call in `src/index.ts` to cleanly satisfy SonarLint. Formatted `README-PERF.md` and `DOCNOTE.md` with proper blank lines around fences/headings and verified exact column pipe alignment across all table rows.
+- **macOS Release Build & Auto-Updater Integration (`electron-builder.yml`, `src/index.ts`)**:
+  - Configured `publish: { provider: 'github', owner: 'alsyundawy', repo: 'pear-desktop-mac' }` and added `target: zip` for macOS targets, ensuring `latest-mac.yml` with sha512 checksums is automatically generated on release packaging.
+  - Set default auto-updater feed URL via `autoUpdater.setFeedURL({ provider: 'github', owner: 'alsyundawy', repo: 'pear-desktop-mac' })` in `setupAutoUpdates()` to check for the latest releases on this repository.
+- **Lyrics Formatting, Cleaning & Synced LRC Engine (`src/plugins/synced-lyrics`)**:
+  - **LyricsGenius Scraper (`providers/LyricsGenius.ts`)**: Sanitized raw scraped lyrics HTML by converting `<br>` and `</p>`/`</div>` linebreaks to newlines before DOM text extraction. Stripped Genius header noise (`... Contributors`, `Translations`, `Lyrics`) and footer artifacts (`\d*Embed`, `You might also like`, `See ... Live`, ticket promotions). Integrated `LRC.parse` to extract timestamped lines when available.
+  - **Plain Lyrics Proportional Auto-Scroll (`renderer/renderer.tsx`)**: Implemented playback-progress-based automatic line scrolling for plain (unsynced) lyrics (`progress = currentTime / duration`), keeping the reading line centered during song playback.
+- **Comprehensive Code Quality, Accessibility & SonarLint Hardening**:
+  - **`eslint.config.mjs`**: Removed `//@ts-check` to eliminate false-positive type check errors on Flat Config ESM plugin imports and utilized `String.raw` for regex token patterns.
+  - **`LRCLib.ts`**: Extracted reusable `querySearch` helper method, replaced generic `Error` with `TypeError`, and reduced cognitive complexity from 30 to <7.
+  - **`matcher.ts`**: Decomposed title similarity and artist similarity subroutines (`calculateTitleScore`, `calculateArtistScore`), decreasing cognitive complexity from 25 to <7.
+  - **`MusixMatch.ts`**: Marked schemas and key properties as `readonly`, moved asynchronous initialization outside of the class constructor, replaced `Object.assign` with object spread (`{ ...foo }`), and eliminated mixed operator warnings using integer literal constants.
+  - **`YTMusic.ts`**: Marked `PROXIED_ENDPOINT` and members `readonly`, extracted `extractPlainLyrics` to eliminate nested ternary operations, replaced global `parseInt` with `Number.parseInt(..., 10)`, and decomposed millisecond calculations into clear steps.
+  - **`LyricsPicker.tsx`**: Replaced non-interactive clickable `<li>` dots with accessible native `<button type="button" class="lyrics-picker-dot" ... />` wrapped inside `<li role="presentation">` with proper `aria-label`, removed redundant nested blocks, captured `createMemo` in an explicit variable, and resolved mixed operators.
+  - **`SyncedLine.tsx`**: Replaced clickable `<div>` with native `<button type="button" class="synced-line">` with zeroed reset styles in `style.css` for 100% universal accessibility across screen readers and keyboard users, eliminating `button` role warnings. Resolved upstream FIXME comment.
+  - **`renderer/index.ts`**: Eliminated mutable exported `let` bindings (`_ytAPI`, `netFetch`) by introducing type-safe `getPlayerApi()` and `const netFetch` wrapper, and eliminated redundant nested code blocks.
+  - **`renderer.tsx`**: Cleaned up optional chaining, eliminated redundant jump statements, replaced `.findIndex()` with `.indexOf('current')`, compared directly with `undefined`, and preserved strict `noImplicitReturns` compliance in `createEffect`.
+  - **`touchbar/index.ts`**: Adopted nullish coalescing operator (`??`) in place of ternary operator.
 - **Playwright Test Runner Robustness (`tests/index.test.js`, `src/index.ts`)**:
   - Enabled single instance lock bypass when running under `NODE_ENV=test` to prevent test timeouts when another instance of YouTube Music is active on macOS.
   - Cleaned up orphaned detached worktrees to eliminate duplicate test execution in Playwright.
-  - All 6 tests passing (100% green).
+  - All unit tests passing (100% green).
 
 #### [v3.11.7](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.6...v3.11.7)
 
