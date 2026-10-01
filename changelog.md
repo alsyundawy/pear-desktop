@@ -4,6 +4,23 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.11.6](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.5...v3.11.6)
+
+> 01 October 2026
+
+- **Security: Unguarded `new URL()` Crash Vectors (`src/index.ts`)**:
+  - Fixed `will-redirect` event handler: `new URL(event.url)` now wrapped in try-catch; malformed redirect URLs are safely discarded without crashing the main process.
+  - Fixed `did-fail-load` handler: `new URL(validatedURL)` refactored to extract `hostname` into a guarded variable `validatedHostname`; crash-safe fallback correctly shows the error page.
+  - Fixed `onHeadersReceived` CSP interceptor: `new URL(details.url)` now wrapped in try-catch; on parse failure the interceptor passes-through gracefully instead of crashing the request handler.
+- **Security: MPRIS Open Event URI Injection (`src/plugins/shortcuts/mpris.ts`)**:
+  - Added URI scheme validation on the MPRIS `player.on('open')` event handler.
+  - Invalid URIs that fail URL parsing are rejected with a console warning and no-op return.
+  - Enforced an allowlist of safe schemes (`Set(['https:', 'http:'])`); non-http(s) schemes (e.g. `javascript:`, `data:`, `file:`) are blocked and logged.
+- **Security: Last.fm Auth URL Parameter Injection (`src/plugins/scrobbler/services/lastfm.ts`)**:
+  - Applied `encodeURIComponent()` to `apiKey` and `token` before interpolation into the Last.fm auth URL.
+  - Added `?? ''` nullish coalescing guard to resolve `TS2345` type error (`token` is typed `string | undefined`).
+- **Verification**: TypeScript typecheck (`pnpm tsc -p tsconfig.json --noEmit`) — 0 errors. ESLint (`pnpm eslint ./src --quiet`) — 0 errors.
+
 #### [v3.11.5](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.4...v3.11.5)
 
 > 30 September 2026

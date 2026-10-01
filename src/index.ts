@@ -503,7 +503,13 @@ async function createMainWindow() {
     }
   });
   win.webContents.on('will-redirect', (event) => {
-    const url = new URL(event.url);
+    // Guard against malformed URLs that would throw in the URL constructor
+    let url: URL;
+    try {
+      url = new URL(event.url);
+    } catch {
+      return;
+    }
 
     // Workarounds for regions where YTM is restricted
     if (
@@ -588,10 +594,18 @@ app.once('browser-window-created', (_event, win) => {
         console.log(log);
       }
 
+      // Guard against malformed validatedURL strings that would throw in the URL constructor
+      let validatedHostname = '';
+      try {
+        validatedHostname = new URL(validatedURL).hostname;
+      } catch {
+        // If URL parsing fails, treat as non-doubleclick and show error
+      }
+
       if (
         errorCode !== -3 &&
         // Workaround for #2435
-        !new URL(validatedURL).hostname.includes('doubleclick.net')
+        !validatedHostname.includes('doubleclick.net')
       ) {
         // -3 is a false positive
         win.webContents.send('log', log);
@@ -954,8 +968,16 @@ function removeContentSecurityPolicy(
   betterSession.webRequest.onHeadersReceived((details, callback) => {
     details.responseHeaders ??= {};
 
-    // prettier-ignore
-    if (new URL(details.url).protocol === 'https:') {
+    // Guard against malformed request URLs that would throw in the URL constructor
+    let requestProtocol = '';
+    try {
+      requestProtocol = new URL(details.url).protocol;
+    } catch {
+      callback({ cancel: false, responseHeaders: details.responseHeaders });
+      return;
+    }
+
+    if (requestProtocol === 'https:') {
       // Remove the content security policy
       delete details.responseHeaders['content-security-policy-report-only'];
       delete details.responseHeaders['Content-Security-Policy-Report-Only'];
@@ -966,7 +988,9 @@ function removeContentSecurityPolicy(
         !details.responseHeaders['access-control-allow-origin'] &&
         !details.responseHeaders['Access-Control-Allow-Origin']
       ) {
-        details.responseHeaders['access-control-allow-origin'] = ['https://music.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com'];
+        details.responseHeaders['access-control-allow-origin'] = [
+          'https://music.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com',
+        ];
       }
     }
 

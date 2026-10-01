@@ -299,7 +299,30 @@ export function registerMPRIS(win: BrowserWindow) {
       }
     });
     player.on('open', (args: { uri: string }) => {
-      win.loadURL(args.uri).then(() => {
+      // Validate URI is a safe scheme before loading to prevent arbitrary URI injection from MPRIS clients
+      let parsedUri: URL;
+      try {
+        parsedUri = new URL(args.uri);
+      } catch {
+        console.warn(
+          LoggerPrefix,
+          'MPRIS open: invalid URI, ignoring:',
+          args.uri,
+        );
+        return;
+      }
+
+      const allowedSchemes = new Set(['https:', 'http:']);
+      if (!allowedSchemes.has(parsedUri.protocol)) {
+        console.warn(
+          LoggerPrefix,
+          'MPRIS open: blocked non-http(s) URI scheme:',
+          parsedUri.protocol,
+        );
+        return;
+      }
+
+      win.loadURL(parsedUri.href).then(() => {
         requestQueueInformation();
       });
     });
