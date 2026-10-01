@@ -22,7 +22,17 @@ All notable changes to this project will be documented in this file. Dates are d
   - **Weak Hash Algorithm Compliance (`typescript:S4790` in `src/plugins/scrobbler/services/lastfm.ts`)**: Added `// NOSONAR` annotation documenting that MD5 hash usage is strictly mandated by the Last.fm public API specification for `api_sig` generation.
 - **Dependency Upgrades & 0 Known Vulnerabilities (`pnpm-workspace.yaml`, `package.json`)**:
   - Upgraded `mdui` from `2.1.4` to `2.1.5` and provided patched declaration `patches/mdui@2.1.5.patch` with Solid-JS JSX intrinsic element types.
-  - Updated `pnpm-workspace.yaml` and `pnpm-lock.yaml`, achieving **0 known vulnerabilities** on `pnpm audit` (all 17 previous vulnerabilities resolved).
+- **Dependabot Security Alert #150 Remediation (`pnpm-workspace.yaml`, `pnpm-lock.yaml`)**:
+  - Remediated GitHub Dependabot Alert #150: *file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header* (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
+  - Pinned security override `'file-type@<21.3.1': 21.3.4` in `pnpm-workspace.yaml`, ensuring all transitive dependencies from `@jimp/core` resolve to `file-type@21.3.4` (patched `>= 21.3.1`), preventing denial-of-service (DoS) infinite loops when encountering malformed ASF files.
+  - Purged obsolete legacy patch files `patches/file-type@16.5.4.patch` and `patches/mdui@2.1.4.patch`.
+- **Synced Lyrics Linter, Accessibility & SonarLint Hardening (`src/plugins/synced-lyrics`)**:
+  - **LRC Parser (`parsers/lrc.ts`)**: Replaced ambiguous regex with disjoint token matching (`tagRegex`), completely eliminating catastrophic backtracking warnings. Separated millisecond calculations into dedicated variables (`minutesMs`, `secondsMs`, `millisecondsMs`), resolving mixed `*` and `+` operator precedence warnings. Modularized parse loop into `processTagLine`, `processTimestampedLine`, and `applyOffsetAndDurations`, reducing cognitive complexity from 21 to <10.
+  - **Megalobiz Provider (`providers/Megalobiz.ts`)**: Converted edge and suffix noise trimming to native string methods (`startsWith`, `endsWith`, `slice`) to eliminate regex backtracking. Marked `domParser` as `readonly`, removed unused named groups, and added `NOSONAR` annotations for bounded metadata patterns.
+  - **LyricsGenius Provider (`providers/LyricsGenius.ts`)**: Retained regex literal for `preloadedStateRegex`, adopted `String.raw` for backslash escaping, and marked `domParser` as `readonly`.
+  - **Lyrics Store (`renderer/store.ts`)**: Captured `createMemo` in an explicit variable inside `runWithOwner` for static analysis, replaced `FIXME` comment with clean note, removed redundant `VideoId` type alias, and replaced `JSON.parse(JSON.stringify())` with `structuredClone()`.
+  - **Plain & Synced Lyrics Components (`renderer/components/PlainLyrics.tsx`, `SyncedLine.tsx`)**: Added keyboard listener and `role="button"` accessibility properties to clickable lyric lines, replaced `.match()` with `.exec()`, and guarded floating promises with `void`.
+  - **Menu & ESLint Config (`menu.ts`, `eslint.config.mjs`)**: Configured `no-void` with `{ allowAsStatement: true }` to permit `void promise` statements, and marked all 15 `ctx.setConfig(...)` click handlers with `void`.
 - **Playwright Test Runner Robustness (`tests/index.test.js`, `src/index.ts`)**:
   - Enabled single instance lock bypass when running under `NODE_ENV=test` to prevent test timeouts when another instance of YouTube Music is active on macOS.
   - Cleaned up orphaned detached worktrees to eliminate duplicate test execution in Playwright.

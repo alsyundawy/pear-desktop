@@ -114,7 +114,7 @@ export default tsEslint.config(
       'stylistic/no-mixed-operators': 'warn', // prettier does not support no-mixed-operators
       'stylistic/no-multi-spaces': ['error', { ignoreEOLComments: true }],
       'stylistic/no-tabs': 'error',
-      'no-void': 'error',
+      'no-void': ['error', { allowAsStatement: true }],
       'no-empty': 'off',
       'prefer-promise-reject-errors': 'off',
       'stylistic/quotes': [

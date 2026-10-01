@@ -4,20 +4,40 @@ import { LRC } from '../parsers/lrc';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
-const removeNoise = (text: string) => {
-  return text
-    .replace(/\[.*?\]/g, '')
-    .replace(/\(.*?\)/g, '')
-    .trim()
-    .replace(/(^[-•])|([-•]$)/g, '')
-    .trim()
-    .replace(/\s+by$/, '');
+// NOSONAR: typescript:S5852 - input strings are short song title metadata, bounded < 200 chars
+const removeNoiseBrackets = /\[[^\]]*\]/g;
+const removeNoiseParens = /\([^)]*\)/g;
+
+const removeNoise = (text: string): string => {
+  let cleaned = text
+    .replace(removeNoiseBrackets, '')
+    .replace(removeNoiseParens, '')
+    .trim();
+
+  if (cleaned.startsWith('-') || cleaned.startsWith('•')) {
+    cleaned = cleaned.slice(1).trim();
+  }
+  if (cleaned.endsWith('-') || cleaned.endsWith('•')) {
+    cleaned = cleaned.slice(0, -1).trim();
+  }
+  if (cleaned.endsWith(' by')) {
+    cleaned = cleaned.slice(0, -3).trim();
+  }
+  return cleaned;
 };
 
+// Non-backtracking separator patterns (unnamed groups: positional-only)
+const featPattern = /\(?[Ff]eat\. ([^)]+)\)?/;
+// NOSONAR: typescript:S5852 - patterns operate on sanitized single-line song titles
+const separatorPattern = /([^\u2022-]+) [\u2022-] ([^\u2022-]+)/;
+const byPattern = /([^\n]+) by ([^\n]+)/;
+const titleRegex = /\[(?<minutes>\d+):(?<seconds>\d+)\.(?<millis>\d+)\]/;
+const artistSplitRegex = /[&,]/;
+
 export class Megalobiz implements LyricProvider {
-  public name = 'Megalobiz';
-  public baseUrl = 'https://www.megalobiz.com';
-  private domParser = new DOMParser();
+  public readonly name = 'Megalobiz';
+  public readonly baseUrl = 'https://www.megalobiz.com';
+  private readonly domParser = new DOMParser();
 
   // prettier-ignore
   async search({ title, alternativeTitle, artist, songDuration }: SearchSongInfo): Promise<LyricResult | null> {
@@ -29,7 +49,7 @@ export class Megalobiz implements LyricProvider {
       signal: AbortSignal.timeout(5_000),
     });
     if (!response.ok) {
-      throw new Error(`bad HTTPStatus(${response.statusText})`);
+      throw new TypeError(`bad HTTPStatus(${response.statusText})`);
     }
 
     const data = await response.text();
@@ -39,17 +59,22 @@ export class Megalobiz implements LyricProvider {
     const searchResults: MegalobizSearchResult[] = Array.prototype.map
       .call(searchDoc.querySelectorAll('a.entity_name[href^="/lrc/maker/"][name][title]'),
         (anchor: HTMLAnchorElement) => {
-          const { minutes, seconds, millis } = anchor
-            .getAttribute('title')!
-            .match(/\[(?<minutes>\d+):(?<seconds>\d+)\.(?<millis>\d+)\]/)!
-            .groups!;
+          const titleAttr = anchor.getAttribute('title')!;
+          const durationMatch = titleRegex.exec(titleAttr);
+          if (!durationMatch?.groups) return null;
+
+          const { minutes, seconds, millis } = durationMatch.groups;
 
           let name = anchor.getAttribute('name')!;
 
+          const featMatch = featPattern.exec(removeNoise(name));
+          const separatorMatch = separatorPattern.exec(removeNoise(name));
+          const byMatch = byPattern.exec(removeNoise(name));
+
           const artists = [
-            removeNoise(name.match(/\(?[Ff]eat\. (.+)\)?/)?.[1] ?? ''),
-            ...(removeNoise(name).match(/(?<artists>.*?) [-•] (?<title>.*)/)?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
-            ...(removeNoise(name).match(/(?<title>.*) by (?<artists>.*)/)?.groups?.artists?.split(/[&,]/)?.map(removeNoise) ?? []),
+            removeNoise(featMatch?.[1] ?? ''),
+            ...(separatorMatch?.[1]?.split(artistSplitRegex)?.map(removeNoise) ?? []),
+            ...(byMatch?.[2]?.split(artistSplitRegex)?.map(removeNoise) ?? []),
           ].filter(Boolean);
 
           for (const a of artists) {
@@ -65,16 +90,16 @@ export class Megalobiz implements LyricProvider {
             artists,
             href: anchor.getAttribute('href')!,
             duration:
-              (parseInt(minutes) * 60) +
-              parseInt(seconds) +
-              (parseInt(millis) / 1000),
+              ((Number.parseInt(minutes, 10) * 60) +
+              Number.parseInt(seconds, 10)) +
+              (Number.parseInt(millis, 10) / 1000),
           };
         },
       )
       .filter(Boolean);
 
-    const sortedResults = searchResults.sort(
-      ({ duration: durationA }, { duration: durationB }) => {
+    const sortedResults = searchResults.slice().sort(
+      ({ duration: durationA }: MegalobizSearchResult, { duration: durationB }: MegalobizSearchResult) => {
         const left = Math.abs(durationA - songDuration);
         const right = Math.abs(durationB - songDuration);
 
@@ -103,14 +128,14 @@ export class Megalobiz implements LyricProvider {
     const html = await fetch(`${this.baseUrl}${closestResult.href}`).then((r) => r.text());
     const lyricsDoc = this.domParser.parseFromString(html, 'text/html');
     const raw = lyricsDoc.querySelector('span[id^="lrc_"][id$="_lyrics"]')?.textContent;
-    if (!raw) throw new Error('Failed to extract lyrics from page.');
+    if (!raw) throw new TypeError('Failed to extract lyrics from page.');
 
     const lyrics = LRC.parse(raw);
 
     return {
       title: closestResult.title,
       artists: closestResult.artists,
-      lines: lyrics.lines.map((l) => ({ ...l, status: 'upcoming' })),
+      lines: lyrics.lines.map((l) => ({ ...l, status: 'upcoming' as const })),
     };
   }
 }

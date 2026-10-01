@@ -3,12 +3,12 @@ import { isSongMatch } from './matcher';
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 const preloadedStateRegex = /__PRELOADED_STATE__ = JSON\.parse\('(.*?)'\);/;
-const preloadHtmlRegex = /body":{"html":"(.*?)","children"/;
+const preloadHtmlRegex = /body":\{"html":"(.*?)","children"/;
 
 export class LyricsGenius implements LyricProvider {
-  public name = 'Genius';
-  public baseUrl = 'https://genius.com';
-  private domParser = new DOMParser();
+  public readonly name = 'Genius';
+  public readonly baseUrl = 'https://genius.com';
+  private readonly domParser = new DOMParser();
 
   // prettier-ignore
   async search({ title, alternativeTitle, artist }: SearchSongInfo): Promise<LyricResult | null> {
@@ -32,8 +32,7 @@ export class LyricsGenius implements LyricProvider {
     const matchingHits = hits.filter((hit) => {
       const res = hit?.result;
       if (
-        !res ||
-        !res.title ||
+        !res?.title ||
         !res.primary_artist?.name ||
         res.primary_artist.url === 'https://genius.com/artists/Deleted-artist'
       ) {
@@ -68,9 +67,9 @@ export class LyricsGenius implements LyricProvider {
       },
     ) as HTMLScriptElement;
 
-    const preloadedState = preloadedStateScript.textContent?.match(
-      preloadedStateRegex,
-    )?.[1]?.replace(/\\"/g, '"');
+    const rawState = preloadedStateScript.textContent;
+    const stateMatch = rawState ? preloadedStateRegex.exec(rawState) : null;
+    const preloadedState = stateMatch?.[1]?.replaceAll(String.raw`\"`, '"');
 
     const escapeMap: Record<string, string> = {
       '/': '/',
@@ -79,15 +78,17 @@ export class LyricsGenius implements LyricProvider {
       "'": "'",
       '"': '"',
     };
-    const lyricsHtml = preloadedState
-      ?.match(preloadHtmlRegex)?.[1]
-      ?.replace(/\\([/\\'"n])/g, (_match, ch: string) => escapeMap[ch] ?? ch);
+    const htmlMatch = preloadedState ? preloadHtmlRegex.exec(preloadedState) : null;
+    const lyricsHtml = htmlMatch?.[1]?.replace(
+      /\\([/\\'"n])/g,
+      (_match, ch: string) => escapeMap[ch] ?? ch,
+    );
 
     const hasUnreleasedPlaceholder = preloadedState &&
       /lyricsPlaceholderReason.{1,5}unreleased/.test(preloadedState);
     if (!lyricsHtml) {
       if (hasUnreleasedPlaceholder) return null;
-      throw new Error('Failed to extract lyrics from preloaded state.');
+      throw new TypeError('Failed to extract lyrics from preloaded state.');
     }
 
     const lyricsDoc = this.domParser.parseFromString(lyricsHtml, 'text/html');

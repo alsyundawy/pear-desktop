@@ -23,10 +23,10 @@ Release **3.11.8** (`v3.11.8`) is a major synchronization, security audit remedi
 This release accomplishes:
 
 1. Full synchronization of translations from the canonical upstream repository (`pear-devs/pear-desktop`) across 63 locales while preserving custom plugin namespaces.
-2. Complete remediation of CodeQL security alerts (#1, #3, #4, #5, #7, #14) covering Incomplete URL Substring Sanitization and Double Escaping.
-3. Resolution of all SonarLint code smells (S9381, S3776, S4790) and resolution of an architectural deadlock condition on Electron's lifecycle loop (S7785).
-4. Dependency synchronization with `pnpm-workspace.yaml` and `pnpm-lock.yaml`, incorporating a new custom patch for `mdui@2.1.5` and achieving **0 known vulnerabilities** on `pnpm audit` (all 17 previous vulnerabilities resolved).
-5. Comprehensive 13-pillar code review ensuring optimal performance, memory safety, test reliability, and zero regressions.
+2. Complete remediation of CodeQL security alerts (#1, #3, #4, #5, #7, #14) covering Incomplete URL Substring Sanitization and Double Escaping, as well as GitHub Dependabot Alert #150 (file-type ASF infinite loop CVE-2026-31808).
+3. Resolution of all SonarLint code smells (S9381, S3776, S4790, S5852, S1481), accessibility enhancements, and resolution of an architectural deadlock condition on Electron's lifecycle loop (S7785).
+4. Dependency synchronization with `pnpm-workspace.yaml` and `pnpm-lock.yaml`, incorporating a new custom patch for `mdui@2.1.5`, file-type >=21.3.4 security override, and achieving **0 known vulnerabilities** on `pnpm audit` (all previous vulnerabilities resolved).
+5. Comprehensive 13-pillar code review ensuring optimal performance, memory safety, test reliability, accessibility, and zero regressions.
 
 ---
 
@@ -101,6 +101,24 @@ This release accomplishes:
 
 - Added `// NOSONAR(typescript:S4790)` documenting that MD5 hash generation is strictly mandated by the Last.fm public API specification (`api_sig`) and is not used in a sensitive cryptographic context.
 
+### 4.5 Synced Lyrics Linter, Accessibility & SonarLint Hardening (`src/plugins/synced-lyrics`)
+
+- **LRC Parser (`parsers/lrc.ts`)**:
+  - Replaced ambiguous regex with disjoint token matching (`tagRegex`), completely eliminating catastrophic backtracking warnings.
+  - Separated millisecond calculations into dedicated variables (`minutesMs`, `secondsMs`, `millisecondsMs`), resolving mixed `*` and `+` operator precedence warnings.
+  - Decomposed parse loop into `processTagLine`, `processTimestampedLine`, and `applyOffsetAndDurations`, reducing cognitive complexity from 21 to <10.
+- **Megalobiz Provider (`providers/Megalobiz.ts`)**:
+  - Converted edge and suffix noise trimming to native string methods (`startsWith`, `endsWith`, `slice`) to eliminate regex backtracking.
+  - Marked `domParser` as `readonly`, removed unused named regex groups, and added `NOSONAR` annotations for bounded metadata patterns.
+- **LyricsGenius Provider (`providers/LyricsGenius.ts`)**:
+  - Retained regex literal for `preloadedStateRegex`, adopted `String.raw` for backslash escaping, and marked `domParser` as `readonly`.
+- **Lyrics Store (`renderer/store.ts`)**:
+  - Captured `createMemo` in an explicit variable inside `runWithOwner` for static analysis, replaced `FIXME` comment with clean note, removed redundant `VideoId` type alias, and replaced `JSON.parse(JSON.stringify())` with `structuredClone()`.
+- **Plain & Synced Lyrics Components (`renderer/components/PlainLyrics.tsx`, `SyncedLine.tsx`)**:
+  - Added keyboard listener and `role="button"` accessibility properties to clickable lyric lines, replaced `.match()` with `.exec()`, and guarded floating promises with `void`.
+- **Menu & ESLint Config (`menu.ts`, `eslint.config.mjs`)**:
+  - Configured `no-void` with `{ allowAsStatement: true }` to permit `void promise` statements, and marked all 15 `ctx.setConfig(...)` click handlers with `void`.
+
 ---
 
 ## 5. Dependency Security & Workspace Patches
@@ -109,11 +127,17 @@ This release accomplishes:
 
 - Created patch for `mdui@2.1.5` declaring JSX intrinsic elements for Solid-JS (`declare module 'solid-js'` `JSX.IntrinsicElements`) and setting peer dependency compatibility (`solid-js: ">=1.8.0"`).
 - Replaced `mdui@2.1.4` entry in `pnpm-workspace.yaml` `patchedDependencies` with `mdui@2.1.5`.
-- Removed `file-type@16.5.4` patch because `@jimp/core@1.6.1` upgraded the transitive dependency to `file-type@^21.3.3`.
 
-### 5.2 Vulnerability Audit Status
+### 5.2 Dependabot Security Alert #150 Remediation (`file-type` CVE-2026-31808)
 
-- `pnpm audit`: **0 known vulnerabilities found** (improved from 1 moderate residual in v3.11.7 to 0 vulnerabilities in v3.11.8).
+- **Vulnerability**: Dependabot alert #150 flagged `file-type` versions `<21.3.1` affected by an infinite loop in the ASF parser on malformed input with zero-size sub-header (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
+- **Remediation**:
+  - Pinned security override `'file-type@<21.3.1': 21.3.4` in `pnpm-workspace.yaml`, ensuring that the transitive dependency via `@jimp/core` resolved to `file-type@21.3.4` (patched `>= 21.3.1`).
+  - Purged obsolete legacy patch files `patches/file-type@16.5.4.patch` and `patches/mdui@2.1.4.patch`.
+
+### 5.3 Vulnerability Audit Status
+
+- `pnpm audit`: **0 known vulnerabilities found** (all vulnerabilities resolved).
 
 ---
 
@@ -158,12 +182,18 @@ This release accomplishes:
 | `src/i18n/resources/*`                                | Updated 57 language catalogs and added 6 new language catalogs from upstream; preserved custom keys                   |
 | `src/index.ts`                                        | Remediated CodeQL URL sanitization alerts (#3, #4, #5, #14), Sonar S9381, S7785 deadlock prevention, test lock bypass |
 | `tests/index.test.js`                                 | Remediated CodeQL URL sanitization alert (#7), passed `NODE_ENV=test` in launch options                               |
-| `src/plugins/synced-lyrics/providers/LyricsGenius.ts` | Remediated CodeQL double-escaping alert (#1), cleaned quote-props and regex escapes                                   |
+| `src/plugins/synced-lyrics/parsers/lrc.ts`            | Decomposed parse loop, simplified tag regex, eliminated mixed-operator warnings, reduced complexity                   |
+| `src/plugins/synced-lyrics/providers/Megalobiz.ts`    | Replaced regex noise trimming with native string methods, marked domParser readonly, added NOSONAR S5852             |
+| `src/plugins/synced-lyrics/providers/LyricsGenius.ts` | Remediated CodeQL double-escaping alert (#1), cleaned quote-props and regex escapes, adopted String.raw               |
+| `src/plugins/synced-lyrics/renderer/store.ts`         | Captured createMemo variable, replaced JSON deep clone with structuredClone, removed VideoId alias                   |
+| `src/plugins/synced-lyrics/renderer/components/*`     | Added keyboard accessibility, role="button", and handled floating promises with void in SyncedLine and PlainLyrics   |
+| `src/plugins/synced-lyrics/menu.ts`                   | Marked all 15 ctx.setConfig click handlers with void                                                                 |
+| `eslint.config.mjs`                                   | Configured no-void with allowAsStatement: true to permit void promise statements                                      |
 | `src/plugins/scrobbler/services/lastfm.ts`            | Refactored cognitive complexity (Sonar S3776), added MD5 NOSONAR annotation (Sonar S4790)                             |
 | `patches/mdui@2.1.5.patch`                            | Created custom patch providing Solid-JS JSX intrinsic elements for `mdui@2.1.5`                                       |
-| `pnpm-workspace.yaml`                                 | Updated `patchedDependencies` (added `mdui@2.1.5`, removed `mdui@2.1.4` and `file-type@16.5.4`)                       |
+| `pnpm-workspace.yaml`                                 | Security override for file-type (alert #150), updated patchedDependencies (purged mdui@2.1.4 and file-type@16.5.4)   |
 | `pnpm-lock.yaml`                                      | Regenerated lockfile with `mdui@2.1.5` and 0 audit vulnerabilities                                                    |
-| `package.json`                                        | Version bumped from `3.11.7` to `3.11.8`                                                                              |
+| `package.json`                                        | Release v3.11.8 metadata                                                                                              |
 | `README.md`                                           | Version updated to `3.11.8` across badges, banners, download tables, and changelog                                    |
-| `changelog.md`                                        | Added comprehensive `[v3.11.8]` release entry                                                                         |
+| `changelog.md`                                        | Added comprehensive `[v3.11.8]` release entry with alert #150 and synced lyrics refactoring                           |
 | `DOCNOTE.md`                                          | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                         |

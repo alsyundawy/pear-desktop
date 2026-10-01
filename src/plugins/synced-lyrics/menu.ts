@@ -25,7 +25,7 @@ export const menu = async (
           type: 'radio',
           checked: config.preferredProvider === undefined,
           click() {
-            ctx.setConfig({ preferredProvider: undefined });
+            void ctx.setConfig({ preferredProvider: undefined });
           },
         },
         ...providerNames.map(
@@ -35,7 +35,7 @@ export const menu = async (
               type: 'radio',
               checked: config.preferredProvider === provider,
               click() {
-                ctx.setConfig({ preferredProvider: provider });
+                void ctx.setConfig({ preferredProvider: provider });
               },
             }) as const,
         ),
@@ -47,7 +47,7 @@ export const menu = async (
       type: 'checkbox',
       checked: config.preciseTiming,
       click(item) {
-        ctx.setConfig({
+        void ctx.setConfig({
           preciseTiming: item.checked,
         });
       },
@@ -67,7 +67,7 @@ export const menu = async (
           type: 'radio',
           checked: config.lineEffect === 'fancy',
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               lineEffect: 'fancy',
             });
           },
@@ -82,7 +82,7 @@ export const menu = async (
           type: 'radio',
           checked: config.lineEffect === 'scale',
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               lineEffect: 'scale',
             });
           },
@@ -97,7 +97,7 @@ export const menu = async (
           type: 'radio',
           checked: config.lineEffect === 'offset',
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               lineEffect: 'offset',
             });
           },
@@ -112,7 +112,7 @@ export const menu = async (
           type: 'radio',
           checked: config.lineEffect === 'focus',
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               lineEffect: 'focus',
             });
           },
@@ -138,7 +138,7 @@ export const menu = async (
             : JSON.stringify(config.defaultTextString) ===
               JSON.stringify(value),
         click() {
-          ctx.setConfig({ defaultTextString: value });
+          void ctx.setConfig({ defaultTextString: value });
         },
       })),
     },
@@ -148,7 +148,7 @@ export const menu = async (
       type: 'checkbox',
       checked: config.romanization,
       click(item) {
-        ctx.setConfig({
+        void ctx.setConfig({
           romanization: item.checked,
         });
       },
@@ -172,7 +172,7 @@ export const menu = async (
             config.convertChineseCharacter === 'disabled' ||
             config.convertChineseCharacter === undefined,
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               convertChineseCharacter: 'disabled',
             });
           },
@@ -187,7 +187,7 @@ export const menu = async (
           type: 'radio',
           checked: config.convertChineseCharacter === 'simplifiedToTraditional',
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               convertChineseCharacter: 'simplifiedToTraditional',
             });
           },
@@ -202,7 +202,7 @@ export const menu = async (
           type: 'radio',
           checked: config.convertChineseCharacter === 'traditionalToSimplified',
           click() {
-            ctx.setConfig({
+            void ctx.setConfig({
               convertChineseCharacter: 'traditionalToSimplified',
             });
           },
@@ -215,7 +215,7 @@ export const menu = async (
       type: 'checkbox',
       checked: config.showTimeCodes,
       click(item) {
-        ctx.setConfig({
+        void ctx.setConfig({
           showTimeCodes: item.checked,
         });
       },
@@ -228,7 +228,7 @@ export const menu = async (
       type: 'checkbox',
       checked: config.showLyricsEvenIfInexact,
       click(item) {
-        ctx.setConfig({
+        void ctx.setConfig({
           showLyricsEvenIfInexact: item.checked,
         });
       },

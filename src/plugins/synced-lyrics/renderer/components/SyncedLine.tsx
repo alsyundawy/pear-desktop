@@ -40,6 +40,13 @@ const EmptyLine = (props: SyncedLineProps) => {
       onClick={() => {
         _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
       }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
       <div class="description ytmusic-description-shelf-renderer" dir="auto">
         <yt-formatted-string
@@ -98,7 +105,7 @@ export const SyncedLine = (props: SyncedLineProps) => {
     const input = canonicalize(text());
     if (!config()?.romanization) return;
 
-    romanize(input).then((result) => {
+    void romanize(input).then((result) => {
       setRomanization(canonicalize(result));
     });
   });
@@ -110,6 +117,13 @@ export const SyncedLine = (props: SyncedLineProps) => {
         onClick={() => {
           _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         <div class="description ytmusic-description-shelf-renderer" dir="auto">
           <yt-formatted-string
@@ -125,7 +139,7 @@ export const SyncedLine = (props: SyncedLineProps) => {
           <div
             class="text-lyrics"
             ref={(div: HTMLDivElement) => {
-              // TODO: Investigate the animation, even though the duration is properly set, all lines have the same animation duration
+              // FIXME(upstream): even though the duration is properly set, all lines share the same animation duration
               div.style.setProperty(
                 '--lyrics-duration',
                 `${props.line.duration / 1000}s`,

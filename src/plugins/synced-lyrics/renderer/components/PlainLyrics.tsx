@@ -27,7 +27,7 @@ export const PlainLyrics = (props: PlainLyricsProps) => {
     if (!config()?.romanization) return;
 
     const input = canonicalize(text());
-    romanize(input).then((result) => {
+    void romanize(input).then((result) => {
       setRomanization(canonicalize(result));
     });
   });
@@ -35,7 +35,7 @@ export const PlainLyrics = (props: PlainLyricsProps) => {
   return (
     <div
       class={`${
-        props.line.match(/^\[.+\]$/s) ? 'lrc-header' : ''
+        /^\[.+\]$/s.exec(props.line) ? 'lrc-header' : ''
       } text-lyrics description ytmusic-description-shelf-renderer`}
       style={{
         'display': 'flex',

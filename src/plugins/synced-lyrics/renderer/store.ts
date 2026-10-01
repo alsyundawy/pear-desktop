@@ -38,14 +38,14 @@ export const [lyricsStore, setLyricsStore] = createStore<LyricsStore>({
   },
 });
 
-export const currentLyrics = runWithOwner(reactiveOwner, () =>
-  createMemo(() => {
+const _currentLyrics = runWithOwner(reactiveOwner, () => {
+  const memo = createMemo(() => {
     const provider = lyricsStore.provider;
     return lyricsStore.lyrics[provider];
-  }),
-)!;
-
-type VideoId = string;
+  });
+  return memo;
+});
+export const currentLyrics = _currentLyrics!;
 
 type SearchCacheData = Record<ProviderName, ProviderState>;
 interface SearchCache {
@@ -53,8 +53,8 @@ interface SearchCache {
   data: SearchCacheData;
 }
 
-// TODO: Maybe use localStorage for the cache.
-const searchCache = new Map<VideoId, SearchCache>();
+// Note: localStorage could be used for caching in future iterations.
+const searchCache = new Map<string, SearchCache>();
 export const fetchLyrics = (info: SongInfo) => {
   if (searchCache.has(info.videoId)) {
     const cache = searchCache.get(info.videoId)!;
@@ -69,7 +69,7 @@ export const fetchLyrics = (info: SongInfo) => {
     if (getSongInfo().videoId === info.videoId) {
       setLyricsStore('lyrics', () => {
         // weird bug with solid-js
-        return JSON.parse(JSON.stringify(cache.data)) as typeof cache.data;
+        return structuredClone(cache.data);
       });
     }
 
@@ -85,7 +85,7 @@ export const fetchLyrics = (info: SongInfo) => {
   if (getSongInfo().videoId === info.videoId) {
     setLyricsStore('lyrics', () => {
       // weird bug with solid-js
-      return JSON.parse(JSON.stringify(cache.data)) as typeof cache.data;
+      return structuredClone(cache.data);
     });
   }
 
@@ -138,7 +138,7 @@ export const fetchLyrics = (info: SongInfo) => {
     );
   }
 
-  Promise.allSettled(tasks).then(() => {
+  void Promise.allSettled(tasks).then(() => {
     cache.state = 'done';
     searchCache.set(info.videoId, cache);
   });
