@@ -107,7 +107,7 @@ export function registerMPRIS(win: BrowserWindow) {
     const microToSec = (n: number) => Math.round(Number(n) / 1e6);
 
     const correctId = (videoId: string) => {
-      return videoId.replace(/-/g, '_MINUS_');
+      return videoId.replaceAll('-', '_MINUS_');
     };
 
     const player = setupMPRIS();
@@ -176,8 +176,7 @@ export function registerMPRIS(win: BrowserWindow) {
         return;
       }
 
-      player.fullscreen =
-        changedTo !== undefined ? changedTo : !player.fullscreen;
+      player.fullscreen = changedTo ?? !player.fullscreen;
     });
 
     ipcMain.on(
@@ -322,9 +321,18 @@ export function registerMPRIS(win: BrowserWindow) {
         return;
       }
 
-      win.loadURL(parsedUri.href).then(() => {
-        requestQueueInformation();
-      });
+      win
+        .loadURL(parsedUri.href)
+        .then(() => {
+          requestQueueInformation();
+        })
+        .catch((error: unknown) => {
+          console.error(
+            LoggerPrefix,
+            'Failed to load URL from MPRIS open event:',
+            error,
+          );
+        });
     });
 
     player.on('error', (error: Error) => {
@@ -341,7 +349,7 @@ export function registerMPRIS(win: BrowserWindow) {
     player.on('volume', async (newVolume: number) => {
       if (await config.plugins.isEnabled('precise-volume')) {
         // With precise volume we can set the volume to the exact value.
-        win.webContents.send('setVolume', ~~(newVolume * 100));
+        win.webContents.send('setVolume', Math.trunc(newVolume * 100));
       } else {
         setVolume(newVolume * 100);
       }

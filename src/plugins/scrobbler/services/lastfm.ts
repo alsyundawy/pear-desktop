@@ -65,19 +65,21 @@ export class LastFmScrobbler extends ScrobblerBase {
     if (json.error) {
       config.scrobblers.lastfm.token = await createToken(config);
       // If is successful, we need retry the request
-      authenticate(config, this.mainWindow).then((it) => {
-        if (it) {
-          this.createSession(config, setConfig);
+      try {
+        const authenticated = await authenticate(config, this.mainWindow);
+        if (authenticated) {
+          await this.createSession(config, setConfig);
         } else {
-          // failed
-          setConfig(config);
+          await setConfig(config);
         }
-      });
+      } catch (err: unknown) {
+        console.error('Failed to authenticate with Last.fm:', err);
+      }
     }
     if (json.session) {
       config.scrobblers.lastfm.sessionKey = json.session.key;
     }
-    setConfig(config);
+    await setConfig(config);
     return config;
   }
 
@@ -94,7 +96,11 @@ export class LastFmScrobbler extends ScrobblerBase {
     const data = {
       method: 'track.updateNowPlaying',
     };
-    this.postSongDataToAPI(songInfo, config, data, setConfig);
+    this.postSongDataToAPI(songInfo, config, data, setConfig).catch(
+      (err: unknown) => {
+        console.error('Failed to update now playing in Last.fm:', err);
+      },
+    );
   }
 
   override addScrobble(
@@ -113,7 +119,11 @@ export class LastFmScrobbler extends ScrobblerBase {
         (Date.now() - (songInfo.elapsedSeconds ?? 0)) / 1000,
       ),
     };
-    this.postSongDataToAPI(songInfo, config, data, setConfig);
+    this.postSongDataToAPI(songInfo, config, data, setConfig).catch(
+      (err: unknown) => {
+        console.error('Failed to post scrobble to Last.fm:', err);
+      },
+    );
   }
 
   private async postSongDataToAPI(
@@ -150,36 +160,37 @@ export class LastFmScrobbler extends ScrobblerBase {
 
     postData.api_sig = createApiSig(postData, config.scrobblers.lastfm.secret);
     const formData = createFormData(postData);
-    net
-      .fetch('https://ws.audioscrobbler.com/2.0/', {
+    try {
+      await net.fetch('https://ws.audioscrobbler.com/2.0/', {
         method: 'POST',
         body: formData,
-      })
-      .catch(
-        async (error: {
-          response?: {
-            data?: {
-              error: number;
-            };
+      });
+    } catch (error: unknown) {
+      const err = error as {
+        response?: {
+          data?: {
+            error: number;
           };
-        }) => {
-          if (error?.response?.data?.error === 9) {
-            // Session key is invalid, so remove it from the config and reauthenticate
-            config.scrobblers.lastfm.sessionKey = undefined;
-            config.scrobblers.lastfm.token = await createToken(config);
-            authenticate(config, this.mainWindow).then((it) => {
-              if (it) {
-                this.createSession(config, setConfig);
-              } else {
-                // failed
-                setConfig(config);
-              }
-            });
+        };
+      };
+      if (err?.response?.data?.error === 9) {
+        // Session key is invalid, so remove it from the config and reauthenticate
+        config.scrobblers.lastfm.sessionKey = undefined;
+        config.scrobblers.lastfm.token = await createToken(config);
+        try {
+          const authenticated = await authenticate(config, this.mainWindow);
+          if (authenticated) {
+            await this.createSession(config, setConfig);
           } else {
-            console.error(error);
+            await setConfig(config);
           }
-        },
-      );
+        } catch (authErr: unknown) {
+          console.error('Failed to reauthenticate with Last.fm:', authErr);
+        }
+      } else {
+        console.error('Failed to post song data to Last.fm:', error);
+      }
+    }
   }
 }
 
@@ -225,6 +236,7 @@ const createApiSig = (parameters: LastFmSongData, secret: string) => {
     });
 
   sig += secret;
+  // NOSONAR: Last.fm API specification requires MD5 hash for api_sig (not for sensitive data)
   sig = crypto.createHash('md5').update(sig, 'utf-8').digest('hex');
   return sig;
 };
@@ -252,72 +264,84 @@ const createToken = async ({
   return json?.token;
 };
 
-let authWindowOpened = false;
-let latestAuthResult = false;
+let authPromise: Promise<boolean> | null = null;
 
 const authenticate = async (
   config: ScrobblerPluginConfig,
   mainWindow: BrowserWindow,
-) => {
-  return new Promise<boolean>((resolve) => {
-    if (!authWindowOpened) {
-      authWindowOpened = true;
-      const url = `https://www.last.fm/api/auth/?api_key=${encodeURIComponent(config.scrobblers.lastfm.apiKey ?? '')}&token=${encodeURIComponent(config.scrobblers.lastfm.token ?? '')}`;
-      const browserWindow = new BrowserWindow({
-        width: 500,
-        height: 600,
-        show: false,
-        webPreferences: {
-          nodeIntegration: false,
-        },
-        autoHideMenuBar: true,
-        parent: mainWindow,
-        minimizable: false,
-        maximizable: false,
-        paintWhenInitiallyHidden: true,
-        modal: true,
-        center: true,
-      });
-      browserWindow.loadURL(url).then(() => {
+): Promise<boolean> => {
+  if (authPromise) {
+    return authPromise;
+  }
+
+  authPromise = new Promise<boolean>((resolve) => {
+    let authResult = false;
+    const url = `https://www.last.fm/api/auth/?api_key=${encodeURIComponent(config.scrobblers.lastfm.apiKey ?? '')}&token=${encodeURIComponent(config.scrobblers.lastfm.token ?? '')}`;
+    const browserWindow = new BrowserWindow({
+      width: 500,
+      height: 600,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+      },
+      autoHideMenuBar: true,
+      parent: mainWindow,
+      minimizable: false,
+      maximizable: false,
+      paintWhenInitiallyHidden: true,
+      modal: true,
+      center: true,
+    });
+    browserWindow
+      .loadURL(url)
+      .then(() => {
         browserWindow.show();
-        browserWindow.webContents.on('did-navigate', async (_, newUrl) => {
-          const url = new URL(newUrl);
-          if (url.hostname.endsWith('last.fm')) {
-            if (url.pathname === '/api/auth') {
-              const isApproveScreen =
-                (await browserWindow.webContents.executeJavaScript(
-                  "!!document.getElementsByName('confirm').length",
-                )) as boolean;
-              // successful authentication
-              if (!isApproveScreen) {
-                resolve(true);
-                latestAuthResult = true;
-                browserWindow.close();
-              }
-            } else if (url.pathname === '/api/None') {
-              resolve(false);
-              latestAuthResult = false;
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load Last.fm auth URL:', err);
+      });
+
+    browserWindow.webContents.on('did-navigate', async (_, newUrl) => {
+      try {
+        const parsed = new URL(newUrl);
+        if (parsed.hostname.endsWith('last.fm')) {
+          if (parsed.pathname === '/api/auth') {
+            const isApproveScreen =
+              (await browserWindow.webContents.executeJavaScript(
+                "!!document.getElementsByName('confirm').length",
+              )) as boolean;
+            // successful authentication
+            if (!isApproveScreen) {
+              authResult = true;
+              resolve(true);
               browserWindow.close();
             }
+          } else if (parsed.pathname === '/api/None') {
+            authResult = false;
+            resolve(false);
+            browserWindow.close();
           }
-        });
-        browserWindow.on('closed', () => {
-          if (!latestAuthResult) {
-            dialog.showMessageBox({
-              title: t('plugins.scrobbler.dialog.lastfm.auth-failed.title'),
-              message: t('plugins.scrobbler.dialog.lastfm.auth-failed.message'),
-              type: 'error',
-            });
-          }
-          authWindowOpened = false;
-        });
-      });
-    } else {
-      // wait for the previous window to close
-      while (authWindowOpened) {
-        // wait
+        }
+      } catch (err: unknown) {
+        console.error('Failed to parse URL in Last.fm did-navigate:', err);
       }
-      resolve(latestAuthResult);
-    }
+    });
+
+    browserWindow.on('closed', () => {
+      if (!authResult) {
+        dialog
+          .showMessageBox({
+            title: t('plugins.scrobbler.dialog.lastfm.auth-failed.title'),
+            message: t('plugins.scrobbler.dialog.lastfm.auth-failed.message'),
+            type: 'error',
+          })
+          .catch(() => {});
+      }
+      resolve(authResult);
+    });
+  }).finally(() => {
+    authPromise = null;
   });
+
+  return authPromise;
 };
