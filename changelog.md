@@ -4,6 +4,30 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.11.8](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.7...v3.11.8)
+
+> 01 October 2026
+
+- **Upstream Translation Synchronization (`src/i18n`)**:
+  - Pulled and synchronized upstream translations from `pear-devs/pear-desktop:src/i18n` across 63 locales, adding full support for `af`, `be-Latn`, `ckb`, `km`, `lo`, and `mk`.
+  - Preserved custom plugin translation namespaces (`do-not-track` suite and `sponsorblock.menu.categories`) in both English (`en.json`) and Indonesian (`id.json`).
+- **CodeQL Security Remediation**:
+  - **Incomplete URL Substring Sanitization (CodeQL alerts #3, #4, #5, #14 in `src/index.ts`)**: Replaced loose `.includes()` / `.startsWith()` URL checks with strict WHATWG URL origin and hostname matching (`url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com')` and `parsedUrl.origin === 'https://music.youtube.com'`).
+  - **Incomplete URL Substring Sanitization (CodeQL alert #7 in `tests/index.test.js`)**: Replaced `url.startsWith('https://music.youtube.com')` with `new URL(window.url()).origin === 'https://music.youtube.com'`.
+  - **Double Escaping or Unescaping (CodeQL alert #1 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts`)**: Eliminated multi-pass regex replacements that re-escaped characters, replacing them with a single-pass token replacer using `escapeMap` and regex `/\\([/'"n\\])/g`.
+- **SonarLint Code Quality & Architectural Hardening**:
+  - **Avoid Nesting Promises (`typescript:S9381` in `src/index.ts`)**: Converted auto-updater and hide-menu dialog callbacks to asynchronous blocks using `await dialog.showMessageBox` inside `try/catch`.
+  - **Architectural Deadlock Prevention (`typescript:S7785` in `src/index.ts`)**: Investigated and documented why top-level `await app.whenReady()` causes an Electron main-process deadlock (Electron requires module evaluation to finish before firing the `ready` event). Maintained `app.whenReady().then(...)` lifecycle with explicit `// NOSONAR(typescript:S7785)` tag.
+  - **Cognitive Complexity Reduction (`typescript:S3776` in `src/plugins/scrobbler/services/lastfm.ts`)**: Decomposed `postSongDataToAPI` into modular subroutines (`resolveTrackAndArtist`, `handleInvalidSession`), decreasing function complexity from 17 to under 8.
+  - **Weak Hash Algorithm Compliance (`typescript:S4790` in `src/plugins/scrobbler/services/lastfm.ts`)**: Added `// NOSONAR` annotation documenting that MD5 hash usage is strictly mandated by the Last.fm public API specification for `api_sig` generation.
+- **Dependency Upgrades & 0 Known Vulnerabilities (`pnpm-workspace.yaml`, `package.json`)**:
+  - Upgraded `mdui` from `2.1.4` to `2.1.5` and provided patched declaration `patches/mdui@2.1.5.patch` with Solid-JS JSX intrinsic element types.
+  - Updated `pnpm-workspace.yaml` and `pnpm-lock.yaml`, achieving **0 known vulnerabilities** on `pnpm audit` (all 17 previous vulnerabilities resolved).
+- **Playwright Test Runner Robustness (`tests/index.test.js`, `src/index.ts`)**:
+  - Enabled single instance lock bypass when running under `NODE_ENV=test` to prevent test timeouts when another instance of YouTube Music is active on macOS.
+  - Cleaned up orphaned detached worktrees to eliminate duplicate test execution in Playwright.
+  - All 6 tests passing (100% green).
+
 #### [v3.11.7](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.6...v3.11.7)
 
 > 01 October 2026
@@ -561,7 +585,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - chore(deps): update dependency rollup to v4.39.0 [`#3179`](https://github.com/ArjixWasTaken/pear-desktop/pull/3179)
 - chore(deps): update dependency typescript-eslint to v8.29.0 [`#3169`](https://github.com/ArjixWasTaken/pear-desktop/pull/3169)
 - fix(downloader): allow downloads for signed out users [`#3145`](https://github.com/ArjixWasTaken/pear-desktop/pull/3145)
-- fix(README):  Fixed typos in some hyperlinks [`#3158`](https://github.com/ArjixWasTaken/pear-desktop/pull/3158)
+- fix(README): Fixed typos in some hyperlinks [`#3158`](https://github.com/ArjixWasTaken/pear-desktop/pull/3158)
 - chore(deps): update dependency vite to v6.2.4 [`#3124`](https://github.com/ArjixWasTaken/pear-desktop/pull/3124)
 - chore(deps): update dependency eslint-import-resolver-typescript to v4.3.1 [`#3151`](https://github.com/ArjixWasTaken/pear-desktop/pull/3151)
 - chore(deps): update dependency rollup to v4.38.0 [`#3154`](https://github.com/ArjixWasTaken/pear-desktop/pull/3154)
@@ -1833,7 +1857,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - fix security issues in dependencies [`#1116`](https://github.com/ArjixWasTaken/pear-desktop/pull/1116)
 - commit assets/generated [`#1118`](https://github.com/ArjixWasTaken/pear-desktop/pull/1118)
 - remove `electron.remote` dependency [`#1113`](https://github.com/ArjixWasTaken/pear-desktop/pull/1113)
-- .gitattributes set `eol=lf` on *all* files [`#1115`](https://github.com/ArjixWasTaken/pear-desktop/pull/1115)
+- .gitattributes set `eol=lf` on _all_ files [`#1115`](https://github.com/ArjixWasTaken/pear-desktop/pull/1115)
 - [crossfade] add `[beta]` tag to warn of possible bugs [`#1096`](https://github.com/ArjixWasTaken/pear-desktop/pull/1096)
 - [crossfade] add menu options [`#1065`](https://github.com/ArjixWasTaken/pear-desktop/pull/1065)
 - [captions-selector] add `autoload` option [`#1079`](https://github.com/ArjixWasTaken/pear-desktop/pull/1079)
@@ -2017,7 +2041,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - [Snyk] Security upgrade node-fetch from 2.6.6 to 2.6.7 (3.1.1 incompatible) [`#554`](https://github.com/ArjixWasTaken/pear-desktop/pull/554)
 - fix app starting offscreen [`#548`](https://github.com/ArjixWasTaken/pear-desktop/pull/548)
 - Release Mac arm64 [`#566`](https://github.com/ArjixWasTaken/pear-desktop/pull/566)
-- Build command for Apple (m1) silicon macs  [`#553`](https://github.com/ArjixWasTaken/pear-desktop/pull/553)
+- Build command for Apple (m1) silicon macs [`#553`](https://github.com/ArjixWasTaken/pear-desktop/pull/553)
 - [Snyk] Upgrade custom-electron-titlebar from 3.2.9 to 3.2.10 [`#545`](https://github.com/ArjixWasTaken/pear-desktop/pull/545)
 - Fix duplicate media session on linux [`#551`](https://github.com/ArjixWasTaken/pear-desktop/pull/551)
 - show a badge remaining items when downloading a playlist [`#550`](https://github.com/ArjixWasTaken/pear-desktop/pull/550)
@@ -2190,7 +2214,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - Improved songinfo provider, by using the data from the '/player' request [`#194`](https://github.com/ArjixWasTaken/pear-desktop/pull/194)
 - Download plugin directory chooser [`#10`](https://github.com/ArjixWasTaken/pear-desktop/pull/10)
 - [Snyk] Upgrade @cliqz/adblocker-electron from 1.20.0 to 1.20.1 [`#180`](https://github.com/ArjixWasTaken/pear-desktop/pull/180)
-- [Plugin] taskbar-mediacontrol  (for Windows) [`#200`](https://github.com/ArjixWasTaken/pear-desktop/pull/200)
+- [Plugin] taskbar-mediacontrol (for Windows) [`#200`](https://github.com/ArjixWasTaken/pear-desktop/pull/200)
 - merge source [`#3`](https://github.com/ArjixWasTaken/pear-desktop/pull/3)
 - merge source [`#2`](https://github.com/ArjixWasTaken/pear-desktop/pull/2)
 - Add playlist feature in downloader plugin + custom menus in plugin system [`#203`](https://github.com/ArjixWasTaken/pear-desktop/pull/203)

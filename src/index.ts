@@ -74,7 +74,7 @@ unhandled({
 let mainWindow: Electron.BrowserWindow | null;
 autoUpdater.autoDownload = false;
 
-const gotTheLock = app.requestSingleInstanceLock();
+const gotTheLock = isTesting() || app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.exit();
 }
@@ -563,11 +563,12 @@ async function createMainWindow() {
       return;
     }
 
+    const isYouTube =
+      url.hostname === '\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com' ||
+      url.hostname.endsWith('.\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com');
+
     // Workarounds for regions where YTM is restricted
-    if (
-      url.hostname.endsWith('\u0079\u006f\u0075\u0074\u0075\u0062\u0065.com') &&
-      url.pathname === '/premium'
-    ) {
+    if (isYouTube && url.pathname === '/premium') {
       event.preventDefault();
 
       win.webContents
@@ -607,10 +608,18 @@ app.once('browser-window-created', (_event, win) => {
 
     win.webContents.session.webRequest.onBeforeSendHeaders((details, cb) => {
       // This will only happen if login failed, and "retry" was pressed
-      if (
-        win.webContents.getURL().startsWith('https://accounts.google.com') &&
-        details.url.startsWith('https://accounts.google.com')
-      ) {
+      let isAccountsGoogle = false;
+      try {
+        const currentOrigin = new URL(win.webContents.getURL()).origin;
+        const detailsOrigin = new URL(details.url).origin;
+        isAccountsGoogle =
+          currentOrigin === 'https://accounts.google.com' &&
+          detailsOrigin === 'https://accounts.google.com';
+      } catch {
+        isAccountsGoogle = false;
+      }
+
+      if (isAccountsGoogle) {
         details.requestHeaders['User-Agent'] = originalUserAgent;
       }
 
@@ -657,10 +666,14 @@ app.once('browser-window-created', (_event, win) => {
         // If URL parsing fails, treat as non-doubleclick and show error
       }
 
+      const isDoubleClick =
+        validatedHostname === 'doubleclick.net' ||
+        validatedHostname.endsWith('.doubleclick.net');
+
       if (
         errorCode !== -3 &&
         // Workaround for #2435
-        !validatedHostname.includes('doubleclick.net')
+        !isDoubleClick
       ) {
         // -3 is a false positive
         win.webContents.send('log', log);
@@ -784,16 +797,16 @@ function setupWindowsShortcut() {
 }
 
 function setupAutoUpdates() {
-  if (is.dev() || !config.get('options.autoUpdates')) {
+  if (is.dev() || isTesting() || !config.get('options.autoUpdates')) {
     return;
   }
   const updateTimeout = setTimeout(() => {
     autoUpdater.checkForUpdatesAndNotify().catch(() => {});
     clearTimeout(updateTimeout);
   }, 2000);
-  autoUpdater.on('update-available', () => {
+  autoUpdater.on('update-available', async () => {
     const downloadLink =
-      'https://github.com/ArjixWasTaken/pear-desktop/releases/latest';
+      'https://github.com/alsyundawy/pear-desktop-mac/releases/latest';
     const dialogOptions: Electron.MessageBoxOptions = {
       type: 'info',
       buttons: [
@@ -808,26 +821,23 @@ function setupAutoUpdates() {
       cancelId: 0,
     };
 
-    const dialogPromise = mainWindow
-      ? dialog.showMessageBox(mainWindow, dialogOptions)
-      : dialog.showMessageBox(dialogOptions);
+    try {
+      const dialogOutput = mainWindow
+        ? await dialog.showMessageBox(mainWindow, dialogOptions)
+        : await dialog.showMessageBox(dialogOptions);
 
-    dialogPromise
-      .then((dialogOutput) => {
-        if (dialogOutput.response === 1) {
-          shell.openExternal(downloadLink).catch((err: unknown) => {
-            console.error(LoggerPrefix, 'Failed to open update link:', err);
-          });
-        } else if (dialogOutput.response === 2) {
-          config.set('options.autoUpdates', false);
-        }
-      })
-      .catch((err: unknown) => {
-        console.error(LoggerPrefix, 'Update dialog error:', err);
-      });
+      if (dialogOutput.response === 1) {
+        await shell.openExternal(downloadLink);
+      } else if (dialogOutput.response === 2) {
+        config.set('options.autoUpdates', false);
+      }
+    } catch (err: unknown) {
+      console.error(LoggerPrefix, 'Update dialog error:', err);
+    }
   });
 }
 
+// NOSONAR(typescript:S7785) - Top-level await on app.whenReady causes an Electron event loop deadlock
 app
   .whenReady()
   .then(async () => {
@@ -944,16 +954,19 @@ app
     setupAutoUpdates();
 
     if (
+      !isTesting() &&
       config.get('options.hideMenu') &&
       !config.get('options.hideMenuWarned')
     ) {
-      dialog
-        .showMessageBox(mainWindow, {
+      try {
+        await dialog.showMessageBox(mainWindow, {
           type: 'info',
           title: t('main.dialog.hide-menu-enabled.title'),
           message: t('main.dialog.hide-menu-enabled.message'),
-        })
-        .catch(() => {});
+        });
+      } catch {
+        // Dialog closed
+      }
       config.set('options.hideMenuWarned', true);
     }
 

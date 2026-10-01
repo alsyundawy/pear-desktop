@@ -72,12 +72,16 @@ export class LyricsGenius implements LyricProvider {
       preloadedStateRegex,
     )?.[1]?.replace(/\\"/g, '"');
 
-    const lyricsHtml = preloadedState?.match(preloadHtmlRegex)?.[1]
-      ?.replace(/\\\//g, '/')
-      ?.replace(/\\\\/g, '\\')
-      ?.replace(/\\n/g, '\n')
-      ?.replace(/\\'/g, "'")
-      ?.replace(/\\"/g, '"');
+    const escapeMap: Record<string, string> = {
+      '/': '/',
+      '\\': '\\',
+      'n': '\n',
+      "'": "'",
+      '"': '"',
+    };
+    const lyricsHtml = preloadedState
+      ?.match(preloadHtmlRegex)?.[1]
+      ?.replace(/\\([/\\'"n])/g, (_match, ch: string) => escapeMap[ch] ?? ch);
 
     const hasUnreleasedPlaceholder = preloadedState &&
       /lyricsPlaceholderReason.{1,5}unreleased/.test(preloadedState);

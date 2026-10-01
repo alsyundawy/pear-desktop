@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
-    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.7 Music Client Flyer Banner" width="100%">
+    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.8 Music Client Flyer Banner" width="100%">
   </a>
 </p>
 
@@ -17,7 +17,7 @@
 <h3 align="center">High-Performance, Privacy-Hardened YouTube Music Desktop Client for macOS</h3>
 
 <p align="center">
-  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.11.7-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.11.7"></a>
+  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.11.8-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.11.8"></a>
   <a href="https://apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%20Sequoia%20%7C%20Sonoma%20%7C%20Ventura-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Platform"></a>
   <a href="https://www.electronjs.org/"><img src="https://img.shields.io/badge/Engine-Electron%20%7C%20Node.js-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron Engine"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.x"></a>
@@ -33,7 +33,7 @@
 
 <p align="center">
   <a href="#downloads--artifact-catalogs">
-    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.7-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
+    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.8-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
   </a>
   <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest">
     <img src="https://img.shields.io/badge/🪞_Releases_&_Changelog-GitHub-0284c7?style=for-the-badge&logo=github&logoColor=white" alt="Releases & Changelog">
@@ -50,7 +50,7 @@
 > **[`HARRY DERTIN SUTISNA ALSYUNDAWY (@alsyundawy)`](https://github.com/alsyundawy)** —<br>
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
-> 🍏 **[`Latest Releases (v3.11.7)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
+> 🍏 **[`Latest Releases (v3.11.8)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
 > 📖 **[`Release DocNotes`](DOCNOTE.md)** &nbsp;|&nbsp;
 > 📜 **[`Changelog`](changelog.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
@@ -85,7 +85,7 @@
 - [Plugin System & Custom Extensions](#plugin-system--custom-extensions)
 - [Developer Setup & Quality Verification](#developer-setup--quality-verification)
 - [Code Review & Quality Standards](#code-review--quality-standards)
-- [Changelog (v3.11.7)](#changelog-v3117)
+- [Changelog (v3.11.8)](#changelog-v3118)
 - [Upstream Credits & Attribution](#upstream-credits--attribution)
 - [FAQ & Troubleshooting](#faq--troubleshooting)
 - [Support & Donation](#support--donation)
@@ -107,18 +107,18 @@
 
 ## Key Features & Capabilities Matrix
 
-| Capability | Technical Implementation | macOS Benefit |
-| :--- | :--- | :--- |
-| **Multi-Engine Ad Blocker** | `@ghostery/adblocker-electron` + 27 vendor filter lists (EasyList, EasyPrivacy, uBlock, HaGeZi Multi PRO, Threat Intelligence) + `AdSpeedup` fallback. | Complete elimination of pre-roll, mid-roll, popup, and banner ads without broken DOM placeholders or playback stalls. |
-| **SponsorBlock Integration** | SponsorBlock REST API integration with real-time category configuration, non-blocking segment caching, and RFC 3986 parameter sanitization. | Automatically skips intros, outros, sponsored pitches, and non-music banter; customizable per category. |
-| **Hardware-Accelerated Ambient Mode** | GPU canvas blending via `context.drawImage` with dynamic alpha compositing, replacing synchronous CPU pixel readback (`getImageData`). | Eliminates GPU pipeline stalls, slashes CPU utilization by over 70%, and extends MacBook battery life during long listening sessions. |
-| **Real-Time Synced Lyrics** | Multi-source LRC parser engine querying YouTube Music, Genius, LRCLib, Megalobiz, and MusixMatch with syllable-level timing. | Karaoke-style synchronized lyrics displayed right in the player sidebar or floating overlay window. |
-| **Last.fm & Scrobbler Engine** | Non-blocking asynchronous scrobbling client with interactive authentication and zero main-process busy-wait loops. | Automatically logs music scrobbles to Last.fm, ListenBrainz, and Libre.fm with offline queue support. |
-| **Smooth Audio Crossfade** | Dual-track WebAudio gain node crossfade with volume state restoration and leak-free video listener teardown. | Seamless, gapless DJ transitions between songs with zero audio pops, crackles, or unintended muting bugs. |
-| **Content Warning Auto-Dismiss** | Multi-language MutationObserver phrase matcher across 11 languages (EN, ID, DE, FR, PT, ES, RU, ZH, JA, KO, AR). | Automatically acknowledges and dismisses suicide/self-harm content warning screens that otherwise freeze playback. |
-| **Always-Visible Volume Slider** | Adopted CSS stylesheet override removing opacity and pointer-event hover locks from player bar slider. | Instant volume adjustments with click-and-drag capability without requiring mouse-hover delays. |
-| **Multi-Device Popup Dismiss** | Observer-driven detection and automatic closure of the modal "Listen on this device" dialog (`ytmusic-you-there-renderer`). | Uninterrupted music playback when switching audio devices or launching playback from mobile devices. |
-| **Native macOS TouchBar & Media Keys** | macOS Media Keys API, `systemPreferences` theme binding, and Apple TouchBar scrubber and control buttons. | Full playback control from keyboard function keys, AirPods, and TouchBar without switching window focus. |
+| Capability                             | Technical Implementation                                                                                                                               | macOS Benefit                                                                                                                         |
+| :------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| **Multi-Engine Ad Blocker**            | `@ghostery/adblocker-electron` + 27 vendor filter lists (EasyList, EasyPrivacy, uBlock, HaGeZi Multi PRO, Threat Intelligence) + `AdSpeedup` fallback. | Complete elimination of pre-roll, mid-roll, popup, and banner ads without broken DOM placeholders or playback stalls.                 |
+| **SponsorBlock Integration**           | SponsorBlock REST API integration with real-time category configuration, non-blocking segment caching, and RFC 3986 parameter sanitization.            | Automatically skips intros, outros, sponsored pitches, and non-music banter; customizable per category.                               |
+| **Hardware-Accelerated Ambient Mode**  | GPU canvas blending via `context.drawImage` with dynamic alpha compositing, replacing synchronous CPU pixel readback (`getImageData`).                 | Eliminates GPU pipeline stalls, slashes CPU utilization by over 70%, and extends MacBook battery life during long listening sessions. |
+| **Real-Time Synced Lyrics**            | Multi-source LRC parser engine querying YouTube Music, Genius, LRCLib, Megalobiz, and MusixMatch with syllable-level timing.                           | Karaoke-style synchronized lyrics displayed right in the player sidebar or floating overlay window.                                   |
+| **Last.fm & Scrobbler Engine**         | Non-blocking asynchronous scrobbling client with interactive authentication and zero main-process busy-wait loops.                                     | Automatically logs music scrobbles to Last.fm, ListenBrainz, and Libre.fm with offline queue support.                                 |
+| **Smooth Audio Crossfade**             | Dual-track WebAudio gain node crossfade with volume state restoration and leak-free video listener teardown.                                           | Seamless, gapless DJ transitions between songs with zero audio pops, crackles, or unintended muting bugs.                             |
+| **Content Warning Auto-Dismiss**       | Multi-language MutationObserver phrase matcher across 11 languages (EN, ID, DE, FR, PT, ES, RU, ZH, JA, KO, AR).                                       | Automatically acknowledges and dismisses suicide/self-harm content warning screens that otherwise freeze playback.                    |
+| **Always-Visible Volume Slider**       | Adopted CSS stylesheet override removing opacity and pointer-event hover locks from player bar slider.                                                 | Instant volume adjustments with click-and-drag capability without requiring mouse-hover delays.                                       |
+| **Multi-Device Popup Dismiss**         | Observer-driven detection and automatic closure of the modal "Listen on this device" dialog (`ytmusic-you-there-renderer`).                            | Uninterrupted music playback when switching audio devices or launching playback from mobile devices.                                  |
+| **Native macOS TouchBar & Media Keys** | macOS Media Keys API, `systemPreferences` theme binding, and Apple TouchBar scrubber and control buttons.                                              | Full playback control from keyboard function keys, AirPods, and TouchBar without switching window focus.                              |
 
 ---
 
@@ -188,10 +188,10 @@ To deliver uncompromising energy efficiency and responsiveness on MacBook Air an
 
 Official distribution packages are compiled, signed, and published for macOS under [Releases](https://github.com/alsyundawy/pear-desktop-mac/releases/latest):
 
-| Target Architecture | Package Type | Minimum OS | File Artifact Name | File Size | SHA-256 Digest |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `YouTube.Music-3.11.7-arm64.dmg` | 112.35 MiB | `b9c09142e0bff3d18997ce7374568d27974af201c159f7c5aca85d4537af2126` |
-| **Intel x64** | `.dmg` Installer | macOS 12+ | `YouTube.Music-3.11.7.dmg` | 116.77 MiB | `e546ce1c4c5e78cc9f6c28c37ece374c5a72296a566aa76d3b074b770b225dfa` |
+| Target Architecture       | Package Type     | Minimum OS | File Artifact Name               | File Size  | SHA-256 Digest                                                     |
+| :------------------------ | :--------------- | :--------- | :------------------------------- | :--------- | :----------------------------------------------------------------- |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8-arm64.dmg` | 112.35 MiB | `b9c09142e0bff3d18997ce7374568d27974af201c159f7c5aca85d4537af2126` |
+| **Intel x64**             | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8.dmg`       | 116.77 MiB | `e546ce1c4c5e78cc9f6c28c37ece374c5a72296a566aa76d3b074b770b225dfa` |
 
 ---
 
@@ -199,7 +199,7 @@ Official distribution packages are compiled, signed, and published for macOS und
 
 When installing unsigned community applications downloaded from GitHub on modern macOS versions (macOS Sequoia, Sonoma, or Ventura), Apple Gatekeeper may present a dialog stating:
 
-> *"Pear Desktop.app is damaged and can’t be opened. You should move it to the Trash."*
+> _"Pear Desktop.app is damaged and can’t be opened. You should move it to the Trash."_
 
 This is standard macOS Gatekeeper behavior for open-source software distributed outside the Mac App Store. To clear the quarantine attribute, open **Terminal.app** and run:
 
@@ -329,7 +329,24 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 
 ---
 
-## Changelog (v3.11.7)
+## Changelog (v3.11.8)
+
+### [v3.11.8] — 01 October 2026 (Translations Sync, Security Hardening & Zero-Vulnerability Release)
+
+- **Upstream Translation Synchronization**:
+  - Pulled and synchronized complete upstream translation catalogs from `pear-devs/pear-desktop:src/i18n` across 63 languages (including newly upstreamed `af`, `be-Latn`, `ckb`, `km`, `lo`, `mk`).
+  - Preserved custom plugin translation namespaces (`do-not-track` suite and `sponsorblock.menu.categories`) in `en.json` and `id.json`.
+- **CodeQL Security Remediation**:
+  - Remediated Incomplete URL substring sanitization (alerts #3, #4, #5, #14 in `src/index.ts` and #7 in `tests/index.test.js`) by replacing prefix matches with strict WHATWG URL origin and hostname domain checking.
+  - Remediated Double escaping or unescaping (alert #1 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts`) using single-pass regex replacement with lookup dictionary.
+- **SonarLint Code Quality & Architectural Hardening**:
+  - Fixed nested promises (`typescript:S9381`) in `src/index.ts` across auto-update and hide-menu dialog flows.
+  - Documented and resolved architectural event-loop deadlock on `app.whenReady()` (`typescript:S7785`), preserving Electron's standard lifecycle loop.
+  - Reduced cognitive complexity (`typescript:S3776`) in `src/plugins/scrobbler/services/lastfm.ts` from 17 to under 8 via modular helper decomposition.
+  - Added compliance documentation for legacy Last.fm MD5 API requirements (`typescript:S4790`).
+- **Dependencies & 0 Known Vulnerabilities**:
+  - Upgraded `mdui` to `2.1.5` with custom JSX intrinsic elements patch (`patches/mdui@2.1.5.patch`).
+  - Synced `pnpm-workspace.yaml` and `pnpm-lock.yaml`, achieving **0 known vulnerabilities** on `pnpm audit`.
 
 ### [v3.11.7] — 01 October 2026 (Maintenance & Security Hardening Release)
 

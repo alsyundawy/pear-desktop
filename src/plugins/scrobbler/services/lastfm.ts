@@ -126,6 +126,24 @@ export class LastFmScrobbler extends ScrobblerBase {
     );
   }
 
+  private async handleInvalidSession(
+    config: ScrobblerPluginConfig,
+    setConfig: SetConfType,
+  ): Promise<void> {
+    config.scrobblers.lastfm.sessionKey = undefined;
+    config.scrobblers.lastfm.token = await createToken(config);
+    try {
+      const authenticated = await authenticate(config, this.mainWindow);
+      if (authenticated) {
+        await this.createSession(config, setConfig);
+      } else {
+        await setConfig(config);
+      }
+    } catch (authErr: unknown) {
+      console.error('Failed to reauthenticate with Last.fm:', authErr);
+    }
+  }
+
   private async postSongDataToAPI(
     songInfo: SongInfo,
     config: ScrobblerPluginConfig,
@@ -137,20 +155,12 @@ export class LastFmScrobbler extends ScrobblerBase {
       await this.createSession(config, setConfig);
     }
 
-    const title =
-      config.alternativeTitles && songInfo.alternativeTitle !== undefined
-        ? songInfo.alternativeTitle
-        : songInfo.title;
-
-    const artist =
-      config.alternativeArtist && songInfo.tags?.at(0) !== undefined
-        ? songInfo.tags?.at(0)
-        : songInfo.artist;
+    const { track, artist } = resolveTrackAndArtist(songInfo, config);
 
     const postData: LastFmSongData = {
-      track: title,
+      track,
       duration: songInfo.songDuration,
-      artist: artist,
+      artist,
       ...(songInfo.album ? { album: songInfo.album } : undefined), // Will be undefined if current song is a video
       api_key: config.scrobblers.lastfm.apiKey,
       sk: config.scrobblers.lastfm.sessionKey,
@@ -174,25 +184,30 @@ export class LastFmScrobbler extends ScrobblerBase {
         };
       };
       if (err?.response?.data?.error === 9) {
-        // Session key is invalid, so remove it from the config and reauthenticate
-        config.scrobblers.lastfm.sessionKey = undefined;
-        config.scrobblers.lastfm.token = await createToken(config);
-        try {
-          const authenticated = await authenticate(config, this.mainWindow);
-          if (authenticated) {
-            await this.createSession(config, setConfig);
-          } else {
-            await setConfig(config);
-          }
-        } catch (authErr: unknown) {
-          console.error('Failed to reauthenticate with Last.fm:', authErr);
-        }
+        await this.handleInvalidSession(config, setConfig);
       } else {
         console.error('Failed to post song data to Last.fm:', error);
       }
     }
   }
 }
+
+const resolveTrackAndArtist = (
+  songInfo: SongInfo,
+  config: ScrobblerPluginConfig,
+) => {
+  const track =
+    config.alternativeTitles && songInfo.alternativeTitle !== undefined
+      ? songInfo.alternativeTitle
+      : songInfo.title;
+
+  const artist =
+    config.alternativeArtist && songInfo.tags?.at(0) !== undefined
+      ? songInfo.tags[0]
+      : songInfo.artist;
+
+  return { track, artist };
+};
 
 const createFormData = (parameters: LastFmSongData) => {
   // Creates the body for in the post request
@@ -237,7 +252,7 @@ const createApiSig = (parameters: LastFmSongData, secret: string) => {
 
   sig += secret;
   // NOSONAR: Last.fm API specification requires MD5 hash for api_sig (not for sensitive data)
-  sig = crypto.createHash('md5').update(sig, 'utf-8').digest('hex');
+  sig = crypto.createHash('md5').update(sig, 'utf-8').digest('hex'); // NOSONAR
   return sig;
 };
 
