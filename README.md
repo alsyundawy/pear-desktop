@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
-    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.5 Music Client Flyer Banner" width="100%">
+    <img src="assets/pear-desktop-banner.jpg" alt="Pear Desktop Mac v3.11.7 Music Client Flyer Banner" width="100%">
   </a>
 </p>
 
@@ -17,7 +17,7 @@
 <h3 align="center">High-Performance, Privacy-Hardened YouTube Music Desktop Client for macOS</h3>
 
 <p align="center">
-  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.11.5-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.11.5"></a>
+  <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest"><img src="https://img.shields.io/badge/Release-v3.11.7-2ea44f?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release v3.11.7"></a>
   <a href="https://apple.com/macos"><img src="https://img.shields.io/badge/Platform-macOS%20Sequoia%20%7C%20Sonoma%20%7C%20Ventura-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Platform"></a>
   <a href="https://www.electronjs.org/"><img src="https://img.shields.io/badge/Engine-Electron%20%7C%20Node.js-47848F?style=for-the-badge&logo=electron&logoColor=white" alt="Electron Engine"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5.x"></a>
@@ -33,7 +33,7 @@
 
 <p align="center">
   <a href="#downloads--artifact-catalogs">
-    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.5-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
+    <img src="https://img.shields.io/badge/🚀_Download_Artifacts-v3.11.7-238636?style=for-the-badge&logo=cloudsmith&logoColor=white" alt="Download Artifacts">
   </a>
   <a href="https://github.com/alsyundawy/pear-desktop-mac/releases/latest">
     <img src="https://img.shields.io/badge/🪞_Releases_&_Changelog-GitHub-0284c7?style=for-the-badge&logo=github&logoColor=white" alt="Releases & Changelog">
@@ -50,7 +50,7 @@
 > **[`HARRY DERTIN SUTISNA ALSYUNDAWY (@alsyundawy)`](https://github.com/alsyundawy)** —<br>
 > High-performance macOS desktop client for YouTube Music featuring 27+ vendor adblock filter lists, SponsorBlock segment automation, synchronized lyrics, ReVanced design language, and Apple Silicon hardware acceleration.
 >
-> 🍏 **[`Latest Releases (v3.11.5)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
+> 🍏 **[`Latest Releases (v3.11.7)`](https://github.com/alsyundawy/pear-desktop-mac/releases/latest)** &nbsp;|&nbsp;
 > 📖 **[`Release DocNotes`](DOCNOTE.md)** &nbsp;|&nbsp;
 > 📜 **[`Changelog`](changelog.md)** &nbsp;|&nbsp;
 > 🏠 **[`Upstream Repository (@pear-devs)`](https://github.com/pear-devs/pear-desktop)** &nbsp;|&nbsp;
@@ -85,7 +85,7 @@
 - [Plugin System & Custom Extensions](#plugin-system--custom-extensions)
 - [Developer Setup & Quality Verification](#developer-setup--quality-verification)
 - [Code Review & Quality Standards](#code-review--quality-standards)
-- [Changelog (v3.11.5)](#changelog-v3115)
+- [Changelog (v3.11.7)](#changelog-v3117)
 - [Upstream Credits & Attribution](#upstream-credits--attribution)
 - [FAQ & Troubleshooting](#faq--troubleshooting)
 - [Support & Donation](#support--donation)
@@ -190,8 +190,8 @@ Official distribution packages are compiled, signed, and published for macOS und
 
 | Target Architecture | Package Type | Minimum OS | File Artifact Name | File Size | SHA-256 Digest |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d675a50494cc3d63246fc451a2b1af7b03e4a35` |
-| **Intel x64** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5.dmg` | 116.79 MiB | `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237` |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `YouTube.Music-3.11.7-arm64.dmg` | 112.35 MiB | `b9c09142e0bff3d18997ce7374568d27974af201c159f7c5aca85d4537af2126` |
+| **Intel x64** | `.dmg` Installer | macOS 12+ | `YouTube.Music-3.11.7.dmg` | 116.77 MiB | `e546ce1c4c5e78cc9f6c28c37ece374c5a72296a566aa76d3b074b770b225dfa` |
 
 ---
 
@@ -329,7 +329,30 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 
 ---
 
-## Changelog (v3.11.5)
+## Changelog (v3.11.7)
+
+### [v3.11.7] — 01 October 2026 (Maintenance & Security Hardening Release)
+
+- **Cognitive Complexity & Runtime Safety**:
+  - Decomposed high-complexity functions (`initHook`, `createMainWindow`, `app.whenReady`) into modular handlers (`handlePluginConfigChange`, `applyWindowPosition`, `setupCacheReset`, `setupWindowsShortcut`, `setupAutoUpdates`), reducing cognitive complexity from >24 to under 10 (SonarQube `typescript:S3776`).
+  - Added `.catch(...)` error handling across all unhandled promises in background tasks, window navigation, and plugin loader hooks (SonarQube `typescript:S9383`, `typescript:S9381`).
+  - Flattened Promise chains in `src/plugins/scrobbler/services/lastfm.ts` with clean `async/await` and structured `try/catch`.
+- **CPU Freeze & Concurrency Fix in Last.fm Scrobbler**:
+  - Replaced synchronous `while (authWindowOpened) {}` busy loop with asynchronous `authPromise` singleton pattern, eliminating 100% CPU core lockup and main-thread application freeze.
+- **Dependency Security Overrides**:
+  - Applied security overrides in `pnpm-workspace.yaml` patching ReDoS and DoS vulnerabilities across `minimatch`, `brace-expansion`, `form-data`, and `ajv`.
+  - Upgraded `electron` to `41.10.7` and `electron-builder` to `26.15.0`.
+- **Code Quality**:
+  - Verified 0 errors across ESLint, TypeScript compiler (`tsc --noEmit`), Trunk yamllint, and markdownlint.
+
+### [v3.11.6] — 01 October 2026 (Runtime Crash Protection Release)
+
+- **URL Constructor Crash Protection**:
+  - Wrapped `new URL()` in `will-redirect`, `did-fail-load`, and CSP interceptor handlers with try-catch to prevent application crashes on invalid or malformed URLs.
+- **MPRIS Open Event URI Validation**:
+  - Added strict URI scheme allowlist (`http:`, `https:`) preventing non-http schemes and malformed URIs.
+- **Last.fm Auth URL Parameter Encoding**:
+  - Applied `encodeURIComponent()` to `apiKey` and `token` parameters.
 
 ### [v3.11.5] — 30 September 2026 (Production Release)
 
@@ -348,7 +371,7 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
   - Native menu toggles with persistent checkbox states per category and safe URL query encoding.
 - **macOS Specialization & Packaging**:
   - Exclusively curated for macOS (`pear-desktop-mac`) with native `.dmg` installers for Apple Silicon (ARM64) and Intel (x64).
-  - Lightweight stack running on Electron 40.1.0 with DMG file sizes strictly under 120 MiB (`113.57 MiB` for ARM64 and `116.79 MiB` for Intel).
+  - Lightweight stack running on Electron with DMG file sizes strictly under 120 MiB (`112.35 MiB` for ARM64 and `116.77 MiB` for Intel).
   - Corrected macOS icon build path in `electron-builder.yml` to `assets/generated/icons/mac/icon.icns`.
 - **Branding & Assets**:
   - High-res Pear ReVanced vector logo, Apple ICNS multi-size icon bundle, and cybernetic showcase banner.
