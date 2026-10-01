@@ -1,4 +1,4 @@
-<!-- markdownlint-disable-file MD033 MD041 -->
+<!-- markdownlint-disable-file MD031 MD033 MD041 -->
 
 <p align="center">
   <a href="https://github.com/alsyundawy/pear-desktop-mac">
@@ -48,15 +48,19 @@ This release accomplishes:
 - **Vulnerability**: Loose prefix or substring matching (`.includes()`, `.startsWith('https://youtube.com')`) allowed malicious or spoofed domains like `https://youtube.com.attacker.com` to bypass safety checks.
 - **Remediation**:
   - `will-redirect` handler: Validated URL hostname strictly using WHATWG `new URL()`:
+
     ```ts
     const isYouTube =
       url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com');
     ```
+
   - `onBeforeSendHeaders` request interceptor: Guarded with try-catch and validated exact origin:
+
     ```ts
     const parsedOrigin = new URL(details.url).origin;
     if (parsedOrigin === 'https://music.youtube.com') { ... }
     ```
+
   - `did-fail-load` handler: Replaced substring search for `doubleclick.net` with exact domain/subdomain check (`validatedHostname === 'doubleclick.net' || validatedHostname.endsWith('.doubleclick.net')`).
 
 ### 3.2 Incomplete URL Substring Sanitization (CodeQL #7 in `tests/index.test.js:36`)
@@ -64,6 +68,7 @@ This release accomplishes:
 - **Vulnerability**: Test assertion used `window.url().startsWith('https://music.youtube.com')`, flagged by CodeQL as insecure substring comparison.
 - **Remediation**:
   - Replaced with exact origin assertion:
+
     ```js
     const parsedUrl = new URL(window.url());
     expect(parsedUrl.origin).toBe('https://music.youtube.com');

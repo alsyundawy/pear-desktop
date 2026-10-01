@@ -4,9 +4,8 @@ import { LRC } from '../parsers/lrc';
 
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
-// NOSONAR: typescript:S5852 - input strings are short song title metadata, bounded < 200 chars
-const removeNoiseBrackets = /\[[^\]]*\]/g;
-const removeNoiseParens = /\([^)]*\)/g;
+const removeNoiseBrackets = /\[[^\]\r\n]{0,200}\]/g; // NOSONAR(typescript:S5852)
+const removeNoiseParens = /\([^)\r\n]{0,200}\)/g; // NOSONAR(typescript:S5852)
 
 const removeNoise = (text: string): string => {
   let cleaned = text
@@ -28,9 +27,9 @@ const removeNoise = (text: string): string => {
 
 // Non-backtracking separator patterns (unnamed groups: positional-only)
 const featPattern = /\(?[Ff]eat\. ([^)]+)\)?/;
-// NOSONAR: typescript:S5852 - patterns operate on sanitized single-line song titles
-const separatorPattern = /([^\u2022-]+) [\u2022-] ([^\u2022-]+)/;
-const byPattern = /([^\n]+) by ([^\n]+)/;
+const separatorPattern =
+  /([^\u2022\r\n-]{1,200}) [\u2022-] ([^\u2022\r\n-]{1,200})/; // NOSONAR(typescript:S5852)
+const byPattern = /([^\r\n]{1,200}) by ([^\r\n]{1,200})/; // NOSONAR(typescript:S5852)
 const titleRegex = /\[(?<minutes>\d+):(?<seconds>\d+)\.(?<millis>\d+)\]/;
 const artistSplitRegex = /[&,]/;
 

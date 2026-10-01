@@ -11,7 +11,12 @@
 
 /* Hide the scrollbar in the lyrics-tab */
 #tab-renderer[page-type='MUSIC_PAGE_TYPE_TRACK_LYRICS'] {
+  -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+#tab-renderer[page-type='MUSIC_PAGE_TYPE_TRACK_LYRICS']::-webkit-scrollbar {
+  display: none;
 }
 
 @property --lyrics-duration {
