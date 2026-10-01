@@ -41,13 +41,22 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Lyrics Formatting, Cleaning & Synced LRC Engine (`src/plugins/synced-lyrics`)**:
   - **LyricsGenius Scraper (`providers/LyricsGenius.ts`)**: Sanitized raw scraped lyrics HTML by converting `<br>` and `</p>`/`</div>` linebreaks to newlines before DOM text extraction. Stripped Genius header noise (`... Contributors`, `Translations`, `Lyrics`) and footer artifacts (`\d*Embed`, `You might also like`, `See ... Live`, ticket promotions). Integrated `LRC.parse` to extract timestamped lines when available.
   - **Plain Lyrics Proportional Auto-Scroll (`renderer/renderer.tsx`)**: Implemented playback-progress-based automatic line scrolling for plain (unsynced) lyrics (`progress = currentTime / duration`), keeping the reading line centered during song playback.
+- **NetEase Cloud Music Lyric Provider Integration (`providers/NetEase.ts`)**:
+  - Implemented high-coverage `NetEase` provider with native timestamped LRC parsing (`LRC.parse`).
+  - Integrated duration proximity matching to pair tracks accurately with YouTube Music playback metadata (`Math.abs(Math.round(duration / 1000) - songDuration) <= 15`).
+  - Added zero-auth geoblock bypass headers (`X-Real-IP`, `X-Forwarded-For`) to ensure universal overseas API accessibility without Chinese proxy requirements.
+  - Registered `NetEase` in `ProviderNames` enum and `providers` map, enabling automatic menu integration and dynamic live switcher dot support.
 - **Comprehensive Code Quality, Accessibility & SonarLint Hardening**:
-  - **`eslint.config.mjs`**: Removed `//@ts-check` to eliminate false-positive type check errors on Flat Config ESM plugin imports and utilized `String.raw` for regex token patterns.
+  - **`assets/error.html`**: Formatted with uppercase `<!DOCTYPE html>`, added `lang="en"`, added viewport meta tag, and conformed to standard void elements.
+  - **`electron-builder.yml`**: Removed all redundant quotes from string scalars, achieving 100% Trunk yamllint compliance.
+  - **`eslint.config.mjs`**: Replaced deprecated `tsEslint.config` helper with direct array export for ESLint 9 Flat Config.
+  - **`README.md`**: Fixed MD049 emphasis style to use underscores instead of asterisks.
   - **`LRCLib.ts`**: Extracted reusable `querySearch` helper method, replaced generic `Error` with `TypeError`, and reduced cognitive complexity from 30 to <7.
+  - **`LyricsGenius.ts`**: Replaced backtracking regular expressions with linear string boundary searches, added optional chaining `!arr[i - 1]?.trim()`, and marked members `readonly`.
   - **`matcher.ts`**: Decomposed title similarity and artist similarity subroutines (`calculateTitleScore`, `calculateArtistScore`), decreasing cognitive complexity from 25 to <7.
   - **`MusixMatch.ts`**: Marked schemas and key properties as `readonly`, moved asynchronous initialization outside of the class constructor, replaced `Object.assign` with object spread (`{ ...foo }`), and eliminated mixed operator warnings using integer literal constants.
   - **`YTMusic.ts`**: Marked `PROXIED_ENDPOINT` and members `readonly`, extracted `extractPlainLyrics` to eliminate nested ternary operations, replaced global `parseInt` with `Number.parseInt(..., 10)`, and decomposed millisecond calculations into clear steps.
-  - **`LyricsPicker.tsx`**: Replaced non-interactive clickable `<li>` dots with accessible native `<button type="button" class="lyrics-picker-dot" ... />` wrapped inside `<li role="presentation">` with proper `aria-label`, removed redundant nested blocks, captured `createMemo` in an explicit variable, and resolved mixed operators.
+  - **`LyricsPicker.tsx`**: Replaced non-interactive clickable `<li>` dots with accessible native `<button type="button" class="lyrics-picker-dot" ... />` with proper `aria-label`, removed redundant nested blocks, captured `createMemo` in an explicit variable, removed unnecessary `role="presentation"` from `<li>`, and resolved mixed operators.
   - **`SyncedLine.tsx`**: Replaced clickable `<div>` with native `<button type="button" class="synced-line">` with zeroed reset styles in `style.css` for 100% universal accessibility across screen readers and keyboard users, eliminating `button` role warnings. Resolved upstream FIXME comment.
   - **`renderer/index.ts`**: Eliminated mutable exported `let` bindings (`_ytAPI`, `netFetch`) by introducing type-safe `getPlayerApi()` and `const netFetch` wrapper, and eliminated redundant nested code blocks.
   - **`renderer.tsx`**: Cleaned up optional chaining, eliminated redundant jump statements, replaced `.findIndex()` with `.indexOf('current')`, compared directly with `undefined`, and preserved strict `noImplicitReturns` compliance in `createEffect`.

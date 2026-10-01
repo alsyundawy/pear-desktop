@@ -284,7 +284,7 @@ export const LyricsPicker = (props: {
         <ul class="lyrics-picker-content-dots">
           <For each={providerNames}>
             {(_, idx) => (
-              <li role="presentation">
+              <li>
                 <button
                   aria-label={providerNames[idx()]}
                   class="lyrics-picker-dot"

@@ -227,6 +227,8 @@ This release accomplishes:
 | `src/plugins/synced-lyrics/providers/MusixMatch.ts`   | Marked readonly fields, moved async init outside constructor, replaced Object.assign with spread, fixed operator order |
 | `src/plugins/synced-lyrics/providers/YTMusic.ts`      | Marked readonly fields, extracted extractPlainLyrics, used Number.parseInt, decomposed millisToTime                   |
 | `src/plugins/synced-lyrics/providers/matcher.ts`      | Decomposed calculateTitleScore and calculateArtistScore, dropped cognitive complexity from 25 to <7                   |
+| `src/plugins/synced-lyrics/providers/NetEase.ts`      | Implemented NetEase Cloud Music provider with X-Real-IP geoblock bypass and duration proximity matching|
+| `assets/error.html`                                   | Standardized uppercase DOCTYPE, lang="en", viewport meta tag, and standard void elements              |
 | `src/plugins/synced-lyrics/renderer/components/LyricsPicker.tsx` | Replaced clickable li with accessible button dots, captured memo, removed redundant block, fixed mixed operators    |
 | `src/plugins/synced-lyrics/renderer/components/SyncedLine.tsx`   | Replaced clickable div with native button element, imported getPlayerApi, resolved FIXME comment                     |
 | `src/plugins/synced-lyrics/renderer/index.ts`         | Replaced mutable let exports with getPlayerApi and const netFetch wrapper, removed redundant block                    |
@@ -248,4 +250,3 @@ This release accomplishes:
 | `README.md`                                           | Synchronized documentation with latest changelog and v3.11.8 release                                                  |
 | `changelog.md`                                        | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration            |
 | `DOCNOTE.md`                                          | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                         |
-

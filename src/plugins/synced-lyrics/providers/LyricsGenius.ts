@@ -101,16 +101,21 @@ export class LyricsGenius implements LyricProvider {
       lyricsDoc.body.textContent ?? lyricsDoc.body.innerText ?? '';
 
     // Strip header annotations
-    rawLyrics = rawLyrics.replace(
-      /^\d+\s*Contributors.*?(?:Translations.*?)?Lyrics\s*/i,
-      '',
-    );
-    // Strip footer noise
-    rawLyrics = rawLyrics
-      .replace(/\d*Embed$/i, '')
-      .replace(/You might also like.*$/is, '')
-      .replace(/See .*? Live.*$/is, '')
-      .trim();
+    const headerMatch = /^\d+\s*Contributors[^\n]*?Lyrics\s*/i.exec(rawLyrics);
+    if (headerMatch) {
+      rawLyrics = rawLyrics.slice(headerMatch[0].length);
+    }
+
+    // Strip footer noise without backtracking
+    const likeIdx = rawLyrics.indexOf('You might also like');
+    if (likeIdx !== -1) {
+      rawLyrics = rawLyrics.slice(0, likeIdx);
+    }
+    const seeLiveIdx = rawLyrics.search(/See\s+[^\n\r]+\s+Live/i);
+    if (seeLiveIdx !== -1) {
+      rawLyrics = rawLyrics.slice(0, seeLiveIdx);
+    }
+    rawLyrics = rawLyrics.replace(/\d*Embed$/i, '').trim();
 
     const cleanedLines = rawLyrics
       .split('\n')
@@ -123,7 +128,7 @@ export class LyricsGenius implements LyricProvider {
           return false;
         }
         if (/^\d*Embed$/i.test(l)) return false;
-        if (!l && (!arr[i - 1] || !arr[i - 1].trim())) return false;
+        if (!l && !arr[i - 1]?.trim()) return false;
         return true;
       });
 

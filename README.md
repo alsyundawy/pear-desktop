@@ -339,8 +339,13 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 - **Lyrics Formatting, Cleaning & Plain Lyrics Scrolling (`src/plugins/synced-lyrics`)**:
   - **LyricsGenius Scraper Overhaul (`providers/LyricsGenius.ts`)**: Sanitized raw scraped lyrics HTML by converting `<br>` and `</p>`/`</div>` linebreaks to newlines before DOM text extraction. Stripped Genius header noise (`... Contributors`, `Translations`, `Lyrics`) and footer artifacts (`\d*Embed`, `You might also like`, `See ... Live`, ticket promotions). Integrated `LRC.parse` to extract timestamped lines when available.
   - **Plain Lyrics Proportional Auto-Scroll (`renderer/renderer.tsx`)**: Implemented playback-progress-based automatic line scrolling for plain (unsynced) lyrics (`progress = currentTime / duration`), keeping the reading line centered during song playback.
+- **NetEase Cloud Music Lyric Provider Integration (`providers/NetEase.ts`)**:
+  - Implemented high-coverage `NetEase` provider with native timestamped LRC parsing (`LRC.parse`).
+  - Integrated duration proximity matching to pair tracks accurately with YouTube Music playback metadata (`Math.abs(Math.round(duration / 1000) - songDuration) <= 15`).
+  - Added zero-auth geoblock bypass headers (`X-Real-IP`, `X-Forwarded-For`) to ensure universal overseas API accessibility without Chinese proxy requirements.
+  - Registered `NetEase` in `ProviderNames` enum and `providers` map, enabling automatic menu integration and dynamic live switcher dot support.
 - **Dependabot Security Alert #150 Remediation (`pnpm-workspace.yaml`, `pnpm-lock.yaml`)**:
-  - Remediated GitHub Dependabot Alert #150: *file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header* (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
+  - Remediated GitHub Dependabot Alert #150: _file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header_ (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
   - Pinned security override `'file-type@<21.3.1': 21.3.4` in `pnpm-workspace.yaml`, ensuring all transitive dependencies from `@jimp/core` resolve to `file-type@21.3.4` (patched `>= 21.3.1`), preventing denial-of-service (DoS) infinite loops when encountering malformed ASF files.
   - Purged obsolete legacy patch files `patches/file-type@16.5.4.patch` and `patches/mdui@2.1.4.patch`.
 - **Upstream Translation Synchronization & Menu Restoration (`src/i18n`)**:
@@ -354,6 +359,9 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
   - Documented and resolved architectural event-loop deadlock on `app.whenReady()` (`typescript:S7785`), preserving Electron's standard lifecycle loop.
   - Reduced cognitive complexity across `matcher.ts` (25 to <7), `LRCLib.ts` (30 to <7), `YTMusic.ts` (16 to <7), and `lastfm.ts` (17 to <8) via modular helper decomposition.
   - Replaced clickable `<li>` dots and `<div>` lines with accessible native `<button>` elements with zeroed reset styles in `style.css` for 100% universal accessibility across screen readers and keyboard navigation.
+  - Conformed `assets/error.html` with uppercase DOCTYPE, lang="en", viewport meta, and standard void elements.
+  - Conformed `electron-builder.yml` to Trunk yamllint by removing redundant scalar quoting.
+  - Replaced deprecated `tsEslint.config` helper with direct array export for ESLint 9 Flat Config.
   - Upgraded `mdui` to `2.1.5` with custom JSX intrinsic elements patch (`patches/mdui@2.1.5.patch`).
   - Synced `pnpm-workspace.yaml` and `pnpm-lock.yaml`, achieving **0 known vulnerabilities** on `pnpm audit`.
 

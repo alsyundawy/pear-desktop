@@ -7,7 +7,7 @@ import tsEslint from 'typescript-eslint';
 
 import * as importPlugin from 'eslint-plugin-import';
 
-export default tsEslint.config(
+export default [
   eslint.configs.recommended,
   tsEslint.configs.eslintRecommended,
   ...tsEslint.configs.recommendedTypeChecked,
@@ -142,4 +142,4 @@ export default tsEslint.config(
       },
     },
   },
-);
+];

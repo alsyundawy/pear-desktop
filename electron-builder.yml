@@ -1,14 +1,14 @@
-appId: "com.github.th-ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u002d\u006d\u0075\u0073\u0069\u0063"
-productName: "\u0059\u006f\u0075\u0054\u0075\u0062\u0065\u0020\u004d\u0075\u0073\u0069\u0063"
+appId: com.github.th-ch.youtube-music
+productName: YouTube Music
 files:
   - '!*'
   - dist
   - assets
   - license
   - '!node_modules'
-  - 'node_modules/custom-electron-prompt/**'
-  - 'node_modules/@ghostery/adblocker-electron-preload/**'
-  - 'node_modules/@ffmpeg.wasm/core-mt/**'
+  - node_modules/custom-electron-prompt/**
+  - node_modules/@ghostery/adblocker-electron-preload/**
+  - node_modules/@ffmpeg.wasm/core-mt/**
   - '!node_modules/**/*.map'
   - '!node_modules/**/*.ts'
 asarUnpack:
@@ -51,7 +51,7 @@ linux:
   category: AudioVideo
   desktop:
     entry:
-      StartupWMClass: "com.github.th_ch.\u0079\u006f\u0075\u0074\u0075\u0062\u0065\u005f\u006d\u0075\u0073\u0069\u0063"
+      StartupWMClass: com.github.th_ch.youtube_music
   target:
     - target: AppImage
       arch:
@@ -84,25 +84,25 @@ linux:
         - arm64
         - armv7l
 appImage:
-  description: "\u0059\u006f\u0075\u0054\u0075\u0062\u0065\u0020\u004d\u0075\u0073\u0069\u0063 Desktop App bundled with custom plugins"
+  description: YouTube Music Desktop App bundled with custom plugins
   category: AudioVideo
 flatpak:
-  description: "\u0059\u006f\u0075\u0054\u0075\u0062\u0065\u0020\u004d\u0075\u0073\u0069\u0063 Desktop App bundled with custom plugins"
+  description: YouTube Music Desktop App bundled with custom plugins
   category: AudioVideo
   runtimeVersion: '24.08'
   baseVersion: '24.08'
   finishArgs:
-    - '--socket=wayland'
-    - '--socket=x11'
-    - '--share=ipc'
-    - '--device=dri'
-    - '--socket=pulseaudio'
-    - '--share=network'
-    - '--filesystem=xdg-music:rw'
-    - '--talk-name=org.freedesktop.Notifications'
-    - '--talk-name=org.gnome.SessionManager'
-    - '--talk-name=org.kde.StatusNotifierWatcher'
-    - "--own-name=org.mpris.MediaPlayer2.\u0059\u006f\u0075\u0074\u0075\u0062\u0065\u004d\u0075\u0073\u0069\u0063.*"
+    - --socket=wayland
+    - --socket=x11
+    - --share=ipc
+    - --device=dri
+    - --socket=pulseaudio
+    - --share=network
+    - --filesystem=xdg-music:rw
+    - --talk-name=org.freedesktop.Notifications
+    - --talk-name=org.gnome.SessionManager
+    - --talk-name=org.kde.StatusNotifierWatcher
+    - --own-name=org.mpris.MediaPlayer2.YouTubeMusic.*
 deb:
   depends:
     - libgtk-3-0
@@ -119,7 +119,7 @@ rpm:
   depends:
     - libuuid
   fpm:
-    - '--rpm-rpmbuild-define'
+    - --rpm-rpmbuild-define
     - _build_id_links none
 snap:
   slots:
