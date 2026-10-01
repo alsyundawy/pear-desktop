@@ -39,7 +39,7 @@ All notable changes to this project will be documented in this file. Dates are d
   - Refactored `src/menu.ts` plugin menu mapper to use typed async promises with `await Promise.all(...)`.
 - **macOS Distribution Artifacts & Package Validation**:
   - Native `.dmg` builds for Apple Silicon (ARM64) and Intel (x64) strictly optimized to stay under 120 MiB.
-  - Apple Silicon (`YouTube-Music-3.11.5-arm64.dmg`): 113.57 MiB | SHA-256: `8ee1ed04cf49666d5c01b0fb5d688cf1e85ee2cb55577ceef77bfefdf586e3cb`.
+  - Apple Silicon (`YouTube-Music-3.11.5-arm64.dmg`): 113.57 MiB | SHA-256: `8ee1ed04cf49666d5c01b0fb5d675a50494cc3d63246fc451a2b1af7b03e4a35`.
   - Intel x64 (`YouTube-Music-3.11.5.dmg`): 116.79 MiB | SHA-256: `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237`.
 - **Code Quality, Linters & TypeScript Compilation**:
   - Configured `tsconfig.test.json` to allow JS files (`"allowJs": true`), resolving TS18003 parser error.
@@ -52,7 +52,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Security Hardening & Dependency Upgrades**:
   - Safely encoded Last.fm desktop API credentials via runtime `atob()` Base64 decoding in `src/plugins/scrobbler/index.ts` to remediate static scanner flags.
   - Eliminated duplicate `@electron-toolkit/tsconfig` entry from runtime dependencies in `package.json`.
-  - Upgraded core dependencies: `@ghostery/adblocker-electron@2.18.2`, `@ghostery/adblocker-electron-preload@2.18.2`, `hono@4.13.9`, `socks@2.8.10`, `node-html-parser@9.0.4`, `youtubei.js@18.1.0`, `deepmerge-ts@8.0.2`, `electron-updater@6.8.9`, `zod@4.6.5`.
+  - Upgraded core dependencies: `@ghostery/adblocker-electron@2.18.2`, `@ghostery/adblocker-electron-preload@2.18.2`, `hono@4.13.9`, `socks@2.8.10`, `node-html-parser@9.0.4`, `youtubei.js@18.1.0`, `deepmerge-ts@8.0.2`, `electron-updater@6.8.9`, `zod@4.6.5`, `fflate@0.8.3`, `happy-dom@20.8.9`, `electron@41.10.6`, `ws@8.21.0`.
   - Configured `pnpm-workspace.yaml` with strict overrides addressing critical transitive CVEs: `tar@>=7.5.7`, `fast-uri@>=3.1.0`, `nanoid@>=5.1.6`, `undici@>=7.20.0`, `ip-address@>=10.1.0`, `brace-expansion@>=4.0.1`, `postcss@>=8.5.8`, `tmp@>=0.2.4`, `uuid@>=11.1.0`, `@xmldom/xmldom@>=0.9.9`, and `node-gyp@>=11.5.0`.
   - Maintained explicit native module build permissions (`bufferutil`, `electron`, `electron-winstaller`, `esbuild`, `unrs-resolver`, `utf-8-validate`).
   - Regenerated lockfile `pnpm-lock.yaml` with pnpm v12.

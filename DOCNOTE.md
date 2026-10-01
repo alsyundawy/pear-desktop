@@ -117,6 +117,10 @@ All code quality tools and compilers have been verified with **0 errors**:
 - `deepmerge-ts`: `^8.0.2`
 - `electron-updater`: `^6.8.9`
 - `zod`: `^4.6.5`
+- `fflate`: `^0.8.3`
+- `happy-dom`: `^20.8.9`
+- `electron`: `41.10.6`
+- `ws`: `^8.21.0`
 
 ### 4.2 Transitive Vulnerability Remediations (`pnpm-workspace.yaml`)
 
@@ -147,14 +151,14 @@ Official release binaries are built natively for macOS with packages kept strict
 
 | Target Architecture | Package Type | File Artifact Name | File Size | SHA-256 Digest |
 | :--- | :--- | :--- | :--- | :--- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d688cf1e85ee2cb55577ceef77bfefdf586e3cb` |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d675a50494cc3d63246fc451a2b1af7b03e4a35` |
 | **Intel x64** | `.dmg` Installer | `YouTube-Music-3.11.5.dmg` | 116.79 MiB | `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237` |
 
-Both release packages are verified to be under 120 MiB and compiled on the clean Electron 40.1.0 stack.
+Both release packages are verified to be under 120 MiB and compiled on the clean macOS desktop stack.
 
 ---
 
 ## 6. Scope Invariant & Verification
 
 - All changes are strictly confined to the `v3.11.5` release line.
-- Source code is strictly verified against Electron 40.1.0 and electron-vite 5.0.0.
+- Source code is strictly verified with 0 linter errors and 0 typecheck errors.

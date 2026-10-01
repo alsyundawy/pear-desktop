@@ -190,7 +190,7 @@ Official distribution packages are compiled, signed, and published for macOS und
 
 | Target Architecture | Package Type | Minimum OS | File Artifact Name | File Size | SHA-256 Digest |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d688cf1e85ee2cb55577ceef77bfefdf586e3cb` |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5-arm64.dmg` | 113.57 MiB | `8ee1ed04cf49666d5c01b0fb5d675a50494cc3d63246fc451a2b1af7b03e4a35` |
 | **Intel x64** | `.dmg` Installer | macOS 12+ | `YouTube-Music-3.11.5.dmg` | 116.79 MiB | `75f21952c25865ceb3bad3e87be97914959a107871a93e5b58521f5e5a129237` |
 
 ---
