@@ -183,21 +183,21 @@ This release accomplishes:
 
 ## 6. Full 13-Dimension Code Review & Remediation Summary
 
-| Review Dimension                  | Status    | Assessment                                                                                |
-| :-------------------------------- | :-------- | :---------------------------------------------------------------------------------------- |
-| **Bug Review**                    | ✅ Passed | Fixed URL parsing risks, promise nesting, and single instance lock bypass for tests.      |
-| **Syntax Review**                 | ✅ Passed | Validated ES2023/TypeScript 5.x syntax; 0 syntax errors or unescaped characters.          |
-| **Runtime Review**                | ✅ Passed | Verified clean launch on macOS with Playwright testing (10/10 unit tests passing).        |
-| **Logic Review**                  | ✅ Passed | Single-pass escape decoding in Genius provider; strict WHATWG origin matching.            |
-| **Memory Review**                 | ✅ Passed | Event listeners, observers, and timeouts cleanly tracked and cleared on teardown.         |
-| **Dead Code Review**              | ✅ Passed | Removed detached orphaned worktrees and deprecated patch files.                           |
-| **Duplicate Code Review**         | ✅ Passed | Refactored Last.fm song posting into shared modular helpers; unified LRCLib search.       |
-| **Circular Dependency Review**    | ✅ Passed | Zero circular imports across main, renderer, and preload modules.                         |
-| **Performance Bottleneck Review** | ✅ Passed | Fast startup times; single-pass regex replacement in lyrics parsing.                      |
-| **Security Vulnerability Review** | ✅ Passed | All 6 CodeQL security alerts resolved; 0 known vulnerabilities on `pnpm audit`.           |
-| **Maintainability Review**        | ✅ Passed | Cognitive complexity reduced below threshold across all files (<7 everywhere).            |
-| **Scalability Review**            | ✅ Passed | Multi-language translation support expanded to 63 locales without bloat.                  |
-| **Readability Review**            | ✅ Passed | Fully formatted and linted cleanly with Prettier and ESLint.                              |
+| Review Dimension                  | Status    | Assessment                                                                           |
+| :-------------------------------- | :-------- | :----------------------------------------------------------------------------------- |
+| **Bug Review**                    | ✅ Passed | Fixed URL parsing risks, promise nesting, and single instance lock bypass for tests. |
+| **Syntax Review**                 | ✅ Passed | Validated ES2023/TypeScript 5.x syntax; 0 syntax errors or unescaped characters.     |
+| **Runtime Review**                | ✅ Passed | Verified clean launch on macOS with Playwright testing (10/10 unit tests passing).   |
+| **Logic Review**                  | ✅ Passed | Single-pass escape decoding in Genius provider; strict WHATWG origin matching.       |
+| **Memory Review**                 | ✅ Passed | Event listeners, observers, and timeouts cleanly tracked and cleared on teardown.    |
+| **Dead Code Review**              | ✅ Passed | Removed detached orphaned worktrees and deprecated patch files.                      |
+| **Duplicate Code Review**         | ✅ Passed | Refactored Last.fm song posting into shared modular helpers; unified LRCLib search.  |
+| **Circular Dependency Review**    | ✅ Passed | Zero circular imports across main, renderer, and preload modules.                    |
+| **Performance Bottleneck Review** | ✅ Passed | Fast startup times; single-pass regex replacement in lyrics parsing.                 |
+| **Security Vulnerability Review** | ✅ Passed | All 6 CodeQL security alerts resolved; 0 known vulnerabilities on `pnpm audit`.      |
+| **Maintainability Review**        | ✅ Passed | Cognitive complexity reduced below threshold across all files (<7 everywhere).       |
+| **Scalability Review**            | ✅ Passed | Multi-language translation support expanded to 63 locales without bloat.             |
+| **Readability Review**            | ✅ Passed | Fully formatted and linted cleanly with Prettier and ESLint.                         |
 
 ---
 
@@ -217,36 +217,36 @@ This release accomplishes:
 
 ## 8. Modified Files Manifest
 
-| File                                                  | Nature of Changes                                                                                                     |
-| :---------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| `electron-builder.yml`                                | Added github publish provider and zip target for latest-mac.yml emission                                              |
-| `eslint.config.mjs`                                   | Removed //@ts-check and applied String.raw for escaped regex tokens                                                    |
-| `src/index.ts`                                        | Configured autoUpdater feed URL, URL sanitization alerts (#3, #4, #5, #14), Sonar S9381, S7785 deadlock prevention     |
-| `src/plugins/synced-lyrics/providers/LRCLib.ts`        | Extracted querySearch helper, used TypeError, dropped cognitive complexity from 30 to <7                              |
-| `src/plugins/synced-lyrics/providers/LyricsGenius.ts` | Cleaned HTML/text linebreaks, stripped headers and footers, added LRC parsing                                         |
-| `src/plugins/synced-lyrics/providers/MusixMatch.ts`   | Marked readonly fields, moved async init outside constructor, replaced Object.assign with spread, fixed operator order |
-| `src/plugins/synced-lyrics/providers/YTMusic.ts`      | Marked readonly fields, extracted extractPlainLyrics, used Number.parseInt, decomposed millisToTime                   |
-| `src/plugins/synced-lyrics/providers/matcher.ts`      | Decomposed calculateTitleScore and calculateArtistScore, dropped cognitive complexity from 25 to <7                   |
-| `src/plugins/synced-lyrics/providers/NetEase.ts`      | Implemented NetEase Cloud Music provider with X-Real-IP geoblock bypass and duration proximity matching|
-| `assets/error.html`                                   | Standardized uppercase DOCTYPE, lang="en", viewport meta tag, and standard void elements              |
-| `src/plugins/synced-lyrics/renderer/components/LyricsPicker.tsx` | Replaced clickable li with accessible button dots, captured memo, removed redundant block, fixed mixed operators    |
-| `src/plugins/synced-lyrics/renderer/components/SyncedLine.tsx`   | Replaced clickable div with native button element, imported getPlayerApi, resolved FIXME comment                     |
-| `src/plugins/synced-lyrics/renderer/index.ts`         | Replaced mutable let exports with getPlayerApi and const netFetch wrapper, removed redundant block                    |
-| `src/plugins/synced-lyrics/renderer/renderer.tsx`     | Implemented plain lyrics auto-scrolling, fixed TS7030 implicit return, cleaned optional chaining and comparisons      |
-| `src/plugins/synced-lyrics/style.css`                 | Added button reset styles to .synced-line, wrapped scrollbar-width in @supports query                                 |
-| `src/plugins/touchbar/index.ts`                       | Adopted nullish coalescing operator in place of ternary operator                                                      |
-| `src/i18n/resources/*`                                | Updated 57 language catalogs and added 6 new language catalogs from upstream; preserved custom keys                   |
-| `tests/index.test.js`                                 | Remediated CodeQL URL sanitization alert (#7), passed `NODE_ENV=test` in launch options                               |
-| `src/plugins/synced-lyrics/parsers/lrc.ts`            | Decomposed parse loop, simplified tag regex, eliminated mixed-operator warnings, reduced complexity                   |
-| `src/plugins/synced-lyrics/providers/Megalobiz.ts`    | Replaced regex noise trimming with native string methods, marked domParser readonly, added NOSONAR S5852              |
-| `src/plugins/synced-lyrics/renderer/store.ts`         | Captured createMemo variable, replaced JSON deep clone with structuredClone, removed VideoId alias                    |
-| `src/plugins/synced-lyrics/renderer/components/PlainLyrics.tsx` | Added keyboard accessibility, role="button", and handled floating promises with void                       |
-| `src/plugins/synced-lyrics/menu.ts`                   | Marked all 15 ctx.setConfig click handlers with void                                                                  |
-| `src/plugins/scrobbler/services/lastfm.ts`            | Refactored cognitive complexity (Sonar S3776), added MD5 NOSONAR annotation (Sonar S4790)                             |
-| `patches/mdui@2.1.5.patch`                            | Created custom patch providing Solid-JS JSX intrinsic elements for `mdui@2.1.5`                                       |
-| `pnpm-workspace.yaml`                                 | Security override for file-type (alert #150), updated patchedDependencies (purged mdui@2.1.4 and file-type@16.5.4)    |
-| `pnpm-lock.yaml`                                      | Regenerated lockfile with `mdui@2.1.5` and 0 audit vulnerabilities                                                    |
-| `package.json`                                        | Release v3.11.8 metadata (version strictly preserved at 3.11.8)                                                       |
-| `README.md`                                           | Synchronized documentation with latest changelog and v3.11.8 release                                                  |
-| `changelog.md`                                        | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration            |
-| `DOCNOTE.md`                                          | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                         |
+| File                                                             | Nature of Changes                                                                                                      |
+| :--------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------- |
+| `electron-builder.yml`                                           | Added github publish provider and zip target for latest-mac.yml emission                                               |
+| `eslint.config.mjs`                                              | Removed //@ts-check and applied String.raw for escaped regex tokens                                                    |
+| `src/index.ts`                                                   | Configured autoUpdater feed URL, URL sanitization alerts (#3, #4, #5, #14), Sonar S9381, S7785 deadlock prevention     |
+| `src/plugins/synced-lyrics/providers/LRCLib.ts`                  | Extracted querySearch helper, used TypeError, dropped cognitive complexity from 30 to <7                               |
+| `src/plugins/synced-lyrics/providers/LyricsGenius.ts`            | Cleaned HTML linebreaks, eliminated regex backtracking (S5852) with linear string search, added LRC parsing            |
+| `src/plugins/synced-lyrics/providers/MusixMatch.ts`              | Marked readonly fields, moved async init outside constructor, replaced Object.assign with spread, fixed operator order |
+| `src/plugins/synced-lyrics/providers/YTMusic.ts`                 | Marked readonly fields, extracted extractPlainLyrics, used Number.parseInt, decomposed millisToTime                    |
+| `src/plugins/synced-lyrics/providers/matcher.ts`                 | Decomposed calculateTitleScore and calculateArtistScore, dropped cognitive complexity from 25 to <7                    |
+| `src/plugins/synced-lyrics/providers/NetEase.ts`                 | Implemented NetEase Cloud Music provider with X-Real-IP geoblock bypass and duration proximity matching                |
+| `assets/error.html`                                              | Replaced anchor with accessible button, added border/cursor styles, standardized uppercase DOCTYPE and meta tags       |
+| `src/plugins/synced-lyrics/renderer/components/LyricsPicker.tsx` | Replaced clickable li with accessible button dots, captured memo, removed redundant block, fixed mixed operators       |
+| `src/plugins/synced-lyrics/renderer/components/SyncedLine.tsx`   | Replaced clickable div with native button element, imported getPlayerApi, resolved FIXME comment                       |
+| `src/plugins/synced-lyrics/renderer/index.ts`                    | Replaced mutable let exports with getPlayerApi and const netFetch wrapper, removed redundant block                     |
+| `src/plugins/synced-lyrics/renderer/renderer.tsx`                | Implemented plain lyrics auto-scrolling, fixed TS7030 implicit return, cleaned optional chaining and comparisons       |
+| `src/plugins/synced-lyrics/style.css`                            | Added button reset styles to .synced-line, wrapped scrollbar-width in @supports query                                  |
+| `src/plugins/touchbar/index.ts`                                  | Adopted nullish coalescing operator in place of ternary operator                                                       |
+| `src/i18n/resources/*`                                           | Updated 57 language catalogs and added 6 new language catalogs from upstream; preserved custom keys                    |
+| `tests/index.test.js`                                            | Remediated CodeQL URL sanitization alert (#7), passed `NODE_ENV=test` in launch options                                |
+| `src/plugins/synced-lyrics/parsers/lrc.ts`                       | Decomposed parse loop, simplified tag regex, eliminated mixed-operator warnings, reduced complexity                    |
+| `src/plugins/synced-lyrics/providers/Megalobiz.ts`               | Replaced regex noise trimming with native string methods, marked domParser readonly, added NOSONAR S5852               |
+| `src/plugins/synced-lyrics/renderer/store.ts`                    | Captured createMemo variable, replaced JSON deep clone with structuredClone, removed VideoId alias                     |
+| `src/plugins/synced-lyrics/renderer/components/PlainLyrics.tsx`  | Added keyboard accessibility, role="button", and handled floating promises with void                                   |
+| `src/plugins/synced-lyrics/menu.ts`                              | Marked all 15 ctx.setConfig click handlers with void                                                                   |
+| `src/plugins/scrobbler/services/lastfm.ts`                       | Refactored cognitive complexity (Sonar S3776), added MD5 NOSONAR annotation (Sonar S4790)                              |
+| `patches/mdui@2.1.5.patch`                                       | Created custom patch providing Solid-JS JSX intrinsic elements for `mdui@2.1.5`                                        |
+| `pnpm-workspace.yaml`                                            | Security override for file-type (alert #150), updated patchedDependencies (purged mdui@2.1.4 and file-type@16.5.4)     |
+| `pnpm-lock.yaml`                                                 | Regenerated lockfile with `mdui@2.1.5` and 0 audit vulnerabilities                                                     |
+| `package.json`                                                   | Release v3.11.8 metadata (version strictly preserved at 3.11.8)                                                        |
+| `README.md`                                                      | Synchronized documentation with latest changelog and v3.11.8 release                                                   |
+| `changelog.md`                                                   | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration             |
+| `DOCNOTE.md`                                                     | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                          |

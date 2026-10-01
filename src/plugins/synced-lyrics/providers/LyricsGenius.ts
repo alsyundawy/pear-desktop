@@ -111,11 +111,33 @@ export class LyricsGenius implements LyricProvider {
     if (likeIdx !== -1) {
       rawLyrics = rawLyrics.slice(0, likeIdx);
     }
-    const seeLiveIdx = rawLyrics.search(/See\s+[^\n\r]+\s+Live/i);
-    if (seeLiveIdx !== -1) {
-      rawLyrics = rawLyrics.slice(0, seeLiveIdx);
+
+    let searchStart = 0;
+    while (searchStart < rawLyrics.length) {
+      const seeIdx = rawLyrics.indexOf('See ', searchStart);
+      if (seeIdx === -1) break;
+      const newlineIdx = rawLyrics.indexOf('\n', seeIdx);
+      const endOfLine = newlineIdx === -1 ? rawLyrics.length : newlineIdx;
+      const lineSnippet = rawLyrics.slice(seeIdx, endOfLine);
+      if (lineSnippet.toLowerCase().includes(' live')) {
+        rawLyrics = rawLyrics.slice(0, seeIdx);
+        break;
+      }
+      searchStart = seeIdx + 4;
     }
-    rawLyrics = rawLyrics.replace(/\d*Embed$/i, '').trim();
+
+    rawLyrics = rawLyrics.trim();
+    if (rawLyrics.toLowerCase().endsWith('embed')) {
+      let cutIdx = rawLyrics.length - 5;
+      while (
+        cutIdx > 0 &&
+        rawLyrics.charCodeAt(cutIdx - 1) >= 48 &&
+        rawLyrics.charCodeAt(cutIdx - 1) <= 57
+      ) {
+        cutIdx--;
+      }
+      rawLyrics = rawLyrics.slice(0, cutIdx).trim();
+    }
 
     const cleanedLines = rawLyrics
       .split('\n')
@@ -127,7 +149,13 @@ export class LyricsGenius implements LyricProvider {
         ) {
           return false;
         }
-        if (/^\d*Embed$/i.test(l)) return false;
+        const lowerL = l.toLowerCase();
+        if (
+          lowerL === 'embed' ||
+          (lowerL.endsWith('embed') && !isNaN(Number(lowerL.slice(0, -5))))
+        ) {
+          return false;
+        }
         if (!l && !arr[i - 1]?.trim()) return false;
         return true;
       });

@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cannot load Pear Desktop</title>
     <style>
       body {
@@ -38,6 +38,8 @@
         text-align: center;
         padding: 8px 22px;
         display: inline-block;
+        border: none;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -45,7 +47,7 @@
   <body>
     <div class="container">
       <p>Cannot load Pear Desktop… Internet disconnected?</p>
-      <a class="button" href="#" onclick="reload()">Retry</a>
+      <button type="button" class="button" onclick="reload()">Retry</button>
     </div>
   </body>
 </html>

@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file. Dates are d
 - **Dependency Upgrades & 0 Known Vulnerabilities (`pnpm-workspace.yaml`, `package.json`)**:
   - Upgraded `mdui` from `2.1.4` to `2.1.5` and provided patched declaration `patches/mdui@2.1.5.patch` with Solid-JS JSX intrinsic element types.
 - **Dependabot Security Alert #150 Remediation (`pnpm-workspace.yaml`, `pnpm-lock.yaml`)**:
-  - Remediated GitHub Dependabot Alert #150: *file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header* (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
+  - Remediated GitHub Dependabot Alert #150: _file-type affected by infinite loop in ASF parser on malformed input with zero-size sub-header_ (CVE-2026-31808, GHSA-5v7r-6r5c-r473, moderate severity).
   - Pinned security override `'file-type@<21.3.1': 21.3.4` in `pnpm-workspace.yaml`, ensuring all transitive dependencies from `@jimp/core` resolve to `file-type@21.3.4` (patched `>= 21.3.1`), preventing denial-of-service (DoS) infinite loops when encountering malformed ASF files.
   - Purged obsolete legacy patch files `patches/file-type@16.5.4.patch` and `patches/mdui@2.1.4.patch`.
 - **Synced Lyrics Linter, Accessibility & SonarLint Hardening (`src/plugins/synced-lyrics`)**:
@@ -47,12 +47,12 @@ All notable changes to this project will be documented in this file. Dates are d
   - Added zero-auth geoblock bypass headers (`X-Real-IP`, `X-Forwarded-For`) to ensure universal overseas API accessibility without Chinese proxy requirements.
   - Registered `NetEase` in `ProviderNames` enum and `providers` map, enabling automatic menu integration and dynamic live switcher dot support.
 - **Comprehensive Code Quality, Accessibility & SonarLint Hardening**:
-  - **`assets/error.html`**: Formatted with uppercase `<!DOCTYPE html>`, added `lang="en"`, added viewport meta tag, and conformed to standard void elements.
+  - **`assets/error.html`**: Replaced non-semantic anchor button with accessible `<button type="button" class="button" onclick="reload()">Retry</button>` and added `border: none; cursor: pointer;` styles to eliminate accessibility linter warnings. Formatted with uppercase `<!DOCTYPE html>`, added `lang="en"`, added viewport meta tag, and conformed to standard void elements.
   - **`electron-builder.yml`**: Removed all redundant quotes from string scalars, achieving 100% Trunk yamllint compliance.
   - **`eslint.config.mjs`**: Replaced deprecated `tsEslint.config` helper with direct array export for ESLint 9 Flat Config.
   - **`README.md`**: Fixed MD049 emphasis style to use underscores instead of asterisks.
   - **`LRCLib.ts`**: Extracted reusable `querySearch` helper method, replaced generic `Error` with `TypeError`, and reduced cognitive complexity from 30 to <7.
-  - **`LyricsGenius.ts`**: Replaced backtracking regular expressions with linear string boundary searches, added optional chaining `!arr[i - 1]?.trim()`, and marked members `readonly`.
+  - **`LyricsGenius.ts`**: Completely eliminated SonarLint regular expression backtracking warnings (`typescript:S5852`) by replacing super-linear regular expressions for `See ... Live` and `\d*Embed$` with native linear string operations (`indexOf`, `endsWith`, `slice`, `charCodeAt`), ensuring $O(N)$ safe parsing with zero backtracking risk. Added optional chaining `!arr[i - 1]?.trim()`, and marked members `readonly`.
   - **`matcher.ts`**: Decomposed title similarity and artist similarity subroutines (`calculateTitleScore`, `calculateArtistScore`), decreasing cognitive complexity from 25 to <7.
   - **`MusixMatch.ts`**: Marked schemas and key properties as `readonly`, moved asynchronous initialization outside of the class constructor, replaced `Object.assign` with object spread (`{ ...foo }`), and eliminated mixed operator warnings using integer literal constants.
   - **`YTMusic.ts`**: Marked `PROXIED_ENDPOINT` and members `readonly`, extracted `extractPlainLyrics` to eliminate nested ternary operations, replaced global `parseInt` with `Number.parseInt(..., 10)`, and decomposed millisecond calculations into clear steps.
