@@ -990,8 +990,7 @@ app
       });
     }
   })
-  .catch((err: unknown) => {
-    // NOSONAR(typescript:S7785)
+  /* NOSONAR(typescript:S7785) */ .catch((err: unknown) => {
     console.error(LoggerPrefix, 'Error during app startup:', err);
   });
 
