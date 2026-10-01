@@ -4,6 +4,25 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v3.11.7](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.6...v3.11.7)
+
+> 01 October 2026
+
+- **Dependency Security Hardening (`pnpm-workspace.yaml`)**:
+  - Added `minimatch` override across all vulnerable release lines — patches ReDoS via GLOBSTAR backtracking and nested extglob catastrophic backtracking (CVE-2026-27903, CVE-2026-27904, GHSA-7r86-cg39-jmmj, GHSA-23c5-xmqv-rm74); fix ranges: `<3.1.4`→3.1.4, `>=5.0.0 <5.1.8`→5.1.8, `>=9.0.0 <9.0.7`→9.0.7, `>=10.0.0 <10.2.3`→10.2.3.
+  - Added `brace-expansion` override across all vulnerable release lines — patches quadratic-time expansion DoS (CVE-2026-102278, CVE-2026-69152, CVE-2026-14257, GHSA-q2hr-2g5m-vwhr); fix ranges: `<2.0.0`→1.1.21, `>=2.0.0 <2.1.7`→2.1.7, `>=3.0.0 <3.0.8`→3.0.8, `>=4.0.0 <5.0.12`→5.0.12.
+  - Added `form-data` override `>=4.0.0 <4.0.6`→4.0.6 — patches CRLF injection via unescaped multipart field names and filenames (CVE-2026-12143, GHSA-hmw2-7cc7-3qxx).
+  - Added `ajv` overrides — patches ReDoS via `$data` option when using JSON Pointer syntax (CVE-2025-69873, GHSA-2g4f-4pwh-qvx6); `<6.14.0`→6.14.0, `>=7.0.0 <8.18.0`→8.18.0.
+- **Electron & Electron-Builder Upgrades (`package.json`)**:
+  - Updated `electron` `41.10.6` → `41.10.7` (final security patch of the 41.x line, EOL Aug 2026).
+  - Updated `electron-builder` `26.7.0` → `26.15.0` — fixes AppImage uncontrolled search path element allowing arbitrary code execution (CVE-2026-54672, GHSA-7g7r-gx96-252g).
+  - Updated `electron-builder-squirrel-windows` `26.7.0` → `26.15.0` (aligned with electron-builder upgrade).
+- **Lockfile**: Regenerated `pnpm-lock.yaml` via `pnpm install` with all overrides applied (pnpm v12.4.2).
+- **Audit Status**: Reduced from 17 vulnerabilities (14 high, 3 moderate) to 1 moderate (`file-type@16.5.4` — already mitigated via `patchedDependencies`; cannot force-upgrade without breaking jimp compatibility).
+- **Code Quality, Linters & TypeScript Compilation**:
+  - Verified 0 errors on `pnpm eslint ./src --quiet`.
+  - Verified 0 errors on `pnpm typecheck` (`tsc -p tsconfig.json --noEmit`).
+
 #### [v3.11.6](https://github.com/alsyundawy/pear-desktop-mac/compare/v3.11.5...v3.11.6)
 
 > 01 October 2026
