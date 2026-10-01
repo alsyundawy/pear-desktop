@@ -219,6 +219,13 @@
           "label": "Sahib adı"
         }
       }
+    },
+    "do-not-track": {
+      "description": "Block all ads and tracking out of the box",
+      "menu": {
+        "blocker": "Blocker"
+      },
+      "name": "Ad Blocker"
     }
   }
 }

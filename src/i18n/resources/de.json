@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Blockiert jegliches Tracking",
+      "description": "Blockiere jegliche Werbung und Tracker",
       "menu": {
-        "blocker": "Blocker"
+        "blocker": "Abfangmethode"
       },
-      "name": "Verhindere Tracking"
+      "name": "Werbeblocker"
     },
     "downloader": {
       "backend": {

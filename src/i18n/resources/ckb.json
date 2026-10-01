@@ -26,5 +26,14 @@
         "loaded": "i18n دەستیپێکرد"
       }
     }
+  },
+  "plugins": {
+    "do-not-track": {
+      "description": "Block all ads and tracking out of the box",
+      "menu": {
+        "blocker": "Blocker"
+      },
+      "name": "Ad Blocker"
+    }
   }
 }

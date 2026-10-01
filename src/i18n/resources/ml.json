@@ -183,6 +183,13 @@
       "templates": {
         "button-video": "വീഡിയോ"
       }
+    },
+    "do-not-track": {
+      "description": "Block all ads and tracking out of the box",
+      "menu": {
+        "blocker": "Blocker"
+      },
+      "name": "Ad Blocker"
     }
   }
 }

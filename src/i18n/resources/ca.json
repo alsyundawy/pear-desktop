@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Bloqueja tot el seguiment de manera predeterminada",
+      "description": "Bloqueja tots els anuncis i el seguiment",
       "menu": {
         "blocker": "Bloquejador"
       },
-      "name": "No fer seguiment"
+      "name": "Bloquejador d'anuncis"
     },
     "downloader": {
       "backend": {

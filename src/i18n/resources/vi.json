@@ -498,11 +498,11 @@
       }
     },
     "do-not-track": {
-      "description": "Chặn mọi trình theo dõi từ đầu",
+      "description": "Chặn toàn bộ quảng cáo và trình theo dõi",
       "menu": {
         "blocker": "Trình chặn"
       },
-      "name": "Không theo dõi/Chặn quảng cáo"
+      "name": "Chặn quảng cáo"
     },
     "downloader": {
       "backend": {

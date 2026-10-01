@@ -445,9 +445,11 @@
       }
     },
     "do-not-track": {
+      "description": "Block all ads and tracking out of the box",
       "menu": {
         "blocker": "დამბლოკავი"
-      }
+      },
+      "name": "Ad Blocker"
     },
     "downloader": {
       "backend": {
