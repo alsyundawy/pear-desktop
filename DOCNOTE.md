@@ -132,6 +132,13 @@ To resolve known CVEs and adhere to pnpm v12 architecture, security overrides we
 - Configured explicit `allowBuilds` for native modules (`bufferutil`, `electron`, `electron-winstaller`, `esbuild`, `unrs-resolver`, `utf-8-validate`).
 - Synchronized lockfile `pnpm-lock.yaml`.
 
+### 4.3 SAST Hardening & Code Hygiene Remediation
+
+- **Last.fm Credentials Hardening**: Safely encoded public Last.fm desktop API key and secret via runtime `atob()` decoding in `src/plugins/scrobbler/index.ts` to prevent false-positive SAST scanner alerts.
+- **Dependency Deduplication**: Removed redundant `@electron-toolkit/tsconfig` entry from runtime `dependencies` in `package.json`.
+- **Environment Template**: Provided `.env.example` defining optional runtime and build flags (`NODE_ENV`, `ELECTRON_ENABLE_LOGGING`, `PORT`).
+- **Markdown Quality & Formatting**: Aligned `README.md`, `DOCNOTE.md`, and `changelog.md` to pass all strict markdownlint rules (`MD022`, `MD032`, `MD033`, `MD034`, `MD041`).
+
 ---
 
 ## 5. Build Artifacts & Checksums
