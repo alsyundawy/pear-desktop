@@ -35,8 +35,8 @@ This release accomplishes:
 - Pulled upstream translations from `pear-devs/pear-desktop:src/i18n` across 63 language files:
   - Added new locale catalogs: Afrikaans (`af`), Belarusian Latin (`be-Latn`), Central Kurdish (`ckb`), Khmer (`km`), Lao (`lo`), and Macedonian (`mk`).
   - Updated existing language resources (`ar`, `az`, `be`, `bg`, `bn`, `ca`, `cs`, `da`, `de`, `el`, `es`, `et`, `eu`, `fa`, `fi`, `fil`, `fr`, `gl`, `he`, `hi`, `hr`, `hu`, `id`, `is`, `it`, `ja`, `ka`, `ko`, `lt`, `lv`, `ml`, `ms`, `nb`, `ne`, `nl`, `pl`, `pt`, `pt-BR`, `ro`, `ru`, `si`, `sk`, `sl`, `sq`, `sr`, `sv`, `ta`, `te`, `th`, `tr`, `uk`, `ur`, `vi`, `zh-CN`, `zh-TW`).
-- Preserved custom plugin translation namespaces in `en.json` and `id.json`:
-  - `do-not-track` suite translations (`menu`, `description`, ad-speedup, telemetry-blocking).
+- Preserved custom plugin translation namespaces in `en.json`, `id.json`, and all 67 locales:
+  - Restored classic `Ad Blocker` / `Pemblokir Iklan` menu display names and descriptions for the `do-not-track` suite.
   - `sponsorblock.menu.categories` custom categorization entries.
 
 ---

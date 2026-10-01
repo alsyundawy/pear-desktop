@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. Dates are d
 
 - **Upstream Translation Synchronization (`src/i18n`)**:
   - Pulled and synchronized upstream translations from `pear-devs/pear-desktop:src/i18n` across 63 locales, adding full support for `af`, `be-Latn`, `ckb`, `km`, `lo`, and `mk`.
-  - Preserved custom plugin translation namespaces (`do-not-track` suite and `sponsorblock.menu.categories`) in both English (`en.json`) and Indonesian (`id.json`).
+  - Preserved custom plugin translation namespaces (`do-not-track` suite restored with classic "Ad Blocker" / "Pemblokir Iklan" menu display labels across all 67 locales, and `sponsorblock.menu.categories`) in both English (`en.json`) and Indonesian (`id.json`).
 - **CodeQL Security Remediation**:
   - **Incomplete URL Substring Sanitization (CodeQL alerts #3, #4, #5, #14 in `src/index.ts`)**: Replaced loose `.includes()` / `.startsWith()` URL checks with strict WHATWG URL origin and hostname matching (`url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com')` and `parsedUrl.origin === 'https://music.youtube.com'`).
   - **Incomplete URL Substring Sanitization (CodeQL alert #7 in `tests/index.test.js`)**: Replaced `url.startsWith('https://music.youtube.com')` with `new URL(window.url()).origin === 'https://music.youtube.com'`.
