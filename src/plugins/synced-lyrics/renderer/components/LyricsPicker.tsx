@@ -31,7 +31,7 @@ import {
   ProviderNameSchema,
   type ProviderState,
 } from '../../providers';
-import { _ytAPI } from '../index';
+import { getPlayerApi } from '../index';
 import { reactiveOwner } from '../reactive-root';
 import { config } from '../renderer';
 import { lyricsStore, setLyricsStore } from '../store';
@@ -42,9 +42,10 @@ const LocalStorageSchema = z.object({
   provider: ProviderNameSchema,
 });
 
-export const providerIdx = runWithOwner(reactiveOwner, () =>
-  createMemo(() => providerNames.indexOf(lyricsStore.provider)),
-)!;
+export const providerIdx = runWithOwner(reactiveOwner, () => {
+  const memo = createMemo(() => providerNames.indexOf(lyricsStore.provider));
+  return memo;
+})!;
 
 const shouldSwitchProvider = (providerData: ProviderState) => {
   if (providerData.state === 'error') return true;
@@ -77,6 +78,11 @@ const pickBestProvider = () => {
   providers.sort((a, b) => providerBias(b) - providerBias(a));
 
   return { provider: providers[0], force: false };
+};
+
+const getPickerOffset = (idx: number) => {
+  const baseOffset = idx * -100;
+  return baseOffset - 5;
 };
 
 const [hasManuallySwitchedProvider, setHasManuallySwitchedProvider] =
@@ -141,11 +147,15 @@ export const LyricsPicker = (props: {
     setHasManuallySwitchedProvider(false);
   };
 
-  // prettier-ignore
-  {
-    onMount(() => _ytAPI?.addEventListener('videodatachange', videoDataChangeHandler));
-    onCleanup(() => _ytAPI?.removeEventListener('videodatachange', videoDataChangeHandler));
-  }
+  onMount(() => {
+    getPlayerApi()?.addEventListener('videodatachange', videoDataChangeHandler);
+  });
+  onCleanup(() => {
+    getPlayerApi()?.removeEventListener(
+      'videodatachange',
+      videoDataChangeHandler,
+    );
+  });
 
   createEffect(() => {
     if (!hasManuallySwitchedProvider()) {
@@ -212,7 +222,7 @@ export const LyricsPicker = (props: {
                 <div
                   class="lyrics-picker-item"
                   style={{
-                    transform: `translateX(${providerIdx() * -100 - 5}%)`,
+                    transform: `translateX(${getPickerOffset(providerIdx())}%)`,
                   }}
                   tabindex="-1"
                 >
@@ -278,13 +288,19 @@ export const LyricsPicker = (props: {
         <ul class="lyrics-picker-content-dots">
           <For each={providerNames}>
             {(_, idx) => (
-              <li
-                class="lyrics-picker-dot"
-                onClick={() => setLyricsStore('provider', providerNames[idx()])}
-                style={{
-                  background: idx() === providerIdx() ? 'white' : 'black',
-                }}
-              />
+              <li>
+                <button
+                  aria-label={`Switch to ${providerNames[idx()]}`}
+                  class="lyrics-picker-dot"
+                  onClick={() =>
+                    setLyricsStore('provider', providerNames[idx()])
+                  }
+                  style={{
+                    background: idx() === providerIdx() ? 'white' : 'black',
+                  }}
+                  type="button"
+                />
+              </li>
             )}
           </For>
         </ul>

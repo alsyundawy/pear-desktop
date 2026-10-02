@@ -64,6 +64,67 @@ function wordOverlapScore(a: string, b: string): number {
   return Math.max(recallA, recallB);
 }
 
+function scoreTitleCandidate(query: string, target: string): number[] {
+  if (!query) return [];
+  const scores = [jaroWinkler(query, target)];
+  const overlap = wordOverlapScore(query, target);
+  if (
+    overlap >= 0.8 &&
+    Math.min(query.length, target.length) /
+      Math.max(query.length, target.length) >=
+      0.4
+  ) {
+    scores.push(0.85);
+  }
+  return scores;
+}
+
+function calculateTitleScore(qT: string, qAlt: string, rT: string): number {
+  const scores = [
+    ...scoreTitleCandidate(qT, rT),
+    ...scoreTitleCandidate(qAlt, rT),
+  ];
+  return scores.length > 0 ? Math.max(...scores) : 0;
+}
+
+const GENERIC_ARTISTS = new Set([
+  '',
+  'various',
+  'various artists',
+  'unknown',
+  'unknown artist',
+  'va',
+  'lagu anak',
+  'lagu anak indonesia',
+]);
+
+function calculateArtistScore(qA: string, rA: string): number {
+  const artistScores: number[] = [jaroWinkler(qA, rA)];
+  if (wordOverlapScore(qA, rA) >= 0.5) {
+    artistScores.push(0.8);
+  }
+
+  const qArtists = qA
+    .split(/[&,]/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const rArtists = rA
+    .split(/[&,]/g)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  for (const a of qArtists) {
+    for (const b of rArtists) {
+      artistScores.push(jaroWinkler(a, b));
+      if (wordOverlapScore(a, b) >= 0.5) {
+        artistScores.push(0.8);
+      }
+    }
+  }
+
+  return Math.max(...artistScores);
+}
+
 /**
  * Strict song and artist matching engine to prevent cross-language
  * and completely mismatched lyrics from displaying.
@@ -84,84 +145,17 @@ export function isSongMatch(
 
   if (!rT || (!qT && !qAlt)) return false;
 
-  // Title similarity scoring
-  const titleScores = [jaroWinkler(qT, rT)];
-  if (qAlt) {
-    titleScores.push(jaroWinkler(qAlt, rT));
-  }
-
-  // Word overlap scoring
-  const overlapQ = wordOverlapScore(qT, rT);
-  if (
-    overlapQ >= 0.8 &&
-    Math.min(qT.length, rT.length) / Math.max(qT.length, rT.length) >= 0.4
-  ) {
-    titleScores.push(0.85);
-  }
-  if (qAlt) {
-    const overlapAlt = wordOverlapScore(qAlt, rT);
-    if (
-      overlapAlt >= 0.8 &&
-      Math.min(qAlt.length, rT.length) / Math.max(qAlt.length, rT.length) >= 0.4
-    ) {
-      titleScores.push(0.85);
-    }
-  }
-
-  const maxTitleScore = Math.max(...titleScores);
+  const maxTitleScore = calculateTitleScore(qT, qAlt, rT);
 
   // If title similarity is below 0.75, it is a mismatched track
   if (maxTitleScore < 0.75) {
     return false;
   }
 
-  // Artist similarity scoring
-  const genericArtists = new Set([
-    '',
-    'various',
-    'various artists',
-    'unknown',
-    'unknown artist',
-    'va',
-    'lagu anak',
-    'lagu anak indonesia',
-  ]);
-
-  if (qA && rA && !genericArtists.has(qA)) {
-    const qArtists = qA
-      .split(/[&,]/g)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const rArtists = rA
-      .split(/[&,]/g)
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const artistScores: number[] = [jaroWinkler(qA, rA)];
-
-    const overlapArtist = wordOverlapScore(qA, rA);
-    if (overlapArtist >= 0.5) {
-      artistScores.push(0.8);
-    }
-
-    for (const a of qArtists) {
-      for (const b of rArtists) {
-        artistScores.push(jaroWinkler(a, b));
-        const abOverlap = wordOverlapScore(a, b);
-        if (abOverlap >= 0.5) {
-          artistScores.push(0.8);
-        }
-      }
-    }
-
-    const maxArtistScore = Math.max(...artistScores);
-
-    // If title is an exact/near-exact match (>= 0.92), allow slightly broader artist match
-    if (maxTitleScore >= 0.92) {
-      return maxArtistScore >= 0.55;
-    }
-
-    return maxArtistScore >= 0.65;
+  if (qA && rA && !GENERIC_ARTISTS.has(qA)) {
+    const maxArtistScore = calculateArtistScore(qA, rA);
+    const requiredScore = maxTitleScore >= 0.92 ? 0.55 : 0.65;
+    return maxArtistScore >= requiredScore;
   }
 
   // If query artist is generic/unknown, require high title confidence

@@ -236,7 +236,10 @@ export const LyricsRenderer = () => {
     const time = currentTime();
     const data = currentLyrics()?.data;
 
-    if (!data || !data.lines) return setStatuses([]);
+    if (!data?.lines) {
+      setStatuses([]);
+      return;
+    }
 
     const previous = untrack(statuses);
     const current = data.lines.map((line) => {
@@ -245,16 +248,18 @@ export const LyricsRenderer = () => {
       return 'current';
     });
 
-    if (previous.length !== current.length) return setStatuses(current);
+    if (previous.length !== current.length) {
+      setStatuses(current);
+      return;
+    }
     if (previous.every((status, idx) => status === current[idx])) return;
 
     setStatuses(current);
-    return;
   });
 
   const [currentIndex, setCurrentIndex] = createSignal(0);
   createEffect(() => {
-    const index = statuses().findIndex((status) => status === 'current');
+    const index = statuses().indexOf('current');
     if (index === -1) return;
     setCurrentIndex(index);
   });
@@ -288,7 +293,7 @@ export const LyricsRenderer = () => {
         data={[lyricsPicker, ...children()]}
       >
         {(props, idx) => {
-          if (typeof props === 'undefined') return null;
+          if (props === undefined) return null;
           switch (props.kind) {
             case 'LyricsPicker':
               return <LyricsPicker setStickRef={setStickRef} />;

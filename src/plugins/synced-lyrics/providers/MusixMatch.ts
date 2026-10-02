@@ -8,8 +8,8 @@ import { netFetch } from '../renderer';
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 export class MusixMatch implements LyricProvider {
-  name = 'MusixMatch';
-  baseUrl = 'https://www.musixmatch.com/';
+  readonly name = 'MusixMatch';
+  readonly baseUrl = 'https://www.musixmatch.com/';
 
   private api: MusixMatchAPI | undefined;
 
@@ -186,18 +186,25 @@ const ResponseSchema = {
 } as const;
 
 class MusixMatchAPI {
-  private initPromise: Promise<void>;
+  private initPromise: Promise<void> | null = null;
   private cookie = 'x-mxm-user-id=';
   private token: string | null = null;
 
   private constructor() {
-    this.initPromise = this.init();
+    // Synchronous constructor
   }
 
   public static async new() {
     const api = new MusixMatchAPI();
-    await api.initPromise;
+    await api.ensureInitialized();
     return api;
+  }
+
+  public async ensureInitialized(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.init();
+    }
+    await this.initPromise;
   }
 
   public hasValidToken(): boolean {
@@ -209,12 +216,16 @@ class MusixMatchAPI {
   }
 
   public async reinit() {
-    const [{ status }] = await Promise.allSettled([this.initPromise]);
-    if (status === 'rejected') {
-      this.cookie = 'x-mxm-user-id=';
-      localStorage.removeItem(this.key);
-      this.initPromise = this.init();
-      await this.initPromise;
+    if (this.initPromise) {
+      const [{ status }] = await Promise.allSettled([this.initPromise]);
+      if (status === 'rejected') {
+        this.cookie = 'x-mxm-user-id=';
+        localStorage.removeItem(this.key);
+        this.initPromise = this.init();
+        await this.initPromise;
+      }
+    } else {
+      await this.ensureInitialized();
     }
   }
 
@@ -228,21 +239,17 @@ class MusixMatchAPI {
         : unknown;
     },
   >(endpoint: T, params: Params[T]): Promise<R> {
-    await this.initPromise;
+    await this.ensureInitialized();
     if (!this.token) throw new Error('Token not initialized');
 
     const url = `${this.baseUrl}${endpoint}`;
 
-    const clonedParams = new URLSearchParams(
-      Object.assign(
-        {
-          app_id: this.app_id,
-          format: 'json',
-          usertoken: this.token,
-        },
-        <Record<string, string>>params,
-      ),
-    );
+    const clonedParams = new URLSearchParams({
+      app_id: this.app_id,
+      format: 'json',
+      usertoken: this.token,
+      ...(params as Record<string, string>),
+    });
 
     const [, json, headers] = await netFetch(`${url}?${clonedParams}`, {
       headers: { Cookie: this.cookie },
@@ -282,7 +289,7 @@ class MusixMatchAPI {
     return parsed.data.message as R;
   }
 
-  private savedTokenSchema = z.union([
+  private readonly savedTokenSchema = z.union([
     z.object({
       token: z.literal(null),
       expires: z.number().optional(),
@@ -293,7 +300,7 @@ class MusixMatchAPI {
     }),
   ]);
 
-  private key = 'ytm:synced-lyrics:mxm:token';
+  private readonly key = 'ytm:synced-lyrics:mxm:token';
   private async init() {
     const { token, expires } = this.savedTokenSchema.parse(
       JSON.parse(localStorage.getItem(this.key) ?? '{ "token": null }'),
@@ -310,11 +317,11 @@ class MusixMatchAPI {
 
     localStorage.setItem(
       this.key,
-      JSON.stringify({ token: this.token, expires: Date.now() + 60 * 1000 }),
+      JSON.stringify({ token: this.token, expires: Date.now() + 60_000 }),
     );
   }
 
-  private tokenSchema = z.object({
+  private readonly tokenSchema = z.object({
     message: z.object({
       body: z
         .object({
@@ -329,7 +336,10 @@ class MusixMatchAPI {
     const [, json, headers] = await netFetch(
       `${this.baseUrl}${endpoint}?${params}`,
       {
-        headers: Object.assign({ Cookie: this.cookie }, this.headers),
+        headers: {
+          Cookie: this.cookie,
+          ...this.headers,
+        },
       },
     );
 

@@ -6,8 +6,26 @@ import { config } from '../renderer/renderer';
 import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 
 export class LRCLib implements LyricProvider {
-  name = 'LRCLib';
-  baseUrl = 'https://lrclib.net';
+  readonly name = 'LRCLib';
+  readonly baseUrl = 'https://lrclib.net';
+
+  private async querySearch(
+    query: URLSearchParams,
+  ): Promise<LRCLIBSearchResponse> {
+    const url = `${this.baseUrl}/api/search?${query.toString()}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`bad HTTPStatus(${response.statusText})`);
+    }
+
+    const data: unknown = await response.json();
+    if (!Array.isArray(data)) {
+      throw new TypeError(`Expected an array, instead got ${typeof data}`);
+    }
+
+    return data as LRCLIBSearchResponse;
+  }
 
   async search({
     title,
@@ -16,27 +34,16 @@ export class LRCLib implements LyricProvider {
     album,
     songDuration,
   }: SearchSongInfo): Promise<LyricResult | null> {
-    let query = new URLSearchParams({
+    const query = new URLSearchParams({
       artist_name: artist,
       track_name: title,
     });
 
-    query.set('album_name', album!);
-    if (query.get('album_name') === 'undefined') {
-      query.delete('album_name');
+    if (album && album !== 'undefined') {
+      query.set('album_name', album);
     }
 
-    let url = `${this.baseUrl}/api/search?${query.toString()}`;
-    let response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`bad HTTPStatus(${response.statusText})`);
-    }
-
-    let data = (await response.json()) as LRCLIBSearchResponse;
-    if (!data || !Array.isArray(data)) {
-      throw new Error(`Expected an array, instead got ${typeof data}`);
-    }
+    let data = await this.querySearch(query);
 
     if (data.length === 0) {
       if (!config()?.showLyricsEvenIfInexact) {
@@ -45,33 +52,15 @@ export class LRCLib implements LyricProvider {
 
       // Try to search with the alternative title (original language) + artist
       const trackName = alternativeTitle || title;
-      query = new URLSearchParams({ q: `${trackName} ${artist}`.trim() });
-      url = `${this.baseUrl}/api/search?${query.toString()}`;
-
-      response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`bad HTTPStatus(${response.statusText})`);
-      }
-
-      data = (await response.json()) as LRCLIBSearchResponse;
-      if (!Array.isArray(data)) {
-        throw new Error(`Expected an array, instead got ${typeof data}`);
-      }
+      data = await this.querySearch(
+        new URLSearchParams({ q: `${trackName} ${artist}`.trim() }),
+      );
 
       // If still no results, try with the original title + artist as fallback
       if (data.length === 0 && alternativeTitle) {
-        query = new URLSearchParams({ q: `${title} ${artist}`.trim() });
-        url = `${this.baseUrl}/api/search?${query.toString()}`;
-
-        response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`bad HTTPStatus(${response.statusText})`);
-        }
-
-        data = (await response.json()) as LRCLIBSearchResponse;
-        if (!Array.isArray(data)) {
-          throw new Error(`Expected an array, instead got ${typeof data}`);
-        }
+        data = await this.querySearch(
+          new URLSearchParams({ q: `${title} ${artist}`.trim() }),
+        );
       }
     }
 

@@ -11,11 +11,22 @@ import type { SongInfo } from '@/providers/song-info';
 import type { RendererContext } from '@/types/contexts';
 import type { MusicPlayer } from '@/types/music-player';
 
-export let _ytAPI: MusicPlayer | null = null;
-export let netFetch: (
+let playerApi: MusicPlayer | null = null;
+
+export const getPlayerApi = (): MusicPlayer | null => playerApi;
+
+export const seekPlayer = (seconds: number): void => {
+  playerApi?.seekTo(seconds);
+};
+
+export type NetFetchFn = (
   url: string,
   init?: RequestInit,
 ) => Promise<[number, string, Record<string, string>]>;
+
+let internalNetFetch: NetFetchFn = () => Promise.resolve([0, '', {}]);
+
+export const netFetch: NetFetchFn = (url, init) => internalNetFetch(url, init);
 
 export const renderer = createRenderer<
   {
@@ -46,7 +57,7 @@ export const renderer = createRenderer<
   },
 
   async onPlayerApiReady(api: MusicPlayer) {
-    _ytAPI = api;
+    playerApi = api;
 
     api.addEventListener('videodatachange', this.videoDataChange);
 
@@ -55,7 +66,7 @@ export const renderer = createRenderer<
   async videoDataChange() {
     if (!this.updateTimestampInterval) {
       this.updateTimestampInterval = setInterval(
-        () => setCurrentTime((_ytAPI?.getCurrentTime() ?? 0) * 1000),
+        () => setCurrentTime((playerApi?.getCurrentTime() ?? 0) * 1000),
         100,
       );
     }
@@ -66,17 +77,15 @@ export const renderer = createRenderer<
 
     // Force the lyrics tab to be enabled at all times.
     const header = await waitForElement<HTMLElement>(selectors.head);
-    {
-      header.removeAttribute('disabled');
-      tabStates[header.ariaSelected ?? 'false']();
-    }
+    header.removeAttribute('disabled');
+    tabStates[header.ariaSelected ?? 'false']();
 
     this.observer.observe(header, { attributes: true });
     header.removeAttribute('disabled');
   },
 
   async start(ctx: RendererContext<SyncedLyricsPluginConfig>) {
-    netFetch = ctx.ipc.invoke.bind(ctx.ipc, 'synced-lyrics:fetch');
+    internalNetFetch = ctx.ipc.invoke.bind(ctx.ipc, 'synced-lyrics:fetch');
 
     setConfig(await ctx.getConfig());
 
