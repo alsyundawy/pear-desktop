@@ -48,7 +48,7 @@ export class Megalobiz implements LyricProvider {
       signal: AbortSignal.timeout(5_000),
     });
     if (!response.ok) {
-      throw new TypeError(`bad HTTPStatus(${response.statusText})`);
+      return null;
     }
 
     const data = await response.text();
@@ -124,10 +124,14 @@ export class Megalobiz implements LyricProvider {
       return null;
     }
 
-    const html = await fetch(`${this.baseUrl}${closestResult.href}`).then((r) => r.text());
+    const pageResponse = await fetch(`${this.baseUrl}${closestResult.href}`, {
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!pageResponse.ok) return null;
+    const html = await pageResponse.text();
     const lyricsDoc = this.domParser.parseFromString(html, 'text/html');
     const raw = lyricsDoc.querySelector('span[id^="lrc_"][id$="_lyrics"]')?.textContent;
-    if (!raw) throw new TypeError('Failed to extract lyrics from page.');
+    if (!raw) return null;
 
     const lyrics = LRC.parse(raw);
 

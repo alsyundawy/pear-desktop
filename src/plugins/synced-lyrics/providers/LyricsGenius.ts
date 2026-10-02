@@ -164,12 +164,8 @@ export class LyricsGenius implements LyricProvider {
       (_match, ch: string) => escapeMap[ch] ?? ch,
     );
 
-    const hasUnreleasedPlaceholder =
-      preloadedState &&
-      /lyricsPlaceholderReason.{1,5}unreleased/.test(preloadedState);
     if (!lyricsHtml) {
-      if (hasUnreleasedPlaceholder) return null;
-      throw new TypeError('Failed to extract lyrics from preloaded state.');
+      return null;
     }
 
     const lyricsDoc = this.domParser.parseFromString(lyricsHtml, 'text/html');
@@ -185,7 +181,9 @@ export class LyricsGenius implements LyricProvider {
       per_page: '10',
     });
 
-    const response = await fetch(`${this.baseUrl}/api/search/song?${query}`);
+    const response = await fetch(`${this.baseUrl}/api/search/song?${query}`, {
+      signal: AbortSignal.timeout(5_000),
+    });
     if (!response.ok) {
       return null;
     }
@@ -222,9 +220,13 @@ export class LyricsGenius implements LyricProvider {
 
     const { result: { path } } = closestHit;
 
-    const html = await fetch(`${this.baseUrl}${path}`).then((res) =>
-      res.text(),
-    );
+    const pageResponse = await fetch(`${this.baseUrl}${path}`, {
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!pageResponse.ok) {
+      return null;
+    }
+    const html = await pageResponse.text();
     const doc = this.domParser.parseFromString(html, 'text/html');
 
     const rawLyrics = this.extractRawLyrics(doc);
@@ -234,13 +236,15 @@ export class LyricsGenius implements LyricProvider {
 
     const lyrics = cleanGeniusLyrics(rawLyrics);
 
-    if (lyrics.trim().toLowerCase().replace(/[[\]]/g, '') === 'instrumental') {
+    if (lyrics.trim().toLowerCase().replaceAll(/[[\]]/g, '') === 'instrumental') {
       return null;
     }
 
     return {
       title: closestHit.result.title,
-      artists: closestHit.result.primary_artists.map(({ name }) => name),
+      artists:
+        closestHit.result.primary_artists?.map(({ name }) => name) ??
+        [closestHit.result.primary_artist.name],
       lyrics,
     };
   }

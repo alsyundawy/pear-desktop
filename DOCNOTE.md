@@ -160,17 +160,25 @@ This release accomplishes:
 ### 5.5 Lyrics Engine Formatting, Cleaning & Proportional Auto-Scroll
 
 - **`LyricsGenius.ts`**:
-  - Implemented multi-stage unescaping and entity decoding pipeline (`unescapeAndDecode`): unescapes literal `\r\n`, `\n`, `\r`, `\t`, `\"`, `\'`, `\\`, and decodes HTML entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#x27;`, `&#39;`).
+  - Implemented multi-stage unescaping and entity decoding pipeline (`unescapeAndDecode`): unescapes literal `\r\n`, `\n`, `\r`, `\t`, `\"`, `\'`, `\\`, and decodes HTML entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#x27;`, `&#39;`) using `String#replaceAll` with `String.raw`.
+  - Replaced legacy `lines[lines.length - 1]` with ECMAScript `lines.at(-1)`.
+  - Replaced super-linear backtracking regular expressions (`isHeaderRegex`, `\d*embed$`) with deterministic linear functions (`isHeaderLine`, `stripEmbedSuffix`).
+  - Added robust `AbortSignal.timeout(5_000)` and `response.ok` checks for search and song page HTTP requests.
+  - Returned graceful `null` on unreleased songs, missing HTML, or non-200 responses to enable smooth fallback to other providers.
   - Explicitly converts `<br>` tags to real newline characters `\n` in both DOM containers and parsed preloaded state HTML before text node extraction, completely preventing squashed or unformatted lines.
   - Stripped Genius song title header lines (`stripHeaderLines`) matching `[... 가사]`, `[... lyrics]`, `...lyrics`, etc., while preserving semantic verse markers (`[Verse 1: ...]`, `[Chorus]`, etc.) for semantic header styling.
   - Stripped trailing Genius footer artifacts (`stripFooterLines`) such as `\d*embed`, `You might also like`, and `share urlcopyembedcopy`.
   - Condensed multiple consecutive empty lines to maintain clean lyric spacing.
   - Decomposed all cleaning logic into small single-purpose subroutines, maintaining cognitive complexity <=3 per function.
+- **`Megalobiz.ts`**:
+  - Converted `throw new TypeError(...)` to graceful `return null` on non-200 HTTP responses and missing lyrics markup, allowing clean fallback to alternate providers.
+  - Added `AbortSignal.timeout(5_000)` and `pageResponse.ok` checks on lyric page fetch.
 - **`renderer.tsx` & Plain Lyrics Auto-Scroll**:
-  - Added double-layered defensive newline normalization in `children()` mapping: ensures plain lyrics from any source or cache are properly split into independent virtualized rows, preventing single-paragraph coalescing.
+  - Added double-layered defensive newline normalization in `children()` mapping with `String#replaceAll`: ensures plain lyrics from any source or cache are properly split into independent virtualized rows, preventing single-paragraph coalescing.
   - Added progress-based proportional auto-scrolling for plain (unsynced) lyrics: calculates line index based on `currentTime / duration` and smoothly scrolls `scroller()!.scrollToIndex(scrollIndex, { smooth: true, align: 'center' })` to keep the active verse in view during song playback.
 - **`style.css`**:
   - Styled `.synced-lyrics-vlist` with `flex: 1; height: 100% !important; width: 100%; overflow-y: auto !important; -webkit-overflow-scrolling: touch;` to guarantee fluid trackpad momentum and mouse wheel scrolling.
+  - Eliminated trailing blank line at EOF (achieving 100% Trunk compliance).
 
 ### 5.6 SonarLint Code Quality & Accessibility Remediation
 
