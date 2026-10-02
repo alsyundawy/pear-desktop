@@ -201,9 +201,7 @@ class MusixMatchAPI {
   }
 
   public async ensureInitialized(): Promise<void> {
-    if (!this.initPromise) {
-      this.initPromise = this.init();
-    }
+    this.initPromise ??= this.init();
     await this.initPromise;
   }
 

@@ -27,13 +27,12 @@ export class LRCLib implements LyricProvider {
     return data as LRCLIBSearchResponse;
   }
 
-  async search({
+  private async fetchCandidates({
     title,
     alternativeTitle,
     artist,
     album,
-    songDuration,
-  }: SearchSongInfo): Promise<LyricResult | null> {
+  }: SearchSongInfo): Promise<LRCLIBSearchResponse> {
     const query = new URLSearchParams({
       artist_name: artist,
       track_name: title,
@@ -45,18 +44,12 @@ export class LRCLib implements LyricProvider {
 
     let data = await this.querySearch(query);
 
-    if (data.length === 0) {
-      if (!config()?.showLyricsEvenIfInexact) {
-        return null;
-      }
-
-      // Try to search with the alternative title (original language) + artist
+    if (data.length === 0 && config()?.showLyricsEvenIfInexact) {
       const trackName = alternativeTitle || title;
       data = await this.querySearch(
         new URLSearchParams({ q: `${trackName} ${artist}`.trim() }),
       );
 
-      // If still no results, try with the original title + artist as fallback
       if (data.length === 0 && alternativeTitle) {
         data = await this.querySearch(
           new URLSearchParams({ q: `${title} ${artist}`.trim() }),
@@ -64,11 +57,17 @@ export class LRCLib implements LyricProvider {
       }
     }
 
+    return data;
+  }
+
+  private findBestMatch(
+    data: LRCLIBSearchResponse,
+    { title, alternativeTitle, artist, songDuration }: SearchSongInfo,
+  ): LRCLIBRecord | null {
     const filteredResults = [];
     for (const item of data) {
       if (!item.trackName || !item.artistName) continue;
 
-      // Strictly enforce track and artist matching
       if (
         !isSongMatch(
           title,
@@ -87,7 +86,6 @@ export class LRCLib implements LyricProvider {
     filteredResults.sort(({ duration: durationA }, { duration: durationB }) => {
       const left = Math.abs(durationA - songDuration);
       const right = Math.abs(durationB - songDuration);
-
       return left - right;
     });
 
@@ -105,19 +103,30 @@ export class LRCLib implements LyricProvider {
       return null;
     }
 
-    if (Math.abs(closestResult.duration - songDuration) > 15) {
+    if (
+      Math.abs(closestResult.duration - songDuration) > 15 ||
+      closestResult.instrumental ||
+      (!closestResult.syncedLyrics && !closestResult.plainLyrics)
+    ) {
       return null;
     }
 
-    if (closestResult.instrumental) {
+    return closestResult;
+  }
+
+  async search(info: SearchSongInfo): Promise<LyricResult | null> {
+    const data = await this.fetchCandidates(info);
+    if (data.length === 0) {
+      return null;
+    }
+
+    const closestResult = this.findBestMatch(data, info);
+    if (!closestResult) {
       return null;
     }
 
     const raw = closestResult.syncedLyrics;
     const plain = closestResult.plainLyrics;
-    if (!raw && !plain) {
-      return null;
-    }
 
     return {
       title: closestResult.trackName,
@@ -132,6 +141,8 @@ export class LRCLib implements LyricProvider {
     };
   }
 }
+
+type LRCLIBRecord = LRCLIBSearchResponse[number];
 
 type LRCLIBSearchResponse = {
   id: number;
