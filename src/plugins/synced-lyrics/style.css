@@ -303,4 +303,3 @@ div:has(> .lyrics-picker) {
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
 }
-

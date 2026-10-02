@@ -144,6 +144,23 @@ type LyricsRendererChild =
 
 const lyricsPicker: LyricsRendererChild = { kind: 'LyricsPicker' };
 
+function isHeaderLine(line: string): boolean {
+  if (line.startsWith('[') && line.endsWith(']')) {
+    const inner = line.slice(1, -1).toLowerCase();
+    const keywords = [
+      'lyrics',
+      '가사',
+      '歌詞',
+      'paroles',
+      'letras',
+      'tekst',
+      'songtext',
+    ];
+    return keywords.some((kw) => inner.includes(kw));
+  }
+  return line.toLowerCase().endsWith('lyrics');
+}
+
 export const [currentTime, setCurrentTime] = createSignal<number>(-1);
 export const LyricsRenderer = () => {
   const [scroller, setScroller] = createSignal<VirtualizerHandle>();
@@ -220,24 +237,19 @@ export const LyricsRenderer = () => {
 
       if (data?.lyrics) {
         const normalized = data.lyrics
-          .replace(/\\r\\n/g, '\n')
-          .replace(/\\n/g, '\n')
-          .replace(/\\r/g, '\n')
-          .replace(/\\"/g, '"')
-          .replace(/\\'/g, "'")
-          .replace(/\r\n/g, '\n')
-          .replace(/\r/g, '\n');
+          .replaceAll(String.raw`\r\n`, '\n')
+          .replaceAll(String.raw`\n`, '\n')
+          .replaceAll(String.raw`\r`, '\n')
+          .replaceAll(String.raw`\"`, '"')
+          .replaceAll(String.raw`\'`, "'")
+          .replaceAll('\r\n', '\n')
+          .replaceAll('\r', '\n');
         const lines = normalized
           .split('\n')
           .map((line) => line.trim())
           .filter(Boolean);
 
-        if (
-          lines.length > 0 &&
-          /^\[.*(?:lyrics|가사|歌詞|paroles|letras|tekst|songtext).*\]$/i.test(
-            lines[0],
-          )
-        ) {
+        if (lines.length > 0 && isHeaderLine(lines[0])) {
           lines.shift();
         }
 

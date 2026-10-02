@@ -7,31 +7,46 @@ const preloadHtmlRegex = /body":\{"html":"(.*?)","children"/;
 
 function unescapeAndDecode(text: string): string {
   let cleaned = text
-    .replace(/\\r\\n/g, '\n')
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\n')
-    .replace(/\\t/g, ' ')
-    .replace(/\\"/g, '"')
-    .replace(/\\'/g, "'")
-    .replace(/\\\\/g, '\\');
+    .replaceAll(String.raw`\r\n`, '\n')
+    .replaceAll(String.raw`\n`, '\n')
+    .replaceAll(String.raw`\r`, '\n')
+    .replaceAll(String.raw`\t`, ' ')
+    .replaceAll(String.raw`\"`, '"')
+    .replaceAll(String.raw`\'`, "'")
+    .replaceAll(String.raw`\\`, '\\');
 
   cleaned = cleaned
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;/g, "'")
-    .replace(/&#39;/g, "'");
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#x27;', "'")
+    .replaceAll('&#39;', "'");
 
-  return cleaned.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  return cleaned.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+}
+
+function isHeaderLine(line: string): boolean {
+  if (line.startsWith('[') && line.endsWith(']')) {
+    const inner = line.slice(1, -1).toLowerCase();
+    const keywords = [
+      'lyrics',
+      '가사',
+      '歌詞',
+      'paroles',
+      'letras',
+      'tekst',
+      'songtext',
+    ];
+    return keywords.some((kw) => inner.includes(kw));
+  }
+  return line.toLowerCase().endsWith('lyrics');
 }
 
 function stripHeaderLines(lines: string[]): void {
-  const isHeaderRegex =
-    /^\[.*(?:lyrics|가사|歌詞|paroles|letras|tekst|songtext).*\]$/i;
   while (lines.length > 0) {
     const first = lines[0];
-    if (!first || isHeaderRegex.test(first) || /^.*lyrics$/i.test(first)) {
+    if (!first || isHeaderLine(first)) {
       lines.shift();
     } else {
       break;
@@ -39,22 +54,34 @@ function stripHeaderLines(lines: string[]): void {
   }
 }
 
-function stripFooterLines(lines: string[]): void {
-  const isFooterArtifact = /^\d*embed$/i;
-  const isYouMightAlsoLike = /^you might also like/i;
-  const isShareCopy = /share urlcopyembedcopy/i;
+function isFooterArtifact(line: string): boolean {
+  const lower = line.toLowerCase();
+  return (
+    lower.endsWith('embed') ||
+    lower.startsWith('you might also like') ||
+    lower.includes('share urlcopyembedcopy')
+  );
+}
 
+function stripEmbedSuffix(line: string): string {
+  if (line.toLowerCase().endsWith('embed')) {
+    let i = line.length - 5;
+    while (i > 0 && line[i - 1] >= '0' && line[i - 1] <= '9') {
+      i--;
+    }
+    return line.slice(0, i).trim();
+  }
+  return line;
+}
+
+function stripFooterLines(lines: string[]): void {
   while (lines.length > 0) {
-    const last = lines[lines.length - 1];
-    if (
-      !last ||
-      isFooterArtifact.test(last) ||
-      isYouMightAlsoLike.test(last) ||
-      isShareCopy.test(last)
-    ) {
+    const last = lines.at(-1);
+    if (!last || isFooterArtifact(last)) {
       lines.pop();
     } else {
-      lines[lines.length - 1] = last.replace(/\d*embed$/i, '').trim();
+      const lastIndex = lines.length - 1;
+      lines[lastIndex] = stripEmbedSuffix(last);
       break;
     }
   }
