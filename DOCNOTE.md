@@ -160,11 +160,17 @@ This release accomplishes:
 ### 5.5 Lyrics Engine Formatting, Cleaning & Proportional Auto-Scroll
 
 - **`LyricsGenius.ts`**:
-  - Sanitized raw scraped lyrics HTML by replacing `<br>` and `</p>`/`</div>` linebreaks with `\n` prior to DOM text extraction, preventing squashed/unformatted lines.
-  - Stripped Genius header metadata (`\d+ Contributors`, `Translations`, `Lyrics`) and footer artifacts (`\d*Embed`, `You might also like`, `See ... Live`, ticket promotions).
-  - Integrated `LRC.parse` to extract timestamped lines when available from Genius submissions.
+  - Implemented multi-stage unescaping and entity decoding pipeline (`unescapeAndDecode`): unescapes literal `\r\n`, `\n`, `\r`, `\t`, `\"`, `\'`, `\\`, and decodes HTML entities (`&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#x27;`, `&#39;`).
+  - Explicitly converts `<br>` tags to real newline characters `\n` in both DOM containers and parsed preloaded state HTML before text node extraction, completely preventing squashed or unformatted lines.
+  - Stripped Genius song title header lines (`stripHeaderLines`) matching `[... 가사]`, `[... lyrics]`, `...lyrics`, etc., while preserving semantic verse markers (`[Verse 1: ...]`, `[Chorus]`, etc.) for semantic header styling.
+  - Stripped trailing Genius footer artifacts (`stripFooterLines`) such as `\d*embed`, `You might also like`, and `share urlcopyembedcopy`.
+  - Condensed multiple consecutive empty lines to maintain clean lyric spacing.
+  - Decomposed all cleaning logic into small single-purpose subroutines, maintaining cognitive complexity <=3 per function.
 - **`renderer.tsx` & Plain Lyrics Auto-Scroll**:
-  - Added progress-based proportional auto-scrolling for plain (unsynced) lyrics: calculates line index based on `currentTime / duration` and smoothly scrolls to center the active verse during song playback.
+  - Added double-layered defensive newline normalization in `children()` mapping: ensures plain lyrics from any source or cache are properly split into independent virtualized rows, preventing single-paragraph coalescing.
+  - Added progress-based proportional auto-scrolling for plain (unsynced) lyrics: calculates line index based on `currentTime / duration` and smoothly scrolls `scroller()!.scrollToIndex(scrollIndex, { smooth: true, align: 'center' })` to keep the active verse in view during song playback.
+- **`style.css`**:
+  - Styled `.synced-lyrics-vlist` with `flex: 1; height: 100% !important; width: 100%; overflow-y: auto !important; -webkit-overflow-scrolling: touch;` to guarantee fluid trackpad momentum and mouse wheel scrolling.
 
 ### 5.6 SonarLint Code Quality & Accessibility Remediation
 

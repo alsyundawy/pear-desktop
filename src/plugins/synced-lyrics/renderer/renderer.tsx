@@ -17,6 +17,7 @@ import {
   PlainLyrics,
 } from './components';
 import { LyricsPicker } from './components/LyricsPicker';
+import { getPlayerApi } from './index';
 import { reactiveOwner } from './reactive-root';
 import { currentLyrics } from './store';
 import { selectors } from './utils';
@@ -218,7 +219,28 @@ export const LyricsRenderer = () => {
       }
 
       if (data?.lyrics) {
-        const lines = data.lyrics.split('\n').filter((line) => line.trim());
+        const normalized = data.lyrics
+          .replace(/\\r\\n/g, '\n')
+          .replace(/\\n/g, '\n')
+          .replace(/\\r/g, '\n')
+          .replace(/\\"/g, '"')
+          .replace(/\\'/g, "'")
+          .replace(/\r\n/g, '\n')
+          .replace(/\r/g, '\n');
+        const lines = normalized
+          .split('\n')
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        if (
+          lines.length > 0 &&
+          /^\[.*(?:lyrics|가사|歌詞|paroles|letras|tekst|songtext).*\]$/i.test(
+            lines[0],
+          )
+        ) {
+          lines.shift();
+        }
+
         return lines.map((line) => ({
           kind: 'PlainLine' as const,
           line,
@@ -280,12 +302,59 @@ export const LyricsRenderer = () => {
     });
   });
 
+  const [currentPlainIndex, setCurrentPlainIndex] = createSignal(0);
+  createEffect(() => {
+    const current = currentLyrics();
+    if (!current?.data?.lyrics || current.data?.lines) {
+      setCurrentPlainIndex(0);
+      return;
+    }
+
+    const timeSec = currentTime() / 1000;
+    const duration = getPlayerApi()?.getDuration() ?? 0;
+    const count = children().length;
+
+    if (duration <= 0 || count <= 1 || timeSec < 0) return;
+
+    const progress = Math.min(Math.max(timeSec / duration, 0), 1);
+    const targetIdx = Math.min(Math.floor(progress * count), count - 1);
+
+    if (targetIdx !== untrack(currentPlainIndex)) {
+      setCurrentPlainIndex(targetIdx);
+    }
+  });
+
+  createEffect(() => {
+    const current = currentLyrics();
+    const idx = currentPlainIndex();
+    const count = untrack(children).length;
+
+    if (
+      !scroller() ||
+      current?.data?.lines ||
+      !current?.data?.lyrics ||
+      count <= 1
+    ) {
+      return;
+    }
+
+    const scrollIndex = Math.min(idx + 1, count);
+    scroller()!.scrollToIndex(scrollIndex, {
+      smooth: true,
+      align: 'center',
+    });
+  });
+
   return (
     <Show when={isVisible()}>
       <VList
         {...{
           ref: setScroller,
-          style: { 'scrollbar-width': 'none' },
+          style: {
+            'scrollbar-width': 'none',
+            'height': '100%',
+            'width': '100%',
+          },
           class: 'synced-lyrics-vlist',
           keepMounted: [0],
           overscan: 4,
