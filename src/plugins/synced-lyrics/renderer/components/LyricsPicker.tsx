@@ -31,7 +31,7 @@ import {
   ProviderNameSchema,
   type ProviderState,
 } from '../../providers';
-import { getPlayerApi } from '../index';
+import { _ytAPI } from '../index';
 import { reactiveOwner } from '../reactive-root';
 import { config } from '../renderer';
 import { lyricsStore, setLyricsStore } from '../store';
@@ -42,10 +42,9 @@ const LocalStorageSchema = z.object({
   provider: ProviderNameSchema,
 });
 
-export const providerIdx = runWithOwner(reactiveOwner, () => {
-  const memo = createMemo(() => providerNames.indexOf(lyricsStore.provider));
-  return memo;
-})!;
+export const providerIdx = runWithOwner(reactiveOwner, () =>
+  createMemo(() => providerNames.indexOf(lyricsStore.provider)),
+)!;
 
 const shouldSwitchProvider = (providerData: ProviderState) => {
   if (providerData.state === 'error') return true;
@@ -142,15 +141,11 @@ export const LyricsPicker = (props: {
     setHasManuallySwitchedProvider(false);
   };
 
-  onMount(() =>
-    getPlayerApi()?.addEventListener('videodatachange', videoDataChangeHandler),
-  );
-  onCleanup(() =>
-    getPlayerApi()?.removeEventListener(
-      'videodatachange',
-      videoDataChangeHandler,
-    ),
-  );
+  // prettier-ignore
+  {
+    onMount(() => _ytAPI?.addEventListener('videodatachange', videoDataChangeHandler));
+    onCleanup(() => _ytAPI?.removeEventListener('videodatachange', videoDataChangeHandler));
+  }
 
   createEffect(() => {
     if (!hasManuallySwitchedProvider()) {
@@ -213,12 +208,11 @@ export const LyricsPicker = (props: {
           <Index each={providerNames}>
             {(provider) => {
               const pState = () => lyricsStore.lyrics[provider()];
-              const offsetPercent = -100 * providerIdx();
               return (
                 <div
                   class="lyrics-picker-item"
                   style={{
-                    transform: `translateX(${offsetPercent - 5}%)`,
+                    transform: `translateX(${providerIdx() * -100 - 5}%)`,
                   }}
                   tabindex="-1"
                 >
@@ -284,20 +278,13 @@ export const LyricsPicker = (props: {
         <ul class="lyrics-picker-content-dots">
           <For each={providerNames}>
             {(_, idx) => (
-              <li>
-                <button
-                  aria-label={providerNames[idx()]}
-                  class="lyrics-picker-dot"
-                  onClick={() =>
-                    setLyricsStore('provider', providerNames[idx()])
-                  }
-                  style={{
-                    background: idx() === providerIdx() ? 'white' : 'black',
-                    padding: 0,
-                  }}
-                  type="button"
-                />
-              </li>
+              <li
+                class="lyrics-picker-dot"
+                onClick={() => setLyricsStore('provider', providerNames[idx()])}
+                style={{
+                  background: idx() === providerIdx() ? 'white' : 'black',
+                }}
+              />
             )}
           </For>
         </ul>

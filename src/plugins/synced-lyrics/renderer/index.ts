@@ -11,22 +11,11 @@ import type { SongInfo } from '@/providers/song-info';
 import type { RendererContext } from '@/types/contexts';
 import type { MusicPlayer } from '@/types/music-player';
 
-let playerApi: MusicPlayer | null = null;
-export const getPlayerApi = () => playerApi;
-
-type NetFetchFn = (
+export let _ytAPI: MusicPlayer | null = null;
+export let netFetch: (
   url: string,
   init?: RequestInit,
 ) => Promise<[number, string, Record<string, string>]>;
-
-let internalNetFetch: NetFetchFn | null = null;
-
-export const netFetch: NetFetchFn = async (url, init) => {
-  if (!internalNetFetch) {
-    throw new Error('netFetch is not initialized yet');
-  }
-  return internalNetFetch(url, init);
-};
 
 export const renderer = createRenderer<
   {
@@ -57,7 +46,7 @@ export const renderer = createRenderer<
   },
 
   async onPlayerApiReady(api: MusicPlayer) {
-    playerApi = api;
+    _ytAPI = api;
 
     api.addEventListener('videodatachange', this.videoDataChange);
 
@@ -66,7 +55,7 @@ export const renderer = createRenderer<
   async videoDataChange() {
     if (!this.updateTimestampInterval) {
       this.updateTimestampInterval = setInterval(
-        () => setCurrentTime((playerApi?.getCurrentTime() ?? 0) * 1000),
+        () => setCurrentTime((_ytAPI?.getCurrentTime() ?? 0) * 1000),
         100,
       );
     }
@@ -77,15 +66,17 @@ export const renderer = createRenderer<
 
     // Force the lyrics tab to be enabled at all times.
     const header = await waitForElement<HTMLElement>(selectors.head);
-    header.removeAttribute('disabled');
-    tabStates[header.ariaSelected ?? 'false']();
+    {
+      header.removeAttribute('disabled');
+      tabStates[header.ariaSelected ?? 'false']();
+    }
 
     this.observer.observe(header, { attributes: true });
     header.removeAttribute('disabled');
   },
 
   async start(ctx: RendererContext<SyncedLyricsPluginConfig>) {
-    internalNetFetch = ctx.ipc.invoke.bind(ctx.ipc, 'synced-lyrics:fetch');
+    netFetch = ctx.ipc.invoke.bind(ctx.ipc, 'synced-lyrics:fetch');
 
     setConfig(await ctx.getConfig());
 

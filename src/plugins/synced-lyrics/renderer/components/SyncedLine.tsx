@@ -3,7 +3,7 @@ import { type VirtualizerHandle } from 'virtua/solid';
 
 import { type LineLyrics } from '@/plugins/synced-lyrics/types';
 
-import { getPlayerApi } from '..';
+import { _ytAPI } from '..';
 import { config, currentTime } from '../renderer';
 import {
   canonicalize,
@@ -35,12 +35,18 @@ const EmptyLine = (props: SyncedLineProps) => {
   });
 
   return (
-    <button
+    <div
       class={`synced-line ${props.status}`}
       onClick={() => {
-        getPlayerApi()?.seekTo((props.line.timeInMs + 10) / 1000);
+        _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
       }}
-      type="button"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
       <div class="description ytmusic-description-shelf-renderer" dir="auto">
         <yt-formatted-string
@@ -80,7 +86,7 @@ const EmptyLine = (props: SyncedLineProps) => {
           </span>
         </div>
       </div>
-    </button>
+    </div>
   );
 };
 
@@ -106,12 +112,18 @@ export const SyncedLine = (props: SyncedLineProps) => {
 
   return (
     <Show fallback={<EmptyLine {...props} />} when={text()}>
-      <button
+      <div
         class={`synced-line ${props.status}`}
         onClick={() => {
-          getPlayerApi()?.seekTo((props.line.timeInMs + 10) / 1000);
+          _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
         }}
-        type="button"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            _ytAPI?.seekTo((props.line.timeInMs + 10) / 1000);
+          }
+        }}
+        role="button"
+        tabIndex={0}
       >
         <div class="description ytmusic-description-shelf-renderer" dir="auto">
           <yt-formatted-string
@@ -127,7 +139,7 @@ export const SyncedLine = (props: SyncedLineProps) => {
           <div
             class="text-lyrics"
             ref={(div: HTMLDivElement) => {
-              // Note(upstream): even though the duration is properly set, all lines share the same animation duration
+              // FIXME(upstream): even though the duration is properly set, all lines share the same animation duration
               div.style.setProperty(
                 '--lyrics-duration',
                 `${props.line.duration / 1000}s`,
@@ -186,7 +198,7 @@ export const SyncedLine = (props: SyncedLineProps) => {
             </Show>
           </div>
         </div>
-      </button>
+      </div>
     </Show>
   );
 };
