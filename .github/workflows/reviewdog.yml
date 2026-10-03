@@ -1,17 +1,14 @@
 name: reviewdog
 
 on:
-  pull_request_target:
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: 'Branch, tag, atau commit SHA yang ingin di-lint (contoh: master, v3.11.8)'
-        required: false
-        default: 'master'
-        type: string
+  pull_request_target: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
 
 env:
-  NODE_VERSION: "24.x"
+  NODE_VERSION: 24.x
 
 jobs:
   oxlint:
@@ -26,8 +23,6 @@ jobs:
       checks: write
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -39,7 +34,7 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts

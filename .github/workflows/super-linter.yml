@@ -8,11 +8,12 @@ name: Super-linter Code Base
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [master]
   pull_request:
-    branches: [ "master" ]
+    branches: [master]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   build:
