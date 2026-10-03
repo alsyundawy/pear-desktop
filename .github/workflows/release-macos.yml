@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag rilis yang ingin di-build (contoh: v3.11.5)'
+        description: 'Tag rilis yang ingin di-build (contoh: v3.11.8)'
         required: true
-        default: 'v3.11.5'
+        default: 'v3.11.8'
         type: string
 
 permissions:
