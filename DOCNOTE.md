@@ -264,5 +264,7 @@ This release accomplishes:
 | `README.md`                                                     | Updated artifact catalog for `YouTube.Music-3.11.8-x64.dmg` and Gatekeeper xattr command to `/Applications/"YouTube Music.app"` |
 | `src/music-player.css`                                          | Injected Pear Desktop SVG logo and YouTube Sans 'Music' typography on navbar, with responsive compact view hiding |
 | `src/plugins/synced-lyrics/style.css`                           | Aligned lyrics picker indicator dots horizontally into flex-row, optimized virtualized lyrics scrolling container  |
+| `playwright.config.ts`                                          | Configured explicit testMatch and testIgnore (`**/.kilo/**`, `**/dist/**`, etc.) preventing external worktree failures |
+| `.gitignore`                                                    | Added `.kilo/` to prevent tracking external worktree or agent scratch directories                                  |
 | `changelog.md`                                                  | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration         |
 | `DOCNOTE.md`                                                    | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                      |
