@@ -5,8 +5,19 @@ import type { LyricProvider, LyricResult, SearchSongInfo } from '../types';
 const preloadedStateRegex = /__PRELOADED_STATE__ = JSON\.parse\('(.*?)'\);/;
 const preloadHtmlRegex = /body":\{"html":"(.*?)","children"/;
 
+const HTML_ENTITIES: Readonly<Record<string, string>> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#x27;': "'",
+  '&#39;': "'",
+};
+
+const HTML_ENTITY_REGEX = /&(?:amp|lt|gt|quot|#x27|#39);/g;
+
 function unescapeAndDecode(text: string): string {
-  let cleaned = text
+  const cleaned = text
     .replaceAll(String.raw`\r\n`, '\n')
     .replaceAll(String.raw`\n`, '\n')
     .replaceAll(String.raw`\r`, '\n')
@@ -15,15 +26,12 @@ function unescapeAndDecode(text: string): string {
     .replaceAll(String.raw`\'`, "'")
     .replaceAll(String.raw`\\`, '\\');
 
-  cleaned = cleaned
-    .replaceAll('&amp;', '&')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#x27;', "'")
-    .replaceAll('&#39;', "'");
+  const decoded = cleaned.replaceAll(
+    HTML_ENTITY_REGEX,
+    (entity) => HTML_ENTITIES[entity] ?? entity,
+  );
 
-  return cleaned.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+  return decoded.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 }
 
 function isHeaderLine(line: string): boolean {

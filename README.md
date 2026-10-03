@@ -349,9 +349,15 @@ Pear Desktop Mac enforces an uncompromising 13-dimension quality bar across ever
 - **Upstream Translation Synchronization & Menu Restoration (`src/i18n`)**:
   - Pulled and synchronized complete upstream translation catalogs from `pear-devs/pear-desktop:src/i18n` across 63 languages (including newly upstreamed `af`, `be-Latn`, `ckb`, `km`, `lo`, `mk`).
   - Restored classic "Ad Blocker" / "Pemblokir Iklan" menu display labels across all 67 locales while preserving underlying `do-not-track` configuration.
+- **macOS Ad-hoc Code Signing & Artifact Naming (`electron-builder.yml`)**:
+  - Configured `mac.identity: '-'` for automatic ad-hoc signing (`codesign -s -`) and library validation bypass, preventing Gatekeeper false-positive "damaged" warnings on downloaded release DMGs.
+  - Standardized artifact naming template to `YouTube.Music-${version}-${arch}.${ext}` (`YouTube.Music-3.11.8-x64.dmg` & `YouTube.Music-3.11.8-arm64.dmg`), ensuring Intel x64 packages include the explicit `-x64` tag without spaces.
+- **UI Branding & Synchronized Lyrics Improvements (`src/music-player.css`, `src/plugins/synced-lyrics`)**:
+  - Replaced YouTube Music navbar logo with the official Pear Desktop vector SVG emblem and YouTube Sans 'Music' typography with responsive compact view collapsing (< 615px).
+  - Aligned lyrics picker indicator dots horizontally into a flex row to ensure provider dots display side-by-side.
 - **CodeQL Security Remediation**:
   - Remediated Incomplete URL substring sanitization (alerts #3, #4, #5, #14 in `src/index.ts` and #7 in `tests/index.test.js`) by replacing prefix matches with strict WHATWG URL origin and hostname domain checking.
-  - Remediated Double escaping or unescaping (alert #1 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts`) using single-pass regex replacement with lookup dictionary.
+  - Remediated Double escaping or unescaping (alert #1 & #16 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts`) using single-pass regex replacement with lookup dictionary.
 - **SonarLint Code Quality, Cognitive Complexity & Accessibility Hardening**:
   - Fixed nested promises (`typescript:S9381`) in `src/index.ts` across auto-update and hide-menu dialog flows.
   - Documented and resolved architectural event-loop deadlock on `app.whenReady()` (`typescript:S7785`), preserving Electron's standard lifecycle loop.

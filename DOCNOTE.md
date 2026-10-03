@@ -74,11 +74,13 @@ This release accomplishes:
     expect(parsedUrl.origin).toBe('https://music.youtube.com');
     ```
 
-### 3.3 Double Escaping or Unescaping (CodeQL #1 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts:75`)
+### 3.3 Double Escaping or Unescaping (CodeQL #1 & #16 in `src/plugins/synced-lyrics/providers/LyricsGenius.ts`)
 
-- **Vulnerability**: Chained sequential string replacements (`.replace(/\\"/g, '"').replace(...)`) could unescape previously escaped characters or introduce double-escaping vulnerabilities.
+- **Vulnerability (#1 & #16)**: Chained sequential string replacements (`.replace(/\\"/g, '"').replace(...)` and sequential `.replaceAll('&amp;', '&').replaceAll('&lt;', '<')...`) caused CodeQL double-unescaping security alerts. Replacing `&amp;` before other entities could unescape compound entities (e.g., `&amp;lt;` -> `&lt;` -> `<`).
 - **Remediation**:
-  - Implemented a single-pass token replacer using a dictionary lookup `escapeMap` and regular expression `/\\([/'"n\\])/g`, ensuring each escape sequence is decoded exactly once.
+  - Implemented single-pass token replacers for both string escapes and HTML entities.
+  - Replaced chained HTML unescaping with an atomic single-pass regular expression `HTML_ENTITY_REGEX = /&(?:amp|lt|gt|quot|#x27|#39);/g` and `HTML_ENTITIES` dictionary lookup in `unescapeAndDecode`, ensuring every entity is evaluated and decoded exactly once in a single scan.
+  - Completely eliminates CodeQL `js/double-escaping` alerts (#1, #16).
 
 ---
 
