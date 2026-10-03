@@ -1,4 +1,4 @@
-name: Release Pear Desktop (macOS Intel & ARM)
+name: Release Pear Desktop Alsyundawy
 
 on:
   push:
