@@ -266,5 +266,6 @@ This release accomplishes:
 | `src/plugins/synced-lyrics/style.css`                           | Aligned lyrics picker indicator dots horizontally into flex-row, optimized virtualized lyrics scrolling container  |
 | `playwright.config.ts`                                          | Configured explicit testMatch and testIgnore (`**/.kilo/**`, `**/dist/**`, etc.) preventing external worktree failures |
 | `.gitignore`                                                    | Added `.kilo/` to prevent tracking external worktree or agent scratch directories                                  |
+| `.github/workflows/reviewdog.yml`                               | Enabled manual workflow_dispatch dispatching with dynamic github-check reporter and nofilter mode                  |
 | `changelog.md`                                                  | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration         |
 | `DOCNOTE.md`                                                    | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                      |

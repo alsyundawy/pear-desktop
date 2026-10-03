@@ -1,13 +1,23 @@
 name: reviewdog
 
-on: [pull_request_target]
+on:
+  pull_request_target:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, atau commit SHA yang ingin di-lint (contoh: master, v3.11.8)'
+        required: false
+        default: 'master'
+        type: string
 
 env:
   NODE_VERSION: "24.x"
 
 jobs:
   oxlint:
-    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository)
     name: runner / oxlint
     runs-on: macos-latest
     permissions:
@@ -16,6 +26,8 @@ jobs:
       checks: write
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -33,6 +45,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Checkout PR source files
+        if: github.event_name == 'pull_request_target'
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -40,6 +53,7 @@ jobs:
           path: __pr_src
 
       - name: Overlay PR source
+        if: github.event_name == 'pull_request_target'
         run: |
           rm -rf src
           cp -r __pr_src/src src
@@ -56,11 +70,19 @@ jobs:
         run: |
           set -o pipefail
 
-          pnpm exec oxlint src --type-aware --format=checkstyle |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            REPORTER="github-check"
+            FILTER_MODE="nofilter"
+          else
+            REPORTER="github-pr-review"
+            FILTER_MODE="file"
+          fi
+
+          pnpm exec oxlint src --format=checkstyle |
             reviewdog \
               -f=checkstyle \
               -name=oxlint \
-              -reporter=github-pr-review \
-              -filter-mode=file \
+              -reporter="$REPORTER" \
+              -filter-mode="$FILTER_MODE" \
               -fail-level=error \
               -tee
