@@ -18,7 +18,8 @@ publish:
   owner: alsyundawy
   repo: pear-desktop-mac
 mac:
-  identity: null
+  identity: '-'
+  artifactName: YouTube.Music-${version}-${arch}.${ext}
   target:
     - target: dmg
       arch:

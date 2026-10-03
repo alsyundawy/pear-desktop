@@ -188,26 +188,26 @@ To deliver uncompromising energy efficiency and responsiveness on MacBook Air an
 
 Official distribution packages are compiled, signed, and published for macOS under [Releases](https://github.com/alsyundawy/pear-desktop-mac/releases/latest):
 
-| Target Architecture       | Package Type     | Minimum OS | File Artifact Name               | File Size  | SHA-256 Digest                                                     |
-| :------------------------ | :--------------- | :--------- | :------------------------------- | :--------- | :----------------------------------------------------------------- |
-| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8-arm64.dmg` | 112.35 MiB | `b9c09142e0bff3d18997ce7374568d27974af201c159f7c5aca85d4537af2126` |
-| **Intel x64**             | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8.dmg`       | 116.77 MiB | `e546ce1c4c5e78cc9f6c28c37ece374c5a72296a566aa76d3b074b770b225dfa` |
+| Target Architecture       | Package Type     | Minimum OS | File Artifact Name                   | File Size  | SHA-256 Digest                                                     |
+| :------------------------ | :--------------- | :--------- | :----------------------------------- | :--------- | :----------------------------------------------------------------- |
+| **Apple Silicon (ARM64)** | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8-arm64.dmg`     | 112.35 MiB | `b9c09142e0bff3d18997ce7374568d27974af201c159f7c5aca85d4537af2126` |
+| **Intel x64**             | `.dmg` Installer | macOS 12+  | `YouTube.Music-3.11.8-x64.dmg`       | 116.77 MiB | `e546ce1c4c5e78cc9f6c28c37ece374c5a72296a566aa76d3b074b770b225dfa` |
 
 ---
 
 ## macOS Gatekeeper & Quarantine Removal
 
-When installing unsigned community applications downloaded from GitHub on modern macOS versions (macOS Sequoia, Sonoma, or Ventura), Apple Gatekeeper may present a dialog stating:
+When installing community applications downloaded from GitHub on modern macOS versions (macOS Sequoia, Sonoma, or Ventura), Apple Gatekeeper may present a dialog stating:
 
-> _"Pear Desktop.app is damaged and can’t be opened. You should move it to the Trash."_
+> _"YouTube Music.app is damaged and can’t be opened. You should move it to the Trash."_
 
-This is standard macOS Gatekeeper behavior for open-source software distributed outside the Mac App Store. To clear the quarantine attribute, open **Terminal.app** and run:
+This is standard macOS Gatekeeper behavior for open-source software distributed outside the Mac App Store without an Apple Developer ID certificate. To clear the quarantine attribute, open **Terminal.app** and run:
 
 ```bash
-sudo xattr -cr "/Applications/Pear Desktop.app"
+sudo xattr -cr "/Applications/YouTube Music.app"
 ```
 
-Once executed, Pear Desktop Mac will launch immediately with full native permissions.
+Once executed, YouTube Music will launch immediately with full native permissions.
 
 ---
 

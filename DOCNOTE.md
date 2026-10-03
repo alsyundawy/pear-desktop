@@ -242,7 +242,7 @@ This release accomplishes:
 
 | File                                                            | Nature of Changes                                                                                                  |
 | :-------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `electron-builder.yml`                                          | Added github publish provider and zip target for latest-mac.yml emission                                           |
+| `electron-builder.yml`                                          | Configured mac `identity: '-'` for ad-hoc signing, `artifactName: YouTube.Music-${version}-${arch}.${ext}`, and publish provider |
 | `eslint.config.mjs`                                             | Removed //@ts-check and applied String.raw for escaped regex tokens                                                |
 | `src/index.ts`                                                  | Configured autoUpdater feed URL, URL sanitization alerts (#3, #4, #5, #14), Sonar S9381, S7785 deadlock prevention |
 | `assets/error.html`                                             | Replaced anchor with accessible button, added border/cursor styles, standardized uppercase DOCTYPE and meta tags   |
@@ -259,7 +259,7 @@ This release accomplishes:
 | `pnpm-workspace.yaml`                                           | Security override for file-type (alert #150), updated patchedDependencies (purged mdui@2.1.4 and file-type@16.5.4) |
 | `pnpm-lock.yaml`                                                | Regenerated lockfile with `mdui@2.1.5` and 0 audit vulnerabilities                                                 |
 | `package.json`                                                  | Release v3.11.8 metadata (version strictly preserved at 3.11.8)                                                    |
-| `README.md`                                                     | Synchronized documentation with latest changelog and v3.11.8 release                                               |
+| `README.md`                                                     | Updated artifact catalog for `YouTube.Music-3.11.8-x64.dmg` and Gatekeeper xattr command to `/Applications/"YouTube Music.app"` |
 | `src/music-player.css`                                          | Injected Pear Desktop SVG logo and YouTube Sans 'Music' typography on navbar, with responsive compact view hiding |
 | `src/plugins/synced-lyrics/style.css`                           | Aligned lyrics picker indicator dots horizontally into flex-row, optimized virtualized lyrics scrolling container  |
 | `changelog.md`                                                  | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration         |

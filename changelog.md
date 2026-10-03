@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file. Dates are d
 
 > 01 October 2026
 
+- **macOS Build, Gatekeeper Packaging & Artifact Naming (`electron-builder.yml`)**:
+  - **Ad-hoc Signing (`identity: '-'`)**: Switched macOS code-signing identity from `null` to `'-'` (ad-hoc signing). Electron-builder now signs the application bundle, frameworks, and helpers with an ad-hoc cryptographic seal and injects `com.apple.security.cs.disable-library-validation`, resolving the issue where modern macOS (Sequoia / Sonoma) marks quarantined release DMGs as "damaged and can't be opened".
+  - **Standardized Artifact Names (`artifactName: YouTube.Music-${version}-${arch}.${ext}`)**: Explicitly configured the macOS artifact template to generate dot-separated, architecture-tagged binary packages (`YouTube.Music-3.11.8-x64.dmg` & `YouTube.Music-3.11.8-arm64.dmg`), eliminating spaces and ensuring Intel x64 packages include the `-x64` architecture tag.
 - **UI & UX Enhancements (`src/music-player.css`, `src/plugins/synced-lyrics`)**:
   - **Synced Lyrics Provider Picker Dots Alignment (`src/plugins/synced-lyrics/style.css`)**: Resolved vertical pagination dots stacking regression under the provider label by styling `.lyrics-picker-content-dots` with `display: flex; flex-direction: row; justify-content: center; align-items: center; list-style: none; padding: 0; margin: 0;` and `.lyrics-picker-content-dots li { display: inline-flex; }`, ensuring indicator dots are aligned horizontally side-by-side.
   - **Application Branding & Navigation Bar Logo Customization (`src/music-player.css`)**: Replaced default YouTube Music logo in the top-left navigation bar with the official Pear Desktop application logo (vector SVG data URI) paired with 'Music' typography rendered in authentic YouTube Sans styling, maintaining responsive compact view collapsing on viewports narrower than 615px.
