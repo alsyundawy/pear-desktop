@@ -14,9 +14,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Branch, tag, atau commit SHA yang ingin di-build (contoh: v3.11.5, master)'
+        description: 'Branch, tag, atau commit SHA yang ingin di-build (contoh: v3.11.8, master)'
         required: false
-        default: 'v3.11.5'
+        default: 'v3.11.8'
         type: string
 
 permissions:
