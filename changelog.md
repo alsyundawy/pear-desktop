@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file. Dates are d
 
 > 01 October 2026
 
+- **UI & UX Enhancements (`src/music-player.css`, `src/plugins/synced-lyrics`)**:
+  - **Synced Lyrics Provider Picker Dots Alignment (`src/plugins/synced-lyrics/style.css`)**: Resolved vertical pagination dots stacking regression under the provider label by styling `.lyrics-picker-content-dots` with `display: flex; flex-direction: row; justify-content: center; align-items: center; list-style: none; padding: 0; margin: 0;` and `.lyrics-picker-content-dots li { display: inline-flex; }`, ensuring indicator dots are aligned horizontally side-by-side.
+  - **Application Branding & Navigation Bar Logo Customization (`src/music-player.css`)**: Replaced default YouTube Music logo in the top-left navigation bar with the official Pear Desktop application logo (vector SVG data URI) paired with 'Music' typography rendered in authentic YouTube Sans styling, maintaining responsive compact view collapsing on viewports narrower than 615px.
 - **Upstream Translation Synchronization (`src/i18n`)**:
   - Pulled and synchronized upstream translations from `pear-devs/pear-desktop:src/i18n` across 63 locales, adding full support for `af`, `be-Latn`, `ckb`, `km`, `lo`, and `mk`.
   - Preserved custom plugin translation namespaces (`do-not-track` suite restored with classic "Ad Blocker" / "Pemblokir Iklan" menu display labels across all 67 locales, and `sponsorblock.menu.categories`) in both English (`en.json`) and Indonesian (`id.json`).

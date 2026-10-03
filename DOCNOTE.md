@@ -178,9 +178,18 @@ This release accomplishes:
   - Added progress-based proportional auto-scrolling for plain (unsynced) lyrics: calculates line index based on `currentTime / duration` and smoothly scrolls `scroller()!.scrollToIndex(scrollIndex, { smooth: true, align: 'center' })` to keep the active verse in view during song playback.
 - **`style.css`**:
   - Styled `.synced-lyrics-vlist` with `flex: 1; height: 100% !important; width: 100%; overflow-y: auto !important; -webkit-overflow-scrolling: touch;` to guarantee fluid trackpad momentum and mouse wheel scrolling.
+  - Aligned `.lyrics-picker-content-dots` horizontally with `display: flex; flex-direction: row; justify-content: center; align-items: center; list-style: none; padding: 0; margin: 0;` and `.lyrics-picker-content-dots li { display: inline-flex; }`, resolving vertical pagination dots stacking regression.
   - Eliminated trailing blank line at EOF (achieving 100% Trunk compliance).
 
-### 5.6 SonarLint Code Quality & Accessibility Remediation
+### 5.6 UI Branding & Navigation Bar Customization (`src/music-player.css`)
+
+- **`src/music-player.css`**:
+  - Replaced the default YouTube Music navigation bar logo (`ytmusic-nav-bar > div.left-content > a > picture`) with Pear Desktop's official application logo using an embedded high-resolution SVG data URI via `::before` (24×24px).
+  - Paired the logo with clean 'Music' typography rendered via `::after` in authentic YouTube Sans styling (`letter-spacing: -0.5px`, bold white).
+  - Maintained responsive behavior with `@media (max-width: 615px)` to collapse to the icon-only emblem in compact/narrow views.
+  - Retained `-webkit-user-drag: none;` property on navbar links.
+
+### 5.7 SonarLint Code Quality & Accessibility Remediation
 
 - **`eslint.config.mjs`**: Removed `//@ts-check` to eliminate Flat Config ESM subpath export type resolution errors and adopted `String.raw` for regex token patterns.
 - **`LRCLib.ts`**: Extracted reusable `querySearch` helper method, replaced generic `Error` with `TypeError`, and reduced cognitive complexity from 30 to <7.
@@ -251,5 +260,7 @@ This release accomplishes:
 | `pnpm-lock.yaml`                                                | Regenerated lockfile with `mdui@2.1.5` and 0 audit vulnerabilities                                                 |
 | `package.json`                                                  | Release v3.11.8 metadata (version strictly preserved at 3.11.8)                                                    |
 | `README.md`                                                     | Synchronized documentation with latest changelog and v3.11.8 release                                               |
+| `src/music-player.css`                                          | Injected Pear Desktop SVG logo and YouTube Sans 'Music' typography on navbar, with responsive compact view hiding |
+| `src/plugins/synced-lyrics/style.css`                           | Aligned lyrics picker indicator dots horizontally into flex-row, optimized virtualized lyrics scrolling container  |
 | `changelog.md`                                                  | Added comprehensive `[v3.11.8]` release entry with alert #150, synced lyrics, and auto-updater integration         |
 | `DOCNOTE.md`                                                    | Authored full release documentation and 13-pillar review matrix for `v3.11.8`                                      |
